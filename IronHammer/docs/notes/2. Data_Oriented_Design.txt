@@ -1,0 +1,51 @@
+
+Data Locality and CPU Caching:
+
+Modern CPUs heavily rely on multi level cache hierarchies to bridge the performance gap between 
+the processor core's execution units and the slower main memory. 
+
+CPU -> Divided into multiple sets -> Each set has a fixed number of cache lines (64 bytes)
+
+CPUs implement prefetchers which predict future memory access and try to load cache lines ahead of time. With this 
+in mind it will benefit the prefetcher if data is stored contiguously and therefore more predictable.
+
+SOA vs AOS:
+
+- SOA is generally better due to contigious storage of similar data. Moreover, iterating over SOA tends to be more predictable and cache coherent.
+- Although branching behavior via flags can make AOS a better choice in smaller component counts.
+- Generally for the ECS design pattern, SOA is a better choice
+- Try to have SOA arrays be aligned with SIMD loads.
+
+Zero Cost Abstractions:
+
+Curiously Recurring Template Pattern (CRTP) uses static polymorphism by having a base class template accept a derived class as a parameter.
+
+templaye<typename Derived>
+class SystemBase
+{
+public:
+
+	void Update(float dt)
+	{
+		static_cast<Derived*>(this)->Update_Impl(dt);
+	}
+}
+
+class VelocitySystem : SystemBase<VelocitySystem>
+{
+public:
+	
+	void Update_Impl(float dt)
+	{
+		//Logic
+	}
+}
+
+class Engine
+{
+	VelocitySystem velocitySystem;
+	velocitySystem.Update(); //Allows polymorphism without the overhead 
+}
+
+
+Component Storage Strategies

@@ -1,0 +1,59 @@
+
+The evolution of hardware is a key factor in why a traditional OOP approach might not be an efficient way for modern game architecture.
+
+OOP -> Inheritance Trees -> Code Reuse and Abstraction -> Scattered Memory -> Poor Cache Use
+
+Modern CPUs rely heavily on Cache. 
+
+Deep Inheritance -> Intertwind States -> Harder Parallel Execution
+
+E: Entity as Unqiue Identity
+C: Compoentn as Pure Data
+S: System as Behavior 
+
+With ECS: 
+- Cache Friendly due to archetype chunking reducing cache misses.		 
+- Parallelization with stateless systems operating in disjointed data.
+- Seperation of Concerns and no fragmented memory.
+- Minimal Indirection with direct indexing into components from archetypes as opposed to pointer chasing.
+
+Example of Enity:
+
+struct Entity
+{
+	uint32_t index;
+	uint32_t generation;
+}
+
+Example of Components:
+
+struct Transform {float x,y,z;}
+struct Velocity {float x,y,z;}
+
+Archetype is a unique combination of components:
+
+struct Archetype
+{	
+	std::vector<Entity> entities;
+	std::vector<Transform> transforms;
+	std::vector<Velocity> velocities;
+}
+
+
+Pseudocode for a System:
+
+void VelocitySystem(Archetype<Transform,Velocity> arch, float dt)
+{	
+	for(size_t i = 0; i < arch.entities.size(); ++i)
+	{	
+		Transform& t = arch.transforms[i]; 
+		const Velocity& v = arch.velocity[i];
+		
+		t.x += v.x * dt;
+		t.y += v.y * dt;
+		t.z += v.z * dt;
+		
+	}
+}
+
+
