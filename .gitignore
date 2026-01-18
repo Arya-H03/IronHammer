@@ -1,0 +1,35 @@
+# =========================
+# CMake
+# =========================
+build/
+out/
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+_deps/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.ipch
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+
+# =========================
+# Compiled objects
+# =========================
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
