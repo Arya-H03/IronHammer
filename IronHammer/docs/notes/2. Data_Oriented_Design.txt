@@ -49,3 +49,51 @@ class Engine
 
 
 Component Storage Strategies
+
+1. Dense-Sparse Mapping
+
+The key idea is to use a sparse and dense array to map indicies in the sparse array to the component in dense array.
+
+void Insert(int id, Component data)
+{
+	dense[size] = data; 
+	denseIDs[size] = id;
+	sparse[id] = size;
+	size++;
+}
+
+void Remove(int id)
+{
+	int index = sparse[id];
+	int last = size - 1;
+
+	if(index != last)
+	{
+		dense[index] = dense[last];
+		denseIDs[index] = denseIDs[last];
+		sparse[denseIDs[last]] = index;
+	}
+
+	size--;
+}
+
+2.	Pages Vectors
+
+Breaks down ID space into multiple pages. 
+
+void Insert(int id, Component data)
+{
+	int pageIndex = id / pageCapacity;
+	int offset = id % pageCapacity;
+
+	if(!pages[pageIndex]) // Allocate new page
+	Page &page = *pages[pageIndex];
+	page.dense[page.size] = data;
+	page.denseIDs[page.size] = id;
+	page.sparse[id] = page.size;
+	page.size ++;
+}
+
+3. Efficient Query Filtering
+
+We we aim for a query pipeline with 3 seperate filter that get progressively more expensive. A Bitset, a bloom filter and a hashed archetype signature. 
