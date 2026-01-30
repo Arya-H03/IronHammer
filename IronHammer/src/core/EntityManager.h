@@ -5,36 +5,68 @@
 
 struct Entity
 {
-	size_t id;
-	//size_t generation;
+	uint32_t id;
+	uint32_t generation;
 };
 
 class EntityManager
 {
-public:
-	//Create Entity
-	Entity* CreateEntity()
+	struct EntitySlot
 	{
-		Entity* e = entityPool.Allocate();
-		e->id = counter;
-		++counter;
+		uint32_t generation = 0;
+		bool isOccupied = false;
+		uint32_t nextFreeEntityIndex = UINT32_MAX;
+	};
 
-		return e;
-	}
-	//Delete Entity
-
-	void DeleteEntity(Entity* entity)
-	{
-		entityPool.DeAllocate(entity);
-	}
-
-	//Add Component To Entity
-
-	//Remove Component from Entity
 private:
-	SlabAllocator<Entity, 64> entityPool;
-	size_t counter = 0;
 
+	static constexpr size_t initialEntitySize = 1024;
+	std::vector<EntitySlot> entitySlots;
+	uint32_t freeListHeadIndex = UINT32_MAX;
+
+	bool IsEntityValid(Entity entity)const
+	{
+		if (entity.id >= entitySlots.size()) return false;
+		return entitySlots[entity.id].isOccupied && entitySlots[entity.id].generation == entity.generation;
+	}
+
+public:
+
+	EntityManager()
+	{
+		entitySlots.reserve(initialEntitySize);
+	}
+
+	Entity CreateEntity()
+	{
+		//No free slots
+		if (freeListHeadIndex == UINT32_MAX)
+		{
+			entitySlots.push_back({ 1,true,UINT32_MAX });
+			uint32_t id = (unsigned int)entitySlots.size() - 1;
+			return Entity{id, entitySlots[id].generation };
+		}
+		//Reuse a slot
+		else
+		{
+			uint32_t newEntityIndex = freeListHeadIndex;
+			EntitySlot& slot = entitySlots[newEntityIndex];
+			freeListHeadIndex = slot.nextFreeEntityIndex;
+			slot.isOccupied = true;
+			++slot.generation;
+			return Entity{newEntityIndex,slot.generation };
+		}
+	}
+
+	void DeleteEntity(Entity entity)
+	{
+		assert(IsEntityValid(entity) && "Tried to delete invalid Entity");
+
+		EntitySlot& slot = entitySlots[entity.id];
+		slot.isOccupied = false;
+		slot.nextFreeEntityIndex = freeListHeadIndex;
+		freeListHeadIndex = entity.id;
+	}
 };
 
 

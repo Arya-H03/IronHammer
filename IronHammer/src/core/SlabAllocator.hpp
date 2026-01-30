@@ -5,6 +5,7 @@ template<typename T, size_t SlabSize>
 class SlabAllocator
 {
 	static_assert(SlabSize > 0, "SlotCount must be positive");
+
 private:
 
 	struct Slab
