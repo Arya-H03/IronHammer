@@ -2,6 +2,7 @@
 
 #include "main.h"
 #include "EntityManager.h"
+#include "Archetype.hpp"
 
 struct CPosition
 {
@@ -18,35 +19,7 @@ struct CRotation
 	float x, y, z;
 };
 
-template<typename ...Components>
-struct ArchetypeChunk //Total Size = 72Bytes + |Components| * 32
-{
-	static constexpr size_t maxChunkSize = 64;
-	size_t currentChunckSize = 0;
-	std::tuple<std::vector<Components>...> components;
 
-	std::vector<size_t> denseIDs;
-	std::vector<size_t> sparse;
-
-	ArchetypeChunk()
-	{
-		denseIDs.reserve(maxChunkSize);
-		sparse.reserve(maxChunkSize);
-
-		std::apply([&](auto&... componentVector)
-			{
-
-				(..., componentVector.resize(maxChunkSize));
-
-			}, components);
-	}
-};
-
-template<typename ...Components>
-struct Archetype
-{
-	std::vector<ArchetypeChunk<Components...>> chunks;
-};
 
 int main()
 {
@@ -84,6 +57,14 @@ int main()
 	std::cout << e4.id << " / " << &e4 << " / " << e4.generation << "\n";
 	std::cout << e5.id << " / " << &e5 << " / " << e5.generation << "\n";
 	std::cout << e6.id << " / " << &e6 << " / " << e6.generation << "\n";
+
+	Archetype<64, CPosition, CRotation, CVelocity> arc;
+
+	
+
+	//std::cout << std::get<0>(arc.CreateArchetypeChunk().ptrToComponentArrayTuple);
+
+
 
 	sf::Clock deltaClock;
 	while (window.isOpen())

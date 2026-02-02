@@ -49,7 +49,7 @@ FetchContent_MakeAvailable(imgui_sfml)
 add_executable(IronHammer
     "src/core/main.cpp"
     "src/core/main.h"
- "src/core/EntityManager.h" "src/core/EntityManager.cpp"  )
+ "src/core/EntityManager.h" "src/core/EntityManager.cpp"   "src/core/Archetype.hpp" "src/core/ECSCommon.h")
 
 target_link_libraries(IronHammer
     PRIVATE

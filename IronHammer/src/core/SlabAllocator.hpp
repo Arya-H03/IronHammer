@@ -1,5 +1,6 @@
 #include <bit>
 #include <cassert>
+#pragma once
 
 template<typename T, size_t SlabSize>
 class SlabAllocator
@@ -41,6 +42,12 @@ private:
 
 				bitSet.multiple[wordIndex] &= ~(1ull << bitIndex);
 			}
+		}
+
+		void SetBitsetToZero()
+		{
+			if constexpr (wordCount == 1)bitSet.single = 0ull;
+			else for (size_t i = 0; i < wordCount; ++i) bitSet.multiple[i] = 0ull;
 		}
 
 		void ResetBitToOne(size_t index)
@@ -113,6 +120,16 @@ private:
 		return SIZE_MAX;
 	}
 
+	size_t FindEmptySlab()
+	{
+		for (size_t i = 0; i < slabs.size(); ++i)
+		{
+			if (slabs[i].freeCount == SlabSize) return i;
+		}
+
+		return SIZE_MAX;
+	}
+
 	std::pair<size_t, size_t> LocateBlock(T* ptr)
 	{
 		for (size_t i = 0; i < slabs.size(); ++i)
@@ -122,6 +139,13 @@ private:
 			if (ptr >= base && ptr < base + SlabSize) return { i, size_t(ptr - base) };
 
 		}
+		assert(false && "Pointer wans't found");
+	}
+
+	size_t LocateSlab(T* arrayPtr)
+	{
+		for (size_t i = 0; i < slabs.size(); ++i) if (arrayPtr == slabs[i].blocks) return i;
+
 		assert(false && "Pointer wans't found");
 	}
 
@@ -147,12 +171,41 @@ public:
 		return &slab.blocks[freeIndex];
 	}
 
+	T* AllocateArray()
+	{
+		//When no free Slabs Exist
+		if (currentSlabIndex = SIZE_MAX || slabs[currentSlabIndex].freeCount != SlabSize)
+		{
+			currentSlabIndex = FindEmptySlab();
+			if (currentSlabIndex == SIZE_MAX)
+			{
+				slabs.emplace_back();
+				currentSlabIndex = slabs.size() - 1;
+			}
+		}
+
+		auto& slab = slabs[currentSlabIndex];
+		slab.SetBitsetToZero();
+		slab.freeCount = 0;
+		return slab.blocks;
+	}
+
 	void DeAllocate(T* ptr)
 	{
 		auto [slabIndex, blockIndex] = LocateBlock(ptr);
 		slabs[slabIndex].ResetBitToOne(blockIndex);
 		++slabs[slabIndex].freeCount;
 		currentSlabIndex = slabIndex;
+	}
+
+	void DeAllocateArray(T* arrayPtr)
+	{
+		size_t arrayIndex = LocateSlab(arrayPtr);
+		slabs[arrayIndex].ResetBitSetToOne();
+		slabs[arrayIndex].freeCount = SlabSize;
+
+		//This sets index to an entire empty slab. There might be cases in the futher that it should be set to the first Free slab.
+		currentSlabIndex = arrayIndex;	
 	}
 };
 
