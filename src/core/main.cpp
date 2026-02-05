@@ -1,25 +1,6 @@
 ﻿#include <SFML/Graphics.hpp>
-
 #include "main.h"
-#include "EntityManager.h"
-#include "Archetype.hpp"
-
-struct CPosition
-{
-	float x, y, z;
-};
-
-struct CVelocity
-{
-	float x, y, z;
-};
-
-struct CRotation
-{
-	float x, y, z;
-};
-
-
+#include "EntityManager.hpp"
 
 int main()
 {
@@ -31,7 +12,11 @@ int main()
 	ImGui::SFML::Init(window);
 
 	EntityManager entityManager;
-	Entity e1 = entityManager.CreateEntity();
+	ArchetypeRegistry ar;
+
+	//auto test = ar.FindOrCreateArchetype<CPosition, CRotation>();
+	//std::cout << test;
+	/*Entity e1 = entityManager.CreateEntity();
 	Entity e2 = entityManager.CreateEntity();
 	Entity e3 = entityManager.CreateEntity();
 	Entity e4 = entityManager.CreateEntity();
@@ -56,11 +41,16 @@ int main()
 	std::cout << e3.id << " / " << &e3 << " / " << e3.generation << "\n";
 	std::cout << e4.id << " / " << &e4 << " / " << e4.generation << "\n";
 	std::cout << e5.id << " / " << &e5 << " / " << e5.generation << "\n";
-	std::cout << e6.id << " / " << &e6 << " / " << e6.generation << "\n";
+	std::cout << e6.id << " / " << &e6 << " / " << e6.generation << "\n"; */
 
-	Archetype<64, CPosition, CRotation, CVelocity> arc;
+		//Archetype<64, CPosition, CRotation, CVelocity> arc;
 
-	
+		/*std::cout << GetComponentID<CVelocity>()<<"\n";
+		std::cout << GetComponentID<CPosition>()<<"\n";
+		std::cout << GetComponentID<CRotation>()<<"\n";
+		std::cout << GetComponentID<CRotation>()<<"\n";
+		std::cout << GetComponentID<CVelocity>() << "\n";
+		std::cout << GetComponentID<CPosition>() << "\n";*/
 
 	//std::cout << std::get<0>(arc.CreateArchetypeChunk().ptrToComponentArrayTuple);
 
