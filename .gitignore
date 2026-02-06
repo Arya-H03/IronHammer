@@ -33,3 +33,11 @@ _deps/
 # =========================
 .DS_Store
 Thumbs.db
+.cache
+.zed
+
+.clang-format
+
+compile_commands.json
+
+imgui.ini

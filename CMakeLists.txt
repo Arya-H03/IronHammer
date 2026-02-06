@@ -1,15 +1,20 @@
-﻿cmake_minimum_required(VERSION 3.5)
+﻿cmake_minimum_required(VERSION 3.23)
 project(IronHammer LANGUAGES CXX)
 
 # ---------------- C++ Standard ----------------
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)  # Avoid compiler-specific extensions
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE-COMMANDS ON)
 
 # ---------------- FetchContent ----------------
 include(FetchContent)
 
 # -------- SFML 3.0.2 --------
+set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "Disable building SFML examples")
+set(SFML_BUILD_TESTS OFF CACHE BOOL "Disable building SFML tests")
+set(SFML_BUILD_DOC OFF CACHE BOOL "Disable building SFML documentation")
+
 FetchContent_Declare(
     SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
@@ -28,7 +33,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-# -------- ImGui-SFML 3.0 (SFML 3 compatible) --------
+# -------- ImGui-SFML 3.0 --------
 FetchContent_Declare(
     imgui_sfml
     GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
@@ -40,15 +45,13 @@ set(IMGUI_DIR ${imgui_SOURCE_DIR})
 FetchContent_MakeAvailable(imgui_sfml)
 
 # ---------------- Executable ----------------
-add_executable(IronHammer
-    src/core/main.cpp
-    
-    # src/core/main.cpp 
-    # src/core/EntityManager.hpp
-    # src/core/Archetype.hpp
-    # src/core/ECSCommon.h
+file(GLOB_RECURSE IRONHAMMER_SOURCES
+    src/core/*.cpp
+    src/core/*.h
+    src/core/*.hpp
 )
 
+add_executable(IronHammer ${IRONHAMMER_SOURCES})
 # ---------------- Link Libraries ----------------
 target_link_libraries(IronHammer
     PRIVATE
@@ -58,11 +61,3 @@ target_link_libraries(IronHammer
         SFML::Audio
         ImGui-SFML::ImGui-SFML
 )
-
-# ---------------- Platform-Specific Settings (Optional) ----------------
-# Example: Windows-specific libraries
-# if(WIN32)
-#     target_link_libraries(IronHammer PRIVATE user32 gdi32)
-# elseif(UNIX)
-#     target_link_libraries(IronHammer PRIVATE pthread dl)
-# endif()

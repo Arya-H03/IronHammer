@@ -5,9 +5,5 @@
 //Through rites arcane, your wisdom we discern,in your hallowed core the sacred mysteries yearn.
 
 #pragma once
-#include <iostream>
 #include <imgui.h>
 #include <imgui-SFML.h>
-
-
- 

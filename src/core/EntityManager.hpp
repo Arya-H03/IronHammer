@@ -1,90 +1,87 @@
-#include <bitset>
-#include <vector>
-#include <cassert>
-#include "ECSCommon.h"
 #include "ArchetypeRegistry.hpp"
-#pragma once
+#include "ECSCommon.h"
+#include <cassert>
+#include <vector>
+#pragma onces
 
 class EntityManager
 {
-	struct EntitySlot
-	{
-		uint32_t generation = 1;
-		bool isOccupied = false;
-		uint32_t nextFreeEntityIndex = UINT32_MAX;
-	};
+    struct EntitySlot
+    {
+        uint32_t generation = 1;
+        bool isOccupied = false;
+        uint32_t nextFreeEntityIndex = UINT32_MAX;
+    };
 
-private:
+  private:
+    static constexpr size_t initialEntitySize = 1024;
+    uint32_t freeListHeadIndex = UINT32_MAX;
 
-	static constexpr size_t initialEntitySize = 1024;
-	uint32_t freeListHeadIndex = UINT32_MAX;
+    std::vector<EntitySlot> entitySlots;
+    std::vector<EntityLocation> entityLocations;
 
-	std::vector<EntitySlot> entitySlots;
-	std::vector<EntityLocation> entityLocations;
+    ArchetypeRegistry archetypeRegistry;
 
-	ArchetypeRegistry archetypeRegistry;
+    bool IsEntityValid(Entity entity) const
+    {
+        if (entity.id >= entitySlots.size()) return false;
+        return entitySlots[entity.id].isOccupied && entitySlots[entity.id].generation == entity.generation;
+    }
 
-	bool IsEntityValid(Entity entity)const
-	{
-		if (entity.id >= entitySlots.size()) return false;
-		return entitySlots[entity.id].isOccupied && entitySlots[entity.id].generation == entity.generation;
-	}
+  public:
+    EntityManager()
+    {
+        entitySlots.reserve(initialEntitySize);
+        entityLocations.reserve(initialEntitySize);
+    }
 
-public:
+    template <typename... Components>
+    Entity CreateEntity(Components&&... components)
+    {
+        // No free slots
+        if (freeListHeadIndex == UINT32_MAX)
+        {
+            entitySlots.emplace_back(1, true, UINT32_MAX);
+            entityLocations.emplace_back();
 
-	EntityManager()
-	{
-		entitySlots.reserve(initialEntitySize);
-		entityLocations.reserve(initialEntitySize);
-	}
+            uint32_t id = (unsigned int) entitySlots.size() - 1;
+            return Entity{id, entitySlots[id].generation};
+        }
+        // Reuse a slot
+        else
+        {
+            uint32_t newEntityIndex = freeListHeadIndex;
+            EntitySlot& slot = entitySlots[newEntityIndex];
+            freeListHeadIndex = slot.nextFreeEntityIndex;
+            slot.isOccupied = true;
+            ++slot.generation;
 
-	template<typename... Components>
-	Entity CreateEntity(Components&&... components)
-	{
-		//No free slots
-		if (freeListHeadIndex == UINT32_MAX)
-		{
-			entitySlots.emplace_back(1, true, UINT32_MAX);
-			entityLocations.emplace_back();
+            entityLocations[newEntityIndex] = EntityLocation::InvalidLocation();
 
-			uint32_t id = (unsigned int)entitySlots.size() - 1;
-			return Entity{ id, entitySlots[id].generation };
-		}
-		//Reuse a slot
-		else
-		{
-			uint32_t newEntityIndex = freeListHeadIndex;
-			EntitySlot& slot = entitySlots[newEntityIndex];
-			freeListHeadIndex = slot.nextFreeEntityIndex;
-			slot.isOccupied = true;
-			++slot.generation;
+            return Entity{newEntityIndex, slot.generation};
+        }
 
-			entityLocations[newEntityIndex] = EntityLocation::InvalidLocation();
+        // Find or Create Archetype
 
-			return Entity{ newEntityIndex,slot.generation };
-		}
+        // Build a tuple out of components
 
-		//Find or Create Archetype
+        // Pass tuple to the AddEntity()
+    }
 
-		//Build a tuple out of components
+    void DeleteEntity(Entity entity)
+    {
+        assert(IsEntityValid(entity) && "Tried to delete invalid Entity");
 
-		//Pass tuple to the AddEntity()
-	}
+        EntitySlot& slot = entitySlots[entity.id];
+        slot.isOccupied = false;
+        slot.nextFreeEntityIndex = freeListHeadIndex;
 
-	void DeleteEntity(Entity entity)
-	{
-		assert(IsEntityValid(entity) && "Tried to delete invalid Entity");
+        entityLocations[entity.id] = EntityLocation::InvalidLocation();
 
-		EntitySlot& slot = entitySlots[entity.id];
-		slot.isOccupied = false;
-		slot.nextFreeEntityIndex = freeListHeadIndex;
+        freeListHeadIndex = entity.id;
+    }
 
-		entityLocations[entity.id] = EntityLocation::InvalidLocation();
+    // Add Component to Entity
 
-		freeListHeadIndex = entity.id;
-	}
-
-	//Add Component to Entity
-
-	//Remove Component from Entity
+    // Remove Component from Entity
 };

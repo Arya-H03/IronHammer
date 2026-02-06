@@ -1,11 +1,10 @@
-﻿#include <SFML/Graphics.hpp>
-#include "main.h"
+﻿#include "main.h"
+#include <SFML/Graphics.hpp>
 #include "EntityManager.hpp"
 
 int main()
 {
 	//ArchetypeChunk<CPosition, CRotation, CVelocity> chunk;
-
 	sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "IronHammer");
 	window.setFramerateLimit(60);
 
@@ -20,7 +19,7 @@ int main()
 	Entity e2 = entityManager.CreateEntity();
 	Entity e3 = entityManager.CreateEntity();
 	Entity e4 = entityManager.CreateEntity();
-	
+
 
 	std::cout <<  "Pre Delete:" << "\n";
 	std::cout << e1.id << " / " << &e1 << " / " << e1.generation<<  "\n";

@@ -1,10 +1,12 @@
+#pragma once
+#include <cstddef>
 #include <cstdint>
 #include <cassert>
 
 using ComponentID = uint32_t;
 static constexpr size_t MaxComponents = 32;
 
-ComponentID MakeComponentID() {
+static ComponentID MakeComponentID() {
     static ComponentID counter = 0;
     return counter++;
 }
@@ -19,7 +21,6 @@ ComponentID GetComponentID() {
 
     return id;
 }
-
 
 struct CPosition {
     float x, y, z;
