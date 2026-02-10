@@ -4,19 +4,22 @@
 using ArchetypeID = uint32_t;
 static constexpr ArchetypeID InvalidArchetypeID = UINT32_MAX;
 
+using EntityID = uint32_t;
+static constexpr EntityID InvalidEntityID = UINT32_MAX;
+
 struct Entity
 {
-    uint32_t id;
+    EntityID id;
     uint32_t generation;
 };
 
-struct EntityLocation
+struct EntityArchetypeLocation
 {
     ArchetypeID archetypeId = InvalidArchetypeID;
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 
-    static constexpr EntityLocation InvalidLocation()
+    static constexpr EntityArchetypeLocation InvalidLocation()
     {
         return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX};
     }

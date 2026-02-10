@@ -1,80 +1,46 @@
 ﻿#include "main.h"
 #include <SFML/Graphics.hpp>
+#include "Components.hpp"
+#include "ECSCommon.h"
 #include "EntityManager.hpp"
+#include "GUISystem.h"
 
 int main()
 {
-	//ArchetypeChunk<CPosition, CRotation, CVelocity> chunk;
-	sf::RenderWindow window(sf::VideoMode({ 1280, 720 }), "IronHammer");
-	window.setFramerateLimit(60);
+    // ArchetypeChunk<CPosition, CRotation, CVelocity> chunk;
+    sf::RenderWindow window(sf::VideoMode({1280, 720}), "IronHammer");
+    window.setFramerateLimit(60);
 
-	ImGui::SFML::Init(window);
-
-	EntityManager entityManager;
-	ArchetypeRegistry ar;
-
-	//auto test = ar.FindOrCreateArchetype<CPosition, CRotation>();
-	//std::cout << test;
-	/*Entity e1 = entityManager.CreateEntity();
-	Entity e2 = entityManager.CreateEntity();
-	Entity e3 = entityManager.CreateEntity();
-	Entity e4 = entityManager.CreateEntity();
+    const bool isWindowInitialized = ImGui::SFML::Init(window);
+    if (!isWindowInitialized) return 0;
 
 
-	std::cout <<  "Pre Delete:" << "\n";
-	std::cout << e1.id << " / " << &e1 << " / " << e1.generation<<  "\n";
-	std::cout << e2.id << " / " << &e2 << " / " << e2.generation << "\n";
-	std::cout << e3.id << " / " << &e3 << " / " << e3.generation << "\n";
-	std::cout << e4.id << " / " << &e4 << " / " << e4.generation << "\n";
+    EntityManager entityManager;
+    GUISystem guiSystem(entityManager);
 
-	entityManager.DeleteEntity(e1);
-	entityManager.DeleteEntity(e4);
+    Entity e0 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e4 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e5 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e1 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e6 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e7 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e3 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e9 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
 
-	Entity e5 = entityManager.CreateEntity();
-	Entity e6 = entityManager.CreateEntity();
+    sf::Clock deltaClock;
+    while (window.isOpen())
+    {
+        while (const auto event = window.pollEvent())
+        {
+            ImGui::SFML::ProcessEvent(window, *event);
+            if (event->is<sf::Event::Closed>()) window.close();
+        }
 
-	std::cout << "Post Delete:" << "\n";
-
-	std::cout << e1.id << " / " << &e1 << " / " << e1.generation << "\n";
-	std::cout << e2.id << " / " << &e2 << " / " << e2.generation << "\n";
-	std::cout << e3.id << " / " << &e3 << " / " << e3.generation << "\n";
-	std::cout << e4.id << " / " << &e4 << " / " << e4.generation << "\n";
-	std::cout << e5.id << " / " << &e5 << " / " << e5.generation << "\n";
-	std::cout << e6.id << " / " << &e6 << " / " << e6.generation << "\n"; */
-
-		//Archetype<64, CPosition, CRotation, CVelocity> arc;
-
-		/*std::cout << GetComponentID<CVelocity>()<<"\n";
-		std::cout << GetComponentID<CPosition>()<<"\n";
-		std::cout << GetComponentID<CRotation>()<<"\n";
-		std::cout << GetComponentID<CRotation>()<<"\n";
-		std::cout << GetComponentID<CVelocity>() << "\n";
-		std::cout << GetComponentID<CPosition>() << "\n";*/
-
-	//std::cout << std::get<0>(arc.CreateArchetypeChunk().ptrToComponentArrayTuple);
-
-
-
-	sf::Clock deltaClock;
-	while (window.isOpen())
-	{
-		while (const auto event = window.pollEvent())
-		{
-			ImGui::SFML::ProcessEvent(window, *event);
-			if (event->is<sf::Event::Closed>())
-				window.close();
-		}
-
-		ImGui::SFML::Update(window, deltaClock.restart());
-
-		ImGui::Begin("Debug");
-		ImGui::Text("ImGui + SFML 3 works");
-		ImGui::End();
-
-		window.clear();
-		ImGui::SFML::Render(window);
-		window.display();
-	}
-
-	ImGui::SFML::Shutdown();
+        ImGui::SFML::Update(window, deltaClock.restart());
+        guiSystem.HandleGUISystem();
+        window.clear();
+        ImGui::SFML::Render(window);
+        window.display();
+    }
 }

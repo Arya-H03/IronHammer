@@ -1,9 +1,12 @@
+#pragma once
 #include "ArchetypeRegistry.hpp"
 #include "ECSCommon.h"
 #include <cassert>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
 #include <vector>
-#pragma onces
-
 class EntityManager
 {
     struct EntitySlot
@@ -17,10 +20,11 @@ class EntityManager
     static constexpr size_t initialEntitySize = 1024;
     uint32_t freeListHeadIndex = UINT32_MAX;
 
+    // Entity-id         e0  e1  e2  e3  ...
+    // EntitySlot         0   1   2   3  ...
+    // EntityLocation     0   1   2   3  ...
     std::vector<EntitySlot> entitySlots;
-    std::vector<EntityLocation> entityLocations;
-
-    ArchetypeRegistry archetypeRegistry;
+    std::vector<EntityArchetypeLocation> entityArchetypeLocations;
 
     bool IsEntityValid(Entity entity) const
     {
@@ -29,59 +33,77 @@ class EntityManager
     }
 
   public:
+    ArchetypeRegistry archetypeRegistry;
     EntityManager()
     {
         entitySlots.reserve(initialEntitySize);
-        entityLocations.reserve(initialEntitySize);
+        entityArchetypeLocations.reserve(initialEntitySize);
     }
 
     template <typename... Components>
     Entity CreateEntity(Components&&... components)
     {
+        Entity newEntity;
+        size_t newEntityArchetypeLocationIndex;
         // No free slots
         if (freeListHeadIndex == UINT32_MAX)
         {
             entitySlots.emplace_back(1, true, UINT32_MAX);
-            entityLocations.emplace_back();
-
+            entityArchetypeLocations.emplace_back();
             uint32_t id = (unsigned int) entitySlots.size() - 1;
-            return Entity{id, entitySlots[id].generation};
+            newEntity.id = id;
+            newEntity.generation = entitySlots[id].generation;
+            newEntityArchetypeLocationIndex = entityArchetypeLocations.size() - 1;
         }
         // Reuse a slot
         else
         {
-            uint32_t newEntityIndex = freeListHeadIndex;
-            EntitySlot& slot = entitySlots[newEntityIndex];
+            uint32_t id = freeListHeadIndex;
+            EntitySlot& slot = entitySlots[id];
             freeListHeadIndex = slot.nextFreeEntityIndex;
             slot.isOccupied = true;
             ++slot.generation;
-
-            entityLocations[newEntityIndex] = EntityLocation::InvalidLocation();
-
-            return Entity{newEntityIndex, slot.generation};
+            newEntity.id = id;
+            newEntity.generation = slot.generation;
+            newEntityArchetypeLocationIndex = id;
         }
 
-        // Find or Create Archetype
+        BaseArchetype* archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
+        auto componentTuple = std::make_tuple(std::forward<Components>(components)...);
+        EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity.id, &componentTuple);
+        entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
 
-        // Build a tuple out of components
-
-        // Pass tuple to the AddEntity()
+        return newEntity;
     }
 
     void DeleteEntity(Entity entity)
     {
         assert(IsEntityValid(entity) && "Tried to delete invalid Entity");
 
+        // Recycle EntitySlot
         EntitySlot& slot = entitySlots[entity.id];
         slot.isOccupied = false;
         slot.nextFreeEntityIndex = freeListHeadIndex;
-
-        entityLocations[entity.id] = EntityLocation::InvalidLocation();
-
         freeListHeadIndex = entity.id;
+
+        // Recycle EntityLocation
+        EntityArchetypeLocation& currentArchetypeLocation = entityArchetypeLocations[entity.id];
+        BaseArchetype* archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
+        archetype->RemoveEntity(entity.id, currentArchetypeLocation.chunkIndex, currentArchetypeLocation.indexInChunk);
+        entityArchetypeLocations[entity.id] = EntityArchetypeLocation::InvalidLocation();
     }
 
     // Add Component to Entity
 
     // Remove Component from Entity
+
+    // const std::unordered_map<ArchetypeComponentSignature, BaseArchetype*>& GetAchetypeSignatureToPtrMap() const
+    // {
+    //     return archetypeRegistry.archetypeSignatureToPtrMap;
+    // }
+
+    // const std::unordered_map<ArchetypeComponentSignature, std::string>& GetArchetypeSignatureToNameMap() const
+    // {
+    //     return archetypeRegistry.archetypeSignatureToNameMap;
+    // }
 };

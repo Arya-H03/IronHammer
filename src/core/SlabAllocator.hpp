@@ -160,7 +160,7 @@ class SlabAllocator
     T* Allocate()
     {
         // When no free Slabs Exist
-        if (currentSlabIndex = SIZE_MAX || slabs[currentSlabIndex].freeCount = 0)
+        if (currentSlabIndex == SIZE_MAX || slabs[currentSlabIndex].freeCount == 0)
         {
             currentSlabIndex = FindFreeSlab();
             if (currentSlabIndex == SIZE_MAX)

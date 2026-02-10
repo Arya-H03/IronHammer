@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE-COMMANDS ON)
-
+set(CMAKE_BUILD_TYPE Debug)
 # ---------------- FetchContent ----------------
 include(FetchContent)
 
@@ -46,9 +46,9 @@ FetchContent_MakeAvailable(imgui_sfml)
 
 # ---------------- Executable ----------------
 file(GLOB_RECURSE IRONHAMMER_SOURCES
-    src/core/*.cpp
-    src/core/*.h
-    src/core/*.hpp
+    src/*.cpp
+    #src/core/*.h
+    #src/core/*.hpp
 )
 
 add_executable(IronHammer ${IRONHAMMER_SOURCES})

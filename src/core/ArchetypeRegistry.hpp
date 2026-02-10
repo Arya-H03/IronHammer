@@ -1,7 +1,9 @@
 #include "Archetype.hpp"
-#include "Components.hpp"
+#include "BaseArchetype.h"
+#include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include <bitset>
+#include <string>
 #include <unordered_map>
 #pragma once
 
@@ -11,29 +13,44 @@ class ArchetypeRegistry
 {
   private:
     std::vector<BaseArchetype*> archetypePtrs;
-    std::unordered_map<ArchetypeComponentSignature, BaseArchetype*> archetypeSignatureMap;
+    std::unordered_map<ArchetypeComponentSignature, BaseArchetype*> archetypeSignatureToPtrMap;
+    std::unordered_map<ArchetypeComponentSignature, std::string> archetypeSignatureToNameMap;
 
     template <typename... Components>
     ArchetypeComponentSignature MakeASignature()
     {
         ArchetypeComponentSignature signature;
+        std::string archetypeName;
+        (signature.set(ComponentRegistry::GetComponentID<Components>()), ...);
+        ((archetypeName += ComponentRegistry::GetComponentNameById(ComponentRegistry::GetComponentID<Components>()) + " "),
+         ...);
 
-        (signature.set(GetComponentID<Components>()), ...);
-
+        archetypeSignatureToNameMap[signature] = archetypeName;
         return signature;
     }
 
     template <typename ArchetypeT>
-    ArchetypeID RegisterArchetype(ArchetypeT* newArchetypePtr)
+    void RegisterArchetype(ArchetypeT* newArchetypePtr, ArchetypeComponentSignature signature)
     {
         ArchetypeID id = static_cast<ArchetypeID>(archetypePtrs.size());
-        newArchetypePtr->id = id;
+        newArchetypePtr->archetypeId = id;
         archetypePtrs.push_back(newArchetypePtr);
-        return id;
+        archetypeSignatureToPtrMap[signature] = newArchetypePtr;
     }
 
   public:
-    BaseArchetype* GetArchetype(ArchetypeID id)
+
+    const std::unordered_map<ArchetypeComponentSignature, BaseArchetype*>& GetSignatureToPtrMap() const
+    {
+        return archetypeSignatureToPtrMap;
+    }
+
+    const std::unordered_map<ArchetypeComponentSignature, std::string>& GetSignatureToNameMap() const
+    {
+        return archetypeSignatureToNameMap;
+    }
+
+    BaseArchetype* GetArchetypeById(ArchetypeID id)
     {
         return archetypePtrs[id];
     }
@@ -42,20 +59,15 @@ class ArchetypeRegistry
     BaseArchetype* FindOrCreateArchetype()
     {
         ArchetypeComponentSignature signature = MakeASignature<Components...>();
-        if (archetypeSignatureMap.contains(signature))
+        if (archetypeSignatureToPtrMap.contains(signature))
         {
-            return archetypeSignatureMap[signature];
+            return archetypeSignatureToPtrMap[signature];
         }
         else
         {
-            // Create Archetype
-            // Archetype<64,Components...> newArchetype = new Archetype();
-
-            // Register Archetype
-
-            // return
+            Archetype<64, Components...>* newArchetype = new Archetype<64, Components...>();
+            RegisterArchetype(newArchetype, signature);
+            return archetypePtrs.back();
         }
-
-        return nullptr;
     }
 };
