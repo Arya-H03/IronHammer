@@ -5,6 +5,7 @@
 #include "ECSCommon.h"
 #include "EntityManager.hpp"
 #include "GUISystem.h"
+#include "TypeErasedSlabAllocator.hpp"
 
 int main()
 {
@@ -18,7 +19,6 @@ int main()
     if (!isWindowInitialized) return 0;
 
     guiSystem.AppleGUITheme();
-
 
     Entity e0 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
     Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));

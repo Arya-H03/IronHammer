@@ -6,7 +6,7 @@
 #pragma once
 
 template <typename T, size_t SlabSize>
-class SlabAllocator
+class TemplatedSlabAllocator
 
 {
     static_assert(SlabSize > 0, "SlotCount must be positive");

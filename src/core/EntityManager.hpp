@@ -97,7 +97,17 @@ class EntityManager
     }
 
     // Add Component to Entity
-
+    template<typename Component>
+    void AddToEntity(Entity entity,Component&& component)
+    {
+        ValidateEntity(entity);
+    }
     // Remove Component from Entity
 
+
+    //Find src and dist archetypes and enusre them being different
+    // Allocate/Identify space in dist
+    // Move components
+    // Free source
+    // Update Entity Location
 };

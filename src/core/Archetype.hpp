@@ -6,7 +6,7 @@
 #include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include "BaseArchetype.h"
-#include "SlabAllocator.hpp"
+#include "TemplatedSlabAllocator.hpp"
 
 // Address having new entities being added that the back chunk always.
 
@@ -16,7 +16,7 @@ class Archetype final : public BaseArchetype
     static_assert(ChunkSize > 0);
 
   private:
-    using AllocatorTuple = std::tuple<SlabAllocator<Components, ChunkSize>...>;
+    using AllocatorTuple = std::tuple<TemplatedSlabAllocator<Components, ChunkSize>...>;
     AllocatorTuple allocatorTuple;
 
     struct ArchetypeChunk
@@ -38,7 +38,7 @@ class Archetype final : public BaseArchetype
         ArchetypeChunk chunk;
 
         chunk.componentArrayTuple =
-            std::make_tuple(std::get<SlabAllocator<Components, ChunkSize>>(allocatorTuple).AllocateArray()...);
+            std::make_tuple(std::get<TemplatedSlabAllocator<Components, ChunkSize>>(allocatorTuple).AllocateArray()...);
 
         archetypeChunks.push_back(chunk);
         return archetypeChunks.back();
