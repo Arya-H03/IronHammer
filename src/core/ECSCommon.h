@@ -9,8 +9,8 @@ static constexpr EntityID InvalidEntityID = UINT32_MAX;
 
 struct Entity
 {
-    EntityID id;
-    uint32_t generation;
+    EntityID id = InvalidEntityID;
+    uint32_t generation = InvalidEntityID;
 };
 
 struct EntityArchetypeLocation

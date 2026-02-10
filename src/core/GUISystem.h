@@ -5,9 +5,10 @@
 class GUISystem
 {
   private:
-    const EntityManager& m_entityManager;
+    EntityManager& m_entityManager;
 
   public:
-  GUISystem(EntityManager& entityManager):m_entityManager(entityManager){}
+    GUISystem(EntityManager& entityManager) : m_entityManager(entityManager) {}
     void HandleGUISystem();
+    void AppleGUITheme();
 };

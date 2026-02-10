@@ -2,9 +2,8 @@
 #include "ArchetypeRegistry.hpp"
 #include "ECSCommon.h"
 #include <cassert>
-#include <string>
+#include <iostream>
 #include <tuple>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 class EntityManager
@@ -26,10 +25,11 @@ class EntityManager
     std::vector<EntitySlot> entitySlots;
     std::vector<EntityArchetypeLocation> entityArchetypeLocations;
 
-    bool IsEntityValid(Entity entity) const
+    void ValidateEntity(Entity entity) const
     {
-        if (entity.id >= entitySlots.size()) return false;
-        return entitySlots[entity.id].isOccupied && entitySlots[entity.id].generation == entity.generation;
+        assert(entity.id < entitySlots.size() && "Trid to delete an Entity with an Id out of pool bounds");
+        assert(entitySlots[entity.id].isOccupied && "Tried to delete a none occupied Entity");
+        assert(entitySlots[entity.id].generation == entity.generation && "Tried to delete an Entity with miss match generation");
     }
 
   public:
@@ -70,7 +70,7 @@ class EntityManager
 
         BaseArchetype* archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
         auto componentTuple = std::make_tuple(std::forward<Components>(components)...);
-        EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity.id, &componentTuple);
+        EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity, &componentTuple);
         entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
 
         return newEntity;
@@ -78,7 +78,8 @@ class EntityManager
 
     void DeleteEntity(Entity entity)
     {
-        assert(IsEntityValid(entity) && "Tried to delete invalid Entity");
+
+        ValidateEntity(entity);
 
         // Recycle EntitySlot
         EntitySlot& slot = entitySlots[entity.id];
@@ -89,21 +90,14 @@ class EntityManager
         // Recycle EntityLocation
         EntityArchetypeLocation& currentArchetypeLocation = entityArchetypeLocations[entity.id];
         BaseArchetype* archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
-        archetype->RemoveEntity(entity.id, currentArchetypeLocation.chunkIndex, currentArchetypeLocation.indexInChunk);
+        std::pair<Entity, EntityArchetypeLocation> deletionResult = archetype->RemoveEntity(entity, currentArchetypeLocation.chunkIndex, currentArchetypeLocation.indexInChunk);
         entityArchetypeLocations[entity.id] = EntityArchetypeLocation::InvalidLocation();
+        entityArchetypeLocations[deletionResult.first.id] = deletionResult.second;
+
     }
 
     // Add Component to Entity
 
     // Remove Component from Entity
 
-    // const std::unordered_map<ArchetypeComponentSignature, BaseArchetype*>& GetAchetypeSignatureToPtrMap() const
-    // {
-    //     return archetypeRegistry.archetypeSignatureToPtrMap;
-    // }
-
-    // const std::unordered_map<ArchetypeComponentSignature, std::string>& GetArchetypeSignatureToNameMap() const
-    // {
-    //     return archetypeRegistry.archetypeSignatureToNameMap;
-    // }
 };

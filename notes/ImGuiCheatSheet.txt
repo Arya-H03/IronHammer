@@ -1,0 +1,91 @@
+##########################################
+# Format Specifiers Cheat Sheet
+# For ImGui::Text / printf-style formatting
+# ----------------------------------------
+# Notes:
+# - std::string must be converted with .c_str()
+# - size_t and fixed-width types require special specifiers
+# - Always include <inttypes.h> for PRI* macros
+##########################################
+
+###############################
+# Strings
+###############################
+%s       -> const char*            // Use .c_str() if using std::string
+%S       -> wchar_t*               // Wide strings
+
+###############################
+# Integers
+###############################
+%d / %i  -> int                   // Signed 32-bit integer
+%u       -> unsigned int          // Unsigned 32-bit integer
+%ld      -> long                  // Signed long (platform dependent)
+%lu      -> unsigned long         // Unsigned long (platform dependent)
+%lld     -> long long             // Signed 64-bit integer
+%llu     -> unsigned long long    // Unsigned 64-bit integer
+%zu      -> size_t                // Unsigned, portable (vector.size())
+%td      -> ptrdiff_t             // Signed difference type
+%hhd     -> int8_t                // Small signed integer
+%hhu     -> uint8_t               // Small unsigned integer
+
+# Fixed-width integers (include <inttypes.h> or <cinttypes>)
+%" PRIu8   -> uint8_t
+%" PRId8   -> int8_t
+%" PRIu16  -> uint16_t
+%" PRId16  -> int16_t
+%" PRIu32  -> uint32_t
+%" PRId32  -> int32_t
+%" PRIu64  -> uint64_t
+%" PRId64  -> int64_t
+
+###############################
+# Hexadecimal / Octal
+###############################
+%x       -> unsigned int           // Hex lowercase
+%X       -> unsigned int           // Hex uppercase
+%#x      -> unsigned int           // Hex lowercase with 0x prefix
+%o       -> unsigned int           // Octal
+
+###############################
+# Floating Point
+###############################
+%f       -> double                 // Signed decimal
+%.2f     -> double (2 decimal places)
+%e / %E  -> double                 // Scientific notation
+%g / %G  -> double                 // Shortest representation
+%Lf      -> long double            // Long double precision
+
+# Note: float is promoted to double in varargs
+
+###############################
+# Characters
+###############################
+%c       -> char
+%C       -> wchar_t
+
+###############################
+# Pointers
+###############################
+%p       -> void*                  // Pointer address
+
+###############################
+# Boolean
+###############################
+# C does not have %b, print as integer or string
+0/1       -> print with %d
+true/false -> ImGui::Text("%s", flag ? "true" : "false")
+
+###############################
+# Safe ImGui tips
+###############################
+- std::string -> always use .c_str()
+- size_t -> use %zu
+- uint64_t -> use %" PRIu64 (include <inttypes.h>)
+- For complex debug output, consider:
+    std::string text = std::format("Entity %u @ chunk %u", id, chunk);
+    ImGui::TextUnformatted(text.c_str());
+- ImGui::TextUnformatted avoids printf parsing and is safer for dynamic strings
+
+##########################################
+# End of Cheat Sheet
+##########################################

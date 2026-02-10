@@ -1,5 +1,6 @@
 ﻿#include "main.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include "Components.hpp"
 #include "ECSCommon.h"
 #include "EntityManager.hpp"
@@ -7,6 +8,8 @@
 
 int main()
 {
+    EntityManager entityManager;
+    GUISystem guiSystem(entityManager);
     // ArchetypeChunk<CPosition, CRotation, CVelocity> chunk;
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "IronHammer");
     window.setFramerateLimit(60);
@@ -14,9 +17,8 @@ int main()
     const bool isWindowInitialized = ImGui::SFML::Init(window);
     if (!isWindowInitialized) return 0;
 
+    guiSystem.AppleGUITheme();
 
-    EntityManager entityManager;
-    GUISystem guiSystem(entityManager);
 
     Entity e0 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
     Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
@@ -35,6 +37,8 @@ int main()
         {
             ImGui::SFML::ProcessEvent(window, *event);
             if (event->is<sf::Event::Closed>()) window.close();
+
+
         }
 
         ImGui::SFML::Update(window, deltaClock.restart());

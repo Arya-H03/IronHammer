@@ -1,12 +1,8 @@
 #pragma once
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <iterator>
-#include <stdint.h>
+#include <imgui.h>
+#include <iostream>
 #include <tuple>
 #include <vector>
-#include <imgui.h>
 #include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include "BaseArchetype.h"
@@ -26,16 +22,12 @@ class Archetype final : public BaseArchetype
     struct ArchetypeChunk
     {
         std::tuple<Components*...> componentArrayTuple;
-        EntityID entityIds[ChunkSize]{};
+        Entity entities[ChunkSize];
         size_t count = 0;
+
         bool IsFull() const
         {
             return count == ChunkSize;
-        }
-
-        ArchetypeChunk()
-        {
-            std::fill(std::begin(entityIds), std::end(entityIds), InvalidEntityID);
         }
     };
 
@@ -53,7 +45,7 @@ class Archetype final : public BaseArchetype
     }
 
     template <typename Tuple, size_t... I>
-    EntityArchetypeLocation AddEntityImplementation(uint32_t entityId, Tuple& componentValues, std::index_sequence<I...>)
+    EntityArchetypeLocation AddEntityImplementation(Entity entity, Tuple& componentValues, std::index_sequence<I...>)
     {
         if (archetypeChunks.empty() || archetypeChunks.back().IsFull()) CreateArchetypeChunk();
 
@@ -64,9 +56,10 @@ class Archetype final : public BaseArchetype
         ((std::get<Components*>(chunk.componentArrayTuple)[index] = std::move(std::get<I>(componentValues))), ...);
 
         ++chunk.count;
+        ++totalCount;
         uint32_t chunkIndex = static_cast<uint32_t>(archetypeChunks.size() - 1);
         uint32_t indexInChunk = static_cast<uint32_t>(chunk.count - 1);
-        chunk.entityIds[indexInChunk] = entityId;
+        chunk.entities[indexInChunk] = entity;
 
         return EntityArchetypeLocation{archetypeId, chunkIndex, indexInChunk};
     }
@@ -74,18 +67,20 @@ class Archetype final : public BaseArchetype
     template <typename TComponent>
     static void DrawComponentDebugGUI(const TComponent& component)
     {
-        ImGui::Text(
-            "%s: %s", ComponentRegistry::GetComponentNameByType(component).c_str(), ComponentRegistry::GetComponentInfo(component).c_str());
+        ImGui::Text("%s: %s",
+                    ComponentRegistry::GetComponentNameByType(component).c_str(),
+                    ComponentRegistry::GetComponentInfo(component).c_str());
     }
 
   public:
-    EntityArchetypeLocation AddEntity(uint32_t entityId, void* componentTuple) override
+    EntityArchetypeLocation AddEntity(Entity entity, void* componentTuple) override
     {
         return AddEntityImplementation(
-            entityId, *static_cast<std::tuple<Components...>*>(componentTuple), std::index_sequence_for<Components...>{});
+            entity, *static_cast<std::tuple<Components...>*>(componentTuple), std::index_sequence_for<Components...>{});
     }
 
-    void RemoveEntity(uint32_t entityId, uint32_t chunkIndex, uint32_t indexInChunk) override
+    std::pair<Entity, EntityArchetypeLocation>
+    RemoveEntity(Entity entity, uint32_t chunkIndex, uint32_t indexInChunk) override
     {
         ArchetypeChunk& chunk = archetypeChunks[chunkIndex];
         const size_t lastIndexInChunk = chunk.count - 1;
@@ -95,31 +90,61 @@ class Archetype final : public BaseArchetype
             ((std::get<Components*>(chunk.componentArrayTuple)[indexInChunk] =
                   std::move(std::get<Components*>(chunk.componentArrayTuple)[lastIndexInChunk])),
              ...);
+
+            chunk.entities[indexInChunk] = chunk.entities[lastIndexInChunk];
         }
 
-        chunk.entityIds[indexInChunk] = InvalidEntityID;
         --chunk.count;
+        --totalCount;
+
+        return {chunk.entities[indexInChunk], {archetypeId, chunkIndex, indexInChunk}};
     }
 
-    void DrawDebugGUI() const override
+    void DrawArchetypeGUI(const std::function<void(Entity)>& deleteEntityCallBack) const override
     {
+
         int entityTreeID = 0;
+        ImGui::TextColored(ImVec4(0.75f, 0.75f, 0.75f, 1.0f), "Capacity: %zu", ChunkSize * archetypeChunks.size());
+        ImGui::SameLine();
+        ImGui::Text("|");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.8f, 0.15f, 0.15f, 1.0f), "Size: %zu", totalCount);
+        ImGui::SameLine();
+        ImGui::Text("|");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "Chunk: %zu", archetypeChunks.size());
+        ImGui::SameLine();
+        ImGui::Text("|");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.85f, 0.55f, 0.2f, 1.0f), "Chunk Size: %zu", ChunkSize);
+
+        ImGui::Separator();
         for (int currentChunkIndex = 0; currentChunkIndex < archetypeChunks.size(); ++currentChunkIndex)
         {
-            const ArchetypeChunk& currentChunk = archetypeChunks[currentChunkIndex];
+            const auto& currentChunk = archetypeChunks[currentChunkIndex];
             for (int currentIndexInCunk = 0; currentIndexInCunk < currentChunk.count; ++currentIndexInCunk)
             {
                 ImGui::PushID(entityTreeID);
-                if (ImGui::TreeNode("", "Entity: %d", currentChunk.entityIds[currentIndexInCunk]))
+
+                if (ImGui::Button("D", ImVec2(20, 20)))
                 {
+                    std::cerr << currentChunk.entities[currentIndexInCunk].id;
+                    deleteEntityCallBack(currentChunk.entities[currentIndexInCunk]);
+                }
+                ImGui::SameLine();
+
+                if (ImGui::TreeNode("", "Entity: %d", currentChunk.entities[currentIndexInCunk].id))
+                {
+
                     ((DrawComponentDebugGUI(std::get<Components*>(currentChunk.componentArrayTuple)[currentIndexInCunk])),
                      ...);
 
                     ImGui::TreePop();
                 }
-                ImGui::PopID();
+
                 ++entityTreeID;
 
+                ImGui::PopID();
                 ImGui::Separator();
             }
         }
