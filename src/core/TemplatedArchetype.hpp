@@ -5,13 +5,14 @@
 #include <vector>
 #include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
-#include "BaseArchetype.h"
+#include "BaseTemplatedArchetype.h"
 #include "TemplatedSlabAllocator.hpp"
 
 // Address having new entities being added that the back chunk always.
 
+
 template <size_t ChunkSize, typename... Components>
-class Archetype final : public BaseArchetype
+class TemplatedArchetype final : public BaseTemplatedArchetype
 {
     static_assert(ChunkSize > 0);
 
@@ -69,7 +70,7 @@ class Archetype final : public BaseArchetype
     {
         ImGui::Text("%s: %s",
                     ComponentRegistry::GetComponentNameByType(component).c_str(),
-                    ComponentRegistry::GetComponentInfo(component).c_str());
+                    ComponentRegistry::GetComponentDescription(component).c_str());
     }
 
   public:

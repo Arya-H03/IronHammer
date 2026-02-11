@@ -1,61 +1,131 @@
 #pragma once
+#include <imgui.h>
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
 #include <string>
 #include <unordered_map>
 #include <typeinfo>
+#include <vector>
 
-static constexpr size_t MaxComponents = 32;
+static constexpr uint16_t MaxComponents = 32;
 using ComponentID = uint32_t;
+using DrawDebugGuiFn = void (*)(void*);
+
+struct ComponentInfo
+{
+    ComponentID id;
+    size_t size;
+    const char* name;
+    DrawDebugGuiFn drawGuiFn;
+};
 
 class ComponentRegistry
 {
   private:
+    inline static std::vector<ComponentInfo> componentInfos;
+
     static ComponentID MakeComponentID()
     {
         static ComponentID counter = 0;
         return counter++;
     }
 
-    inline static std::unordered_map<ComponentID, std::string> componentIdToStringMap;
+    template <typename TComponent>
+    static void DrawDebugGUI(void* ptr)
+    {
+        TComponent& component = *reinterpret_cast<TComponent*>(ptr);
 
-  public:
+        ImGui::Text("%s: %s",
+                    ComponentRegistry::GetComponentNameByType(component),
+                    ComponentRegistry::GetComponentDescription(component).c_str());
+    }
+
     template <typename T>
-    static ComponentID GetComponentID()
+    static ComponentID RegisterComponent()
     {
         static ComponentID id = []()
         {
-            ComponentID newId = MakeComponentID();
-            assert(newId < MaxComponents);
-            componentIdToStringMap[newId] = GetComponentNameByType<T>();
-            return newId;
+            ComponentInfo newComponentInfo;
+
+            newComponentInfo.id = MakeComponentID();
+            assert(newComponentInfo.id < MaxComponents);
+
+            newComponentInfo.name = typeid(T).name();
+            newComponentInfo.size = sizeof(T);
+            newComponentInfo.drawGuiFn = [](void* ptr) { DrawDebugGUI<T>(ptr); };
+
+            if(componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
+            componentInfos[newComponentInfo.id] = newComponentInfo;
+
+            return newComponentInfo.id;
         }();
 
         return id;
     }
 
-    static std::string& GetComponentNameById(ComponentID id)
+  public:
+    template <typename T>
+    static ComponentID GetComponentID()
     {
-        return componentIdToStringMap[id];
+        static ComponentID id = RegisterComponent<T>();
+        return id;
+    }
+
+    static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
+
+    template <typename TComponent>
+    static const char* GetComponentNameByType(const TComponent& component)
+    {
+        ComponentID id = GetComponentID<TComponent>();
+        return componentInfos[id].name;
+    }
+    template <typename TComponent>
+    static const char* GetComponentNameByType()
+    {
+        ComponentID id = GetComponentID<TComponent>();
+        return componentInfos[id].name;
     }
 
     template <typename TComponent>
-    static std::string GetComponentNameByType(const TComponent& component)
+    static std::string GetComponentDescription(const TComponent& component)
     {
-        const char* name = typeid(TComponent).name();
-        return name + 1;
-    }
-    template <typename TComponent>
-    static std::string GetComponentNameByType()
-    {
-        const char* name = typeid(TComponent).name();
-        return name + 1;
+        return component.GetDescription();
     }
 
-    template <typename TComponent>
-    static std::string GetComponentInfo(const TComponent& component)
+    static const ComponentInfo& GetComponentInfoById(ComponentID id)
     {
-        return component.GetInfo();
+        return componentInfos[id];
     }
+
+    // inline static std::unordered_map<ComponentID, std::string> componentIdToStringMap;
+
+    // static ComponentID id = []()
+    // {
+    //     ComponentID newId = MakeComponentID();
+    //     assert(newId < MaxComponents);
+    //     componentIdToStringMap[newId] = GetComponentNameByType<T>();
+    //     return newId;
+    // }();
+
+    // static std::string& GetComponentNameById(ComponentID id) { return componentIdToStringMap[id]; }
+
+    // template <typename TComponent>
+    // static std::string GetComponentNameByType(const TComponent& component)
+    // {
+    //     const char* name = typeid(TComponent).name();
+    //     return name + 1;
+    // }
+    // template <typename TComponent>
+    // static std::string GetComponentNameByType()
+    // {
+    //     const char* name = typeid(TComponent).name();
+    //     return name + 1;
+    // }
+
+    // template <typename TComponent>
+    // static std::string GetComponentInfo(const TComponent& component)
+    // {
+    //     return component.GetInfo();
+    // }
 };

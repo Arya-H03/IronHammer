@@ -1,5 +1,5 @@
 #include "GUISystem.h"
-#include "ECSCommon.h"
+#include <iostream>
 #include <string>
 
 void GUISystem::HandleGUISystem()
@@ -18,12 +18,12 @@ void GUISystem::HandleGUISystem()
             {
                 ImGui::PushID(archetypeTreeNodeId);
 
-                std::string nodeTitle = "Arch " + std::to_string(archPtr->archetypeId) + ": "
+                std::string nodeTitle = "Arch " + std::to_string(archPtr->GetArchetypeId()) + ": "
                                         + m_entityManager.archetypeRegistry.GetSignatureToNameMap().at(signature);
 
                 if (ImGui::TreeNode(nodeTitle.c_str()))
                 {
-                    archPtr->DrawArchetypeGUI([this](Entity entity) { m_entityManager.DeleteEntity(entity); });
+                    archetypeDEbugger.DrawArchetypeGUI(archPtr, [this](Entity entity) { m_entityManager.DeleteEntity(entity); });
                     ImGui::TreePop();
                 }
                 ImGui::PopID();

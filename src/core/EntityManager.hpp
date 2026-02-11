@@ -68,9 +68,11 @@ class EntityManager
             newEntityArchetypeLocationIndex = id;
         }
 
-        BaseArchetype* archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
-        auto componentTuple = std::make_tuple(std::forward<Components>(components)...);
-        EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity, &componentTuple);
+        //BaseArchetype* archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
+        Archetype* archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
+        //auto componentTuple = std::make_tuple(std::forward<Components>(components)...);
+        //EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity, &componentTuple);
+        EntityArchetypeLocation newEntityArchetypeLocation = archetype->AddEntity(newEntity,components...);
         entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
 
         return newEntity;
@@ -89,7 +91,8 @@ class EntityManager
 
         // Recycle EntityLocation
         EntityArchetypeLocation& currentArchetypeLocation = entityArchetypeLocations[entity.id];
-        BaseArchetype* archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
+      //  BaseArchetype* archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
+        Archetype* archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
         std::pair<Entity, EntityArchetypeLocation> deletionResult = archetype->RemoveEntity(entity, currentArchetypeLocation.chunkIndex, currentArchetypeLocation.indexInChunk);
         entityArchetypeLocations[entity.id] = EntityArchetypeLocation::InvalidLocation();
         entityArchetypeLocations[deletionResult.first.id] = deletionResult.second;

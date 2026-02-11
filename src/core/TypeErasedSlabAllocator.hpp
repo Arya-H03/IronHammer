@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <cstddef>
 #include <new>
 #include <stddef.h>
@@ -64,13 +65,17 @@ class TypeErasedSlabAllocator
     template <typename T, typename... Args>
     T* Allocate(Args&&... args)
     {
-        void* memory = InternalAllocate(); // Find memory
-        return new (memory) T(std::forward<Args>(args)...); // Forwad data to memory
+        assert(sizeof(T) == m_dataSize && "Wrong type was given to allocate");
+
+        void* memory = InternalAllocate();                  // Find memory
+        return new (memory) T(std::forward<Args>(args)...); // Forward data to memory
     }
 
     template <typename T>
     void Deallocate(T* obj)
     {
+        assert(sizeof(T) == m_dataSize && "Wrong type was given to deallocate");
+
         obj->~T();
         InternalDeallocate(obj);
     }
