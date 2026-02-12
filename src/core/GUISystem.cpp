@@ -14,16 +14,16 @@ void GUISystem::HandleGUISystem()
         if (ImGui::BeginTabItem("Archetypes"))
         {
             int archetypeTreeNodeId = 0;
-            for (const auto& [signature, archPtr] : m_entityManager.archetypeRegistry.GetSignatureToPtrMap())
+            for (auto& archetype : m_entityManager.archetypeRegistry.GetAllArchetypes())
             {
                 ImGui::PushID(archetypeTreeNodeId);
 
-                std::string nodeTitle = "Arch " + std::to_string(archPtr->GetArchetypeId()) + ": "
-                                        + m_entityManager.archetypeRegistry.GetSignatureToNameMap().at(signature);
+                std::string nodeTitle = "Arch " + std::to_string(archetype->GetArchetypeId()) + ": "
+                                        + archetype->GetArchetypeName();
 
                 if (ImGui::TreeNode(nodeTitle.c_str()))
                 {
-                    archetypeDEbugger.DrawArchetypeGUI(archPtr, [this](Entity entity) { m_entityManager.DeleteEntity(entity); });
+                    archetypeDEbugger.DrawArchetypeGUI(*archetype, [this](Entity entity) { m_entityManager.DeleteEntity(entity); });
                     ImGui::TreePop();
                 }
                 ImGui::PopID();

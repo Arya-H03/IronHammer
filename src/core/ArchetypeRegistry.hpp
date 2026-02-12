@@ -2,73 +2,77 @@
 #include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include <bitset>
+#include <cstddef>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #pragma once
-
-using ArchetypeComponentSignature = std::bitset<MaxComponents>;
 
 class ArchetypeRegistry
 {
+    inline static size_t defaultArchetypeChunkCapacity = 64;
+
   private:
-    // std::vector<BaseArchetype*> archetypePtrs;
-    // std::unordered_map<ArchetypeComponentSignature, BaseArchetype*> archetypeSignatureToPtrMap;
-    std::vector<Archetype*> archetypePtrs;
-    std::unordered_map<ArchetypeComponentSignature, Archetype*> archetypeSignatureToPtrMap;
-    std::unordered_map<ArchetypeComponentSignature, std::string> archetypeSignatureToNameMap;
+    std::vector<std::unique_ptr<Archetype>> archetypes;
+    std::unordered_map<ArchetypeComponentSignature, ArchetypeId> signatureToArchetypIdeMap;
 
     template <typename... Components>
-    ArchetypeComponentSignature MakeASignature()
+    ArchetypeComponentSignature MakeArchetypeSignature()
     {
         ArchetypeComponentSignature signature;
-        std::string archetypeName;
         (signature.set(ComponentRegistry::GetComponentID<Components>()), ...);
-
-        ((archetypeName +=
-          std::string(ComponentRegistry::GetComponentNameById(ComponentRegistry::GetComponentID<Components>())) + " "),
-         ...);
-
-        archetypeSignatureToNameMap[signature] = archetypeName;
         return signature;
     }
 
-    // template <typename ArchetypeT>
-    void RegisterArchetype(/*ArchetypeT*/ Archetype* newArchetypePtr, ArchetypeComponentSignature signature)
+    template <typename... Components>
+    std::string MakeArchetypeName()
     {
-        ArchetypeID id = static_cast<ArchetypeID>(archetypePtrs.size());
-        newArchetypePtr->SetArchetypeId(id);
-        archetypePtrs.push_back(newArchetypePtr);
-        archetypeSignatureToPtrMap[signature] = newArchetypePtr;
+        std::string archetypeName;
+        ((archetypeName +=
+          std::string(ComponentRegistry::GetComponentNameById(ComponentRegistry::GetComponentID<Components>())) + " "),
+         ...);
+        return archetypeName;
+    }
+
+    template <typename... Components>
+    Archetype& RegisterArchetype()
+    {
+        ArchetypeId id = static_cast<ArchetypeId>(archetypes.size());
+        ArchetypeComponentSignature signature = MakeArchetypeSignature<Components...>();
+        std::string name = MakeArchetypeName<Components...>();
+
+        std::unique_ptr<Archetype> newArchetype =
+            std::make_unique<Archetype>(id, signature, name, defaultArchetypeChunkCapacity);
+
+        /////////////////////////////////////////////
+        newArchetype->InitAllocators<Components...>();
+        ////////////////////////////////////////////
+
+        archetypes.emplace_back(std::move(newArchetype));
+
+        signatureToArchetypIdeMap.emplace(signature, id);
+
+        return *archetypes.back();
     }
 
   public:
-    const std::unordered_map<ArchetypeComponentSignature, Archetype*>& GetSignatureToPtrMap() const
-    {
-        return archetypeSignatureToPtrMap;
-    }
-
-    const std::unordered_map<ArchetypeComponentSignature, std::string>& GetSignatureToNameMap() const
-    {
-        return archetypeSignatureToNameMap;
-    }
-
-    Archetype* GetArchetypeById(ArchetypeID id) { return archetypePtrs[id]; }
+    const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return archetypes; };
+    Archetype& GetArchetypeById(ArchetypeId id) { return *archetypes[id]; }
 
     template <typename... Components>
-    Archetype* FindOrCreateArchetype()
+    Archetype& FindOrCreateArchetype()
     {
-        ArchetypeComponentSignature signature = MakeASignature<Components...>();
-        if (archetypeSignatureToPtrMap.contains(signature))
+        ArchetypeComponentSignature signature = MakeArchetypeSignature<Components...>();
+
+        auto it = signatureToArchetypIdeMap.find(signature);
+        if (it != signatureToArchetypIdeMap.end())
         {
-            return archetypeSignatureToPtrMap[signature];
+            return *archetypes[it->second];
         }
-        else
-        {
-            Archetype* newArchetype = new Archetype(64);
-            newArchetype->InitAllocators<Components...>();
-            RegisterArchetype(newArchetype, signature);
-            return archetypePtrs.back();
-        }
+
+        Archetype& newArchetype = RegisterArchetype<Components...>();
+
+        return newArchetype;
     }
 };
-// Archetype<64, Components...>* newArchetype = new Archetype<64, Components...>();

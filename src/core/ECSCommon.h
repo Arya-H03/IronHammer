@@ -1,8 +1,14 @@
-#include <cstdint>
 #pragma once
+#include <cstdint>
+#include <bitset>
 
-using ArchetypeID = uint32_t;
-static constexpr ArchetypeID InvalidArchetypeID = UINT32_MAX;
+
+static constexpr uint16_t MaxComponents = 32;
+using ComponentID = uint32_t;
+
+using ArchetypeId = uint32_t;
+using ArchetypeComponentSignature = std::bitset<MaxComponents>;
+static constexpr ArchetypeId InvalidArchetypeID = UINT32_MAX;
 
 using EntityID = uint32_t;
 static constexpr EntityID InvalidEntityID = UINT32_MAX;
@@ -15,7 +21,7 @@ struct Entity
 
 struct EntityArchetypeLocation
 {
-    ArchetypeID archetypeId = InvalidArchetypeID;
+    ArchetypeId archetypeId = InvalidArchetypeID;
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 

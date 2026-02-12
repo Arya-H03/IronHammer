@@ -32,33 +32,42 @@ class Archetype
     friend class ArchetypeDebugger;
 
   private:
-    std::vector<ArchetypeChunk> chunks;
+    std::vector<ArchetypeChunk> m_chunks;
 
-    std::vector<TypeErasedBlockAllocator> allocators; // dens
-    uint16_t densIds[MaxComponents];                  // dens Ids
-    uint16_t sparse[MaxComponents];                   // sparse
+    std::vector<TypeErasedBlockAllocator> m_allocators; // dens
+    uint16_t m_densIds[MaxComponents];                  // dens Ids
+    uint16_t m_sparse[MaxComponents];                   // sparse
 
-    ArchetypeID archetypeId;
+    ArchetypeId m_archetypeId;
+    ArchetypeComponentSignature m_componentSignature;
+    std::string m_archetypeName;
+
     size_t m_chunkCapacity = 0;
     size_t m_totalSize = 0;
 
     ArchetypeChunk& CreateChunk()
     {
-        chunks.emplace_back(m_chunkCapacity);
-        ArchetypeChunk& newChunk = chunks.back();
-        newChunk.components.resize(allocators.size());
+        m_chunks.emplace_back(m_chunkCapacity);
+        ArchetypeChunk& newChunk = m_chunks.back();
+        newChunk.components.resize(m_allocators.size());
 
-        for (size_t i = 0; i < allocators.size(); ++i)
+        for (size_t i = 0; i < m_allocators.size(); ++i)
         {
-            newChunk.components[i] = allocators[i].AllocateBlock();
+            newChunk.components[i] = m_allocators[i].AllocateBlock();
         }
 
-        return chunks.back();
+        return m_chunks.back();
     }
 
   public:
-    ArchetypeID GetArchetypeId() const { return archetypeId; }
-    void SetArchetypeId(ArchetypeID id) { archetypeId = id; }
+    ArchetypeId GetArchetypeId() const { return m_archetypeId; }
+    ArchetypeComponentSignature GetComponentSignature() const { return m_componentSignature; }
+    std::string GetArchetypeName() const { return m_archetypeName; }
+
+    Archetype(ArchetypeId id, ArchetypeComponentSignature signature, std::string name, size_t chunkCapacity)
+        : m_archetypeId(id),m_componentSignature(signature),m_archetypeName(name),m_chunkCapacity(chunkCapacity)
+    {
+    }
 
     template <typename... Components>
     void InitAllocators()
@@ -67,20 +76,19 @@ class Archetype
             [&]
             {
                 ComponentID id = ComponentRegistry::GetComponentID<Components>();
-                allocators.push_back(TypeErasedBlockAllocator(sizeof(Components), m_chunkCapacity));
-                densIds[allocators.size() - 1] = id;
-                sparse[id] = allocators.size() - 1;
+                m_allocators.push_back(TypeErasedBlockAllocator(sizeof(Components), m_chunkCapacity));
+                m_densIds[m_allocators.size() - 1] = id;
+                m_sparse[id] = m_allocators.size() - 1;
             }(),
             ...);
     }
-    Archetype(size_t chunkCapacity) : m_chunkCapacity(chunkCapacity) {}
 
     template <typename... Components>
     EntityArchetypeLocation AddEntity(Entity entity, Components&&... components)
     {
-        if (chunks.empty() || chunks.back().IsFull()) CreateChunk();
+        if (m_chunks.empty() || m_chunks.back().IsFull()) CreateChunk();
 
-        ArchetypeChunk& targetChunk = chunks.back();
+        ArchetypeChunk& targetChunk = m_chunks.back();
         const size_t index = targetChunk.size;
 
         (
@@ -88,7 +96,7 @@ class Archetype
             {
                 using Type = std::decay_t<Components>;
                 ComponentID componentId = ComponentRegistry::GetComponentID<Type>();
-                void* rawBlock = targetChunk.components[sparse[componentId]];
+                void* rawBlock = targetChunk.components[m_sparse[componentId]];
                 Type* typeArray = reinterpret_cast<Type*>(rawBlock); // Cast raw block to an array of Type
                 new (&typeArray[index]) Type(std::forward<Components>(components));
             }(),
@@ -97,25 +105,25 @@ class Archetype
         ++targetChunk.size;
         ++m_totalSize;
 
-        uint32_t chunkIndex = static_cast<uint32_t>(chunks.size() - 1);
+        uint32_t chunkIndex = static_cast<uint32_t>(m_chunks.size() - 1);
         uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
         targetChunk.entities[indexInChunk] = entity;
 
-        return EntityArchetypeLocation{archetypeId, chunkIndex, indexInChunk};
+        return EntityArchetypeLocation{m_archetypeId, chunkIndex, indexInChunk};
     }
 
     std::pair<Entity, EntityArchetypeLocation> RemoveEntity(Entity entity, uint32_t chunkIndex, uint32_t indexInChunk)
     {
-        ArchetypeChunk& chunk = chunks[chunkIndex];
+        ArchetypeChunk& chunk = m_chunks[chunkIndex];
         const size_t lastIndexInChunk = chunk.size - 1;
 
         if (indexInChunk != lastIndexInChunk)
         {
-            for (size_t i = 0; i < allocators.size(); ++i)
+            for (size_t i = 0; i < m_allocators.size(); ++i)
             {
                 void* rawBlock = chunk.components[i];
                 char* base = static_cast<char*>(rawBlock);
-                size_t componentSize = allocators[i].GetDataSize();
+                size_t componentSize = m_allocators[i].GetDataSize();
 
                 std::memcpy(base + (indexInChunk * componentSize), base + (lastIndexInChunk * componentSize), componentSize);
             }
@@ -126,6 +134,6 @@ class Archetype
         --m_totalSize;
 
         // take a look later for case indexInChunk = lastIndexInChunk
-        return {chunk.entities[indexInChunk], {archetypeId, chunkIndex, indexInChunk}};
+        return {chunk.entities[indexInChunk], {m_archetypeId, chunkIndex, indexInChunk}};
     }
 };

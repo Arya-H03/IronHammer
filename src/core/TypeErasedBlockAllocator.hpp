@@ -30,7 +30,7 @@ class TypeErasedBlockAllocator
         for (void* block : m_allBlocks) ::operator delete(block, std::align_val_t(64));
     }
 
-    size_t GetDataSize()
+    size_t GetDataSize() const
     {
         return m_dataSize;
     }
