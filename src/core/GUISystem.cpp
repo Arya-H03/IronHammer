@@ -1,6 +1,5 @@
 #include "GUISystem.h"
-#include <iostream>
-#include <string>
+
 
 void GUISystem::HandleGUISystem()
 {
@@ -11,26 +10,7 @@ void GUISystem::HandleGUISystem()
 
     if (ImGui::BeginTabBar("ESC"))
     {
-        if (ImGui::BeginTabItem("Archetypes"))
-        {
-            int archetypeTreeNodeId = 0;
-            for (auto& archetype : m_entityManager.archetypeRegistry.GetAllArchetypes())
-            {
-                ImGui::PushID(archetypeTreeNodeId);
-
-                std::string nodeTitle = "Arch " + std::to_string(archetype->GetArchetypeId()) + ": "
-                                        + archetype->GetArchetypeName();
-
-                if (ImGui::TreeNode(nodeTitle.c_str()))
-                {
-                    archetypeDEbugger.DrawArchetypeGUI(*archetype, [this](Entity entity) { m_entityManager.DeleteEntity(entity); });
-                    ImGui::TreePop();
-                }
-                ImGui::PopID();
-                ++archetypeTreeNodeId;
-            }
-            ImGui::EndTabItem();
-        }
+        m_archetypeDebugger.DrawArchetypeGuiTab(m_entityManager);
         ImGui::EndTabBar();
     }
 

@@ -4,13 +4,14 @@
 #include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include "Archetype.h"
+#include "EntityManager.hpp"
 #include <imgui.h>
 
 class ArchetypeDebugger
 {
   private:
-  public:
-    void DrawArchetypeGUI(const Archetype& archetype, const std::function<void(Entity)>& deleteEntityCallBack) const
+    void DrawIndividualArchetypeGUI(const Archetype& archetype,
+                                    const std::function<void(Entity)>& deleteEntityCallBack) const
     {
         int entityTreeID = 0;
         ImGui::TextColored(
@@ -63,6 +64,31 @@ class ArchetypeDebugger
                 ImGui::PopID();
                 ImGui::Separator();
             }
+        }
+    }
+
+  public:
+    void DrawArchetypeGuiTab(EntityManager& entityManager)
+    {
+        if (ImGui::BeginTabItem("Archetypes"))
+        {
+            int archetypeTreeNodeId = 0;
+            for (auto& archetype : entityManager.archetypeRegistry.GetAllArchetypes())
+            {
+                ImGui::PushID(archetypeTreeNodeId);
+
+                std::string nodeTitle =
+                    "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();
+
+                if (ImGui::TreeNode(nodeTitle.c_str()))
+                {
+                    DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { entityManager.DeleteEntity(entity); });
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+                ++archetypeTreeNodeId;
+            }
+            ImGui::EndTabItem();
         }
     }
 };

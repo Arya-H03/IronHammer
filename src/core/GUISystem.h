@@ -7,7 +7,7 @@ class GUISystem
 {
   private:
     EntityManager& m_entityManager;
-    ArchetypeDebugger archetypeDEbugger;
+    ArchetypeDebugger m_archetypeDebugger;
 
   public:
     GUISystem(EntityManager& entityManager) : m_entityManager(entityManager) {}
