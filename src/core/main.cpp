@@ -1,5 +1,6 @@
 ﻿#include "main.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include "Components.hpp"
 #include "ECSCommon.h"
 #include "EntityManager.hpp"
@@ -18,21 +19,20 @@ int main()
 
     guiSystem.AppleGUITheme();
 
-    for(size_t i = 0; i < 2000; ++i)
-    {
-        entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
-    }
-    for(size_t i = 0; i < 1000; ++i)
-    {
-        entityManager.CreateEntity(CVelocity(0, 100, 12));
-    }
+    // for(size_t i = 0; i < 2000; ++i)
+    // {
+    //     entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    // }
+    // for(size_t i = 0; i < 1000; ++i)
+    // {
+    //     entityManager.CreateEntity(CVelocity(0, 100, 12));
+    // }
 
-    for(size_t i = 0; i < 10000; ++i)
-    {
-        entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
-    }
+    // for(size_t i = 0; i < 10000; ++i)
+    // {
+    //     entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    // }
 
-    // Entity e0 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
     // Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
     // Entity e4 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
     // Entity e5 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
