@@ -102,11 +102,11 @@ class EntityManager
     {
         ValidateEntity(entity);
 
-        using RawComponent = std::remove_cvref_t<Component>;
+        //using RawComponent = std::remove_cvref_t<Component>;
 
-        if (HasComponent<RawComponent>(entity)) return;
+        if (HasComponent<Component>(entity)) return;
 
-        ComponentID componentId = ComponentRegistry::GetComponentID<RawComponent>();
+        ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
 
         Archetype& srcArchetype = archetypeRegistry.GetArchetypeById(entityArchetypeLocations[entity.id].archetypeId);
         ArchetypeComponentSignature distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);

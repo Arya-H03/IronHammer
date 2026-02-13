@@ -50,7 +50,7 @@ class ArchetypeDebugger
                         void* rawBlock = currentChunk.components[i];
                         size_t componentSize = archetype.m_allocators[i].GetDataSize();
                         char* base = static_cast<char*>(rawBlock);
-                        void* componentPtr = base + (componentSize * currentChunkIndex);
+                        void* componentPtr = base + (componentSize * currentIndexInCunk);
                         ComponentID id = archetype.m_densIds[i];
                         const ComponentInfo& info = ComponentRegistry::GetComponentInfoById(id);
                         info.DrawGuiFn(componentPtr);

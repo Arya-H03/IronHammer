@@ -134,15 +134,15 @@ class Archetype
     template<typename Component>
     void ConstructComponentAt(Component&& component, const EntityStorageLocation& entityLocation)
     {
-        using RawComponent = std::remove_cvref_t<Component>;
+        //using RawComponent = std::remove_cvref_t<Component>;
 
-        ComponentID id = ComponentRegistry::GetComponentID<RawComponent>();
+        ComponentID id = ComponentRegistry::GetComponentID<Component>();
 
         size_t allocatorIndex = m_sparse[id];
         void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
-        RawComponent* componentArray = reinterpret_cast<RawComponent*>(rawBlock);
+        Component* componentArray = reinterpret_cast<Component*>(rawBlock);
 
-        new(&componentArray[entityLocation.indexInChunk]) RawComponent(std::forward<Component>(component));
+        new(&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
     }
 
     // Do later If archetypes are stable, you can precompute a component
