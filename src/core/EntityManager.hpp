@@ -1,6 +1,7 @@
 #pragma once
 #include "Archetype.h"
 #include "ArchetypeRegistry.hpp"
+#include "ComponentRegistry.hpp"
 #include "ECSCommon.h"
 #include <cassert>
 #include <utility>
@@ -22,7 +23,7 @@ class EntityManager
     // EntitySlot         0   1   2   3  ...
     // EntityLocation     0   1   2   3  ...
     std::vector<EntitySlot> entitySlots;
-    std::vector<EntityArchetypeLocation> entityArchetypeLocations;
+    std::vector<EntityStorageLocation> entityArchetypeLocations;
 
     void ValidateEntity(Entity entity) const
     {
@@ -68,8 +69,10 @@ class EntityManager
             newEntityArchetypeLocationIndex = id;
         }
 
-        Archetype& archetype = archetypeRegistry.FindOrCreateArchetype<std::decay_t<Components>...>();
-        EntityArchetypeLocation newEntityArchetypeLocation = archetype.AddEntity(newEntity, components...);
+        ArchetypeComponentSignature signature = archetypeRegistry.MakeArchetypeSignature<std::decay_t<Components>...>();
+        Archetype& archetype = archetypeRegistry.FindOrCreateArchetype(signature);
+
+        EntityStorageLocation newEntityArchetypeLocation = archetype.AddEntity(newEntity, components...);
         entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
 
         return newEntity;
@@ -77,7 +80,6 @@ class EntityManager
 
     void DeleteEntity(Entity entity)
     {
-
         ValidateEntity(entity);
 
         // Recycle EntitySlot
@@ -87,11 +89,10 @@ class EntityManager
         freeListHeadIndex = entity.id;
 
         // Recycle EntityLocation
-        EntityArchetypeLocation& currentArchetypeLocation = entityArchetypeLocations[entity.id];
-        Archetype& archetype = archetypeRegistry.GetArchetypeById(currentArchetypeLocation.archetypeId);
-        std::pair<Entity, EntityArchetypeLocation> deletionResult =
-            archetype.RemoveEntity(entity, currentArchetypeLocation.chunkIndex, currentArchetypeLocation.indexInChunk);
-        entityArchetypeLocations[entity.id] = EntityArchetypeLocation::InvalidLocation();
+        EntityStorageLocation& currentEntityLocation = entityArchetypeLocations[entity.id];
+        Archetype& archetype = archetypeRegistry.GetArchetypeById(currentEntityLocation.archetypeId);
+        std::pair<Entity, EntityStorageLocation> deletionResult = archetype.RemoveEntity(entity, currentEntityLocation);
+        entityArchetypeLocations[entity.id] = EntityStorageLocation::InvalidLocation();
         entityArchetypeLocations[deletionResult.first.id] = deletionResult.second;
     }
 
@@ -100,14 +101,34 @@ class EntityManager
     void AddToEntity(Entity entity, Component&& component)
     {
         ValidateEntity(entity);
+
+        using RawComponent = std::remove_cvref_t<Component>;
+
+        if (HasComponent<RawComponent>(entity)) return;
+
+        ComponentID componentId = ComponentRegistry::GetComponentID<RawComponent>();
+
         Archetype& srcArchetype = archetypeRegistry.GetArchetypeById(entityArchetypeLocations[entity.id].archetypeId);
+        ArchetypeComponentSignature distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);
+        Archetype& dstArchetype = archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
+
+        EntityStorageLocation& currentEntityLocation = entityArchetypeLocations[entity.id];
+
+        EntityStorageLocation newEntityLocation =
+            dstArchetype.MoveComponentsFrom(srcArchetype, currentEntityLocation, entity);
+
+        srcArchetype.RemoveEntity(entity, currentEntityLocation);
+
+        dstArchetype.ConstructComponentAt(std::forward<Component>(component), newEntityLocation);
+
+        entityArchetypeLocations[entity.id] = newEntityLocation;
     }
 
     template <typename Component>
     bool HasComponent(Entity entity)
     {
         ValidateEntity(entity);
-        EntityArchetypeLocation& entityLocation = entityArchetypeLocations[entity.id];
+        EntityStorageLocation& entityLocation = entityArchetypeLocations[entity.id];
         Archetype& archetype = archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.HasComponent<Component>();
     }
@@ -116,7 +137,7 @@ class EntityManager
     Component* TryGetComponent(Entity entity)
     {
         ValidateEntity(entity);
-        EntityArchetypeLocation& entityLocation = entityArchetypeLocations[entity.id];
+        EntityStorageLocation& entityLocation = entityArchetypeLocations[entity.id];
         Archetype& archetype = archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.TryGetComponent<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
     }
@@ -125,15 +146,9 @@ class EntityManager
     Component& GetComponent(Entity entity)
     {
         ValidateEntity(entity);
-        EntityArchetypeLocation& entityLocation = entityArchetypeLocations[entity.id];
+        EntityStorageLocation& entityLocation = entityArchetypeLocations[entity.id];
         Archetype& archetype = archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.GetComponent<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
     }
     // Remove Component from Entity
-
-    // Find src and dist archetypes and enusre them being different
-    //  Allocate/Identify space in dist
-    //  Move components
-    //  Free source
-    //  Update Entity Location
 };

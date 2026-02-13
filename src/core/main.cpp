@@ -33,14 +33,14 @@ int main()
     //     entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
     // }
 
-    // Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
-    // Entity e4 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
-    // Entity e5 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
-    // Entity e1 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
-    // Entity e6 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
-    // Entity e7 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
-    // Entity e3 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
-    // Entity e9 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e2 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e4 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e5 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12));
+    Entity e1 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e6 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e7 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e3 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
+    Entity e9 = entityManager.CreateEntity(CPosition{1, 1, 1}, CVelocity(0, 100, 12), CRotation(0, 0, 0));
 
     sf::Clock deltaClock;
     while (window.isOpen())
@@ -49,7 +49,10 @@ int main()
         {
             ImGui::SFML::ProcessEvent(window, *event);
             if (event->is<sf::Event::Closed>()) window.close();
-
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+            {
+                entityManager.AddToEntity(e2, CRotation{5,4,3});
+            }
 
         }
 

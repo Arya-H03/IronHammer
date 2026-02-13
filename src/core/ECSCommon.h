@@ -19,13 +19,13 @@ struct Entity
     uint32_t generation = InvalidEntityID;
 };
 
-struct EntityArchetypeLocation
+struct EntityStorageLocation
 {
     ArchetypeId archetypeId = InvalidArchetypeID;
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 
-    static constexpr EntityArchetypeLocation InvalidLocation()
+    static constexpr EntityStorageLocation InvalidLocation()
     {
         return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX};
     }

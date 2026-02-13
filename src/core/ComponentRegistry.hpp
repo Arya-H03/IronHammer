@@ -1,7 +1,8 @@
 #pragma once
+#include <algorithm>
 #include <imgui.h>
 #include <cstddef>
-#include <cstdint>
+#include <cstring>
 #include <cassert>
 #include <string>
 #include <typeinfo>
@@ -9,13 +10,15 @@
 #include "ECSCommon.h"
 
 using DrawDebugGuiFn = void (*)(void*);
+using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 
 struct ComponentInfo
 {
     ComponentID id;
     size_t size;
     const char* name;
-    DrawDebugGuiFn drawGuiFn;
+    DrawDebugGuiFn DrawGuiFn;
+    MoveComponentFn MoveComponentFn;
 };
 
 class ComponentRegistry
@@ -51,9 +54,27 @@ class ComponentRegistry
 
             newComponentInfo.name = typeid(T).name();
             newComponentInfo.size = sizeof(T);
-            newComponentInfo.drawGuiFn = [](void* ptr) { DrawDebugGUI<T>(ptr); };
+            newComponentInfo.DrawGuiFn = [](void* ptr) { DrawDebugGUI<T>(ptr); };
+            newComponentInfo.MoveComponentFn = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
+            {
+                T* srcArray = reinterpret_cast<T*>(src);
+                T* dstArray = reinterpret_cast<T*>(dst);
 
-            if(componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
+                if constexpr (std::is_trivially_copyable_v<T>)
+                {
+                    // For trivial types, memcpy is safe and faster
+                    std::memcpy(&dstArray[dstIndex], &srcArray[srcIndex], sizeof(T));
+                }
+                else
+                {
+                    // For non-trivial types, use move constructor
+                    T* dstObject = dstArray + dstIndex;
+                    dstObject->~T();
+                    new (&dstArray[dstIndex]) T(std::move(srcArray[srcIndex]));
+                }
+            };
+
+            if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
             componentInfos[newComponentInfo.id] = newComponentInfo;
 
             return newComponentInfo.id;
@@ -91,9 +112,5 @@ class ComponentRegistry
         return component.GetDescription();
     }
 
-    static const ComponentInfo& GetComponentInfoById(ComponentID id)
-    {
-        return componentInfos[id];
-    }
-
+    static const ComponentInfo& GetComponentInfoById(ComponentID id) { return componentInfos[id]; }
 };

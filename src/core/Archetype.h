@@ -62,6 +62,13 @@ class Archetype
         return m_chunks.back();
     }
 
+    uint32_t GetFreeChunkIndex()
+    {
+        //Might need changing later if Ref becoms invalid with vector growth
+        if (m_chunks.empty() || m_chunks.back().IsFull()) CreateChunk();
+        return m_chunks.size() - 1;
+    }
+
   public:
     ArchetypeId GetArchetypeId() const { return m_archetypeId; }
     ArchetypeComponentSignature GetComponentSignature() const { return m_componentSignature; }
@@ -74,26 +81,28 @@ class Archetype
         std::fill(std::begin(m_sparse), std::end(m_sparse), INT16_MAX);
     }
 
-    template <typename... Components>
-    void InitlizeComponentAllocators()
+    void InitlizeComponentAllocators(const ArchetypeComponentSignature& signature)
     {
-        (
-            [&]
-            {
-                ComponentID id = ComponentRegistry::GetComponentID<Components>();
-                m_allocators.push_back(TypeErasedBlockAllocator(sizeof(Components), m_chunkCapacity));
-                m_densIds[m_allocators.size() - 1] = id;
-                m_sparse[id] = m_allocators.size() - 1;
-            }(),
-            ...);
+        for (ComponentID id = 0; id < MaxComponents; ++id)
+        {
+            if (!signature.test(id)) continue; // If bit at id is 0
+
+            const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
+
+            m_allocators.push_back(TypeErasedBlockAllocator(componentInfo.size, m_chunkCapacity));
+            m_densIds[m_allocators.size() - 1] = id;
+            m_sparse[id] = m_allocators.size() - 1;
+        }
     }
 
     template <typename Component>
     bool HasComponent()
     {
         ComponentID id = ComponentRegistry::GetComponentID<Component>();
-        return m_sparse[id] < m_allocators.size() && m_sparse[id] == id;
+        return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
     }
+
+    bool HasComponent(ComponentID id) { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
 
     template <typename Component>
     Component* TryGetComponent(uint32_t chunkIndex, uint32_t indexInChunk)
@@ -122,12 +131,62 @@ class Archetype
         return *ptr;
     }
 
-    template <typename... Components>
-    EntityArchetypeLocation AddEntity(Entity entity, Components&&... components)
+    template<typename Component>
+    void ConstructComponentAt(Component&& component, const EntityStorageLocation& entityLocation)
     {
-        if (m_chunks.empty() || m_chunks.back().IsFull()) CreateChunk();
+        using RawComponent = std::remove_cvref_t<Component>;
 
-        ArchetypeChunk& targetChunk = m_chunks.back();
+        ComponentID id = ComponentRegistry::GetComponentID<RawComponent>();
+
+        size_t allocatorIndex = m_sparse[id];
+        void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
+        RawComponent* componentArray = reinterpret_cast<RawComponent*>(rawBlock);
+
+        new(&componentArray[entityLocation.indexInChunk]) RawComponent(std::forward<Component>(component));
+    }
+
+    // Do later If archetypes are stable, you can precompute a component
+    // move mapping table once when archetype relationship is created
+     EntityStorageLocation MoveComponentsFrom(Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
+    {
+        assert(&srcArchetype != this);
+
+        ArchetypeChunk& srcChunk = srcArchetype.m_chunks[entityLocation.chunkIndex];
+
+        uint32_t chunkIndex = GetFreeChunkIndex();
+        ArchetypeChunk& dstChunk = m_chunks[chunkIndex];
+
+        uint32_t srcIndex = entityLocation.indexInChunk;
+        uint32_t dstIndex = dstChunk.size;
+
+        for (size_t i = 0; i < srcChunk.components.size(); ++i)
+        {
+            ComponentID id = srcArchetype.m_densIds[i];
+            if (!HasComponent(id)) continue;
+
+            const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
+
+            size_t dstAllocatorIndex = m_sparse[id];
+
+            void* srcRawBlock = srcChunk.components[i];
+            void* dstRawBlock = dstChunk.components[dstAllocatorIndex];
+
+            componentInfo.MoveComponentFn(srcRawBlock,dstRawBlock,srcIndex,dstIndex);
+        }
+
+        ++dstChunk.size;
+        ++m_totalSize;
+
+        dstChunk.entities[dstIndex] = entity;
+
+        return EntityStorageLocation{m_archetypeId, chunkIndex, dstIndex};
+    }
+
+
+    template <typename... Components>
+    EntityStorageLocation AddEntity(Entity entity, Components&&... components)
+    {
+        ArchetypeChunk& targetChunk = m_chunks[GetFreeChunkIndex()];
         const size_t index = targetChunk.size;
 
         (
@@ -148,11 +207,14 @@ class Archetype
         uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
         targetChunk.entities[indexInChunk] = entity;
 
-        return EntityArchetypeLocation{m_archetypeId, chunkIndex, indexInChunk};
+        return EntityStorageLocation{m_archetypeId, chunkIndex, indexInChunk};
     }
 
-    std::pair<Entity, EntityArchetypeLocation> RemoveEntity(Entity entity, uint32_t chunkIndex, uint32_t indexInChunk)
+    std::pair<Entity, EntityStorageLocation> RemoveEntity(Entity entity, EntityStorageLocation& entityLocation)
     {
+        uint32_t chunkIndex = entityLocation.chunkIndex;
+        uint32_t indexInChunk = entityLocation.indexInChunk;
+
         ArchetypeChunk& chunk = m_chunks[chunkIndex];
         const size_t lastIndexInChunk = chunk.size - 1;
 
@@ -160,11 +222,11 @@ class Archetype
         {
             for (size_t i = 0; i < m_allocators.size(); ++i)
             {
+                ComponentID id = m_densIds[i];
                 void* rawBlock = chunk.components[i];
-                char* base = static_cast<char*>(rawBlock);
-                size_t componentSize = m_allocators[i].GetDataSize();
 
-                std::memcpy(base + (indexInChunk * componentSize), base + (lastIndexInChunk * componentSize), componentSize);
+                const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
+                componentInfo.MoveComponentFn(rawBlock,rawBlock,lastIndexInChunk,indexInChunk);
             }
             chunk.entities[indexInChunk] = chunk.entities[lastIndexInChunk];
         }
@@ -172,7 +234,6 @@ class Archetype
         --chunk.size;
         --m_totalSize;
 
-        // take a look later for case indexInChunk = lastIndexInChunk
         return {chunk.entities[indexInChunk], {m_archetypeId, chunkIndex, indexInChunk}};
     }
 };
