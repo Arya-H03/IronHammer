@@ -1,4 +1,4 @@
-#include "GUISystem.h"
+#include "ecs/system/GUISystem.h"
 
 
 void GUISystem::HandleGUISystem()

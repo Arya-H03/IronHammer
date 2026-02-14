@@ -9,9 +9,9 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "ComponentRegistry.hpp"
-#include "ECSCommon.h"
-#include "TypeErasedBlockAllocator.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
+#include "core/memory/TypeErasedBlockAllocator.hpp"
 
 struct ArchetypeChunk
 {

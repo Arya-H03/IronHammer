@@ -7,7 +7,7 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
-#include "ECSCommon.h"
+#include "ecs/common/ECSCommon.h"
 
 using DrawDebugGuiFn = void (*)(void*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);

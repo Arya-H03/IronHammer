@@ -1,11 +1,11 @@
 #pragma once
-#include "Archetype.h"
-#include "ArchetypeRegistry.hpp"
-#include "ComponentRegistry.hpp"
-#include "ECSCommon.h"
 #include <cassert>
 #include <utility>
 #include <vector>
+#include "ecs/archetype/Archetype.h"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
 class EntityManager
 {
     struct EntitySlot
@@ -119,7 +119,7 @@ class EntityManager
     }
 
     // Note: currently you can have an Entity with no Components.
-    // Consider having entities to be destroyed in this senario.
+    // Consider having entities be destroyed in this senario.
     template <typename Component>
     void RemoveComponentFrom(Entity entity)
     {

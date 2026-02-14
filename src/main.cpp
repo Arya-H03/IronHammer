@@ -1,11 +1,15 @@
-﻿#include "main.h"
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include "Components.hpp"
-#include "ECSCommon.h"
-#include "EntityManager.hpp"
-#include "GUISystem.h"
+﻿//In the sacred tongue of the Omnissiah we chant:
+//Hail spirit of the machine, essence divine,in your code and circuitry the stars align.
+//By the Omnissiah's will we commune and bind, with sacred oils and chants your grace we find.
+//Blessed be the gears, in perfect sync they turn, blessed be the sparks, in holy fire they burn.
+//Through rites arcane, your wisdom we discern,in your hallowed core the sacred mysteries yearn.
 
+#include <SFML/Graphics.hpp>
+#include <imgui.h>
+#include <imgui-SFML.h>
+#include "ecs/entity/EntityManager.hpp"
+#include "ecs/system/GUISystem.h"
+#include "ecs/component/Components.hpp"
 int main()
 {
     EntityManager entityManager;

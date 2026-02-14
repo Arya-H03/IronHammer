@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
-#include "ArchetypeDebugger.hpp"
-#include "EntityManager.hpp"
+#include "ecs/archetype/ArchetypeDebugger.hpp"
+#include "ecs/entity/EntityManager.hpp"
 
 class GUISystem
 {

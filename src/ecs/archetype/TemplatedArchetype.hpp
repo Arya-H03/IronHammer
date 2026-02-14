@@ -3,13 +3,12 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-#include "ComponentRegistry.hpp"
-#include "ECSCommon.h"
-#include "BaseTemplatedArchetype.h"
-#include "TemplatedSlabAllocator.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/archetype/BaseTemplatedArchetype.h"
+#include "core/memory/TemplatedSlabAllocator.hpp"
 
 // Address having new entities being added that the back chunk always.
-
 
 template <size_t ChunkSize, typename... Components>
 class TemplatedArchetype final : public BaseTemplatedArchetype
@@ -46,7 +45,7 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
     }
 
     template <typename Tuple, size_t... I>
-    EntityArchetypeLocation AddEntityImplementation(Entity entity, Tuple& componentValues, std::index_sequence<I...>)
+    EntityStorageLocation AddEntityImplementation(Entity entity, Tuple& componentValues, std::index_sequence<I...>)
     {
         if (archetypeChunks.empty() || archetypeChunks.back().IsFull()) CreateArchetypeChunk();
 
@@ -62,7 +61,7 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
         uint32_t indexInChunk = static_cast<uint32_t>(chunk.count - 1);
         chunk.entities[indexInChunk] = entity;
 
-        return EntityArchetypeLocation{archetypeId, chunkIndex, indexInChunk};
+        return EntityStorageLocation{archetypeId, chunkIndex, indexInChunk};
     }
 
     template <typename TComponent>
@@ -74,13 +73,13 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
     }
 
   public:
-    EntityArchetypeLocation AddEntity(Entity entity, void* componentTuple) override
+    EntityStorageLocation AddEntity(Entity entity, void* componentTuple) override
     {
         return AddEntityImplementation(
             entity, *static_cast<std::tuple<Components...>*>(componentTuple), std::index_sequence_for<Components...>{});
     }
 
-    std::pair<Entity, EntityArchetypeLocation>
+    std::pair<Entity, EntityStorageLocation>
     RemoveEntity(Entity entity, uint32_t chunkIndex, uint32_t indexInChunk) override
     {
         ArchetypeChunk& chunk = archetypeChunks[chunkIndex];

@@ -1,10 +1,10 @@
 #pragma once
 #include <cstddef>
 #include <functional>
-#include "ComponentRegistry.hpp"
-#include "ECSCommon.h"
-#include "Archetype.h"
-#include "EntityManager.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/archetype/Archetype.h"
+#include "ecs/entity/EntityManager.hpp"
 #include <imgui.h>
 
 class ArchetypeDebugger

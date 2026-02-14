@@ -1,6 +1,6 @@
-#include "Archetype.h"
-#include "ComponentRegistry.hpp"
-#include "ECSCommon.h"
+#include "ecs/archetype/Archetype.h"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
 #include <bitset>
 #include <cstddef>
 #include <memory>
