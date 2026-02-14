@@ -96,14 +96,10 @@ class EntityManager
         entityArchetypeLocations[deletionResult.first.id] = deletionResult.second;
     }
 
-    // Add Component to Entity
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)
     {
         ValidateEntity(entity);
-
-        //using RawComponent = std::remove_cvref_t<Component>;
-
         if (HasComponent<Component>(entity)) return;
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
@@ -113,13 +109,34 @@ class EntityManager
         Archetype& dstArchetype = archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
 
         EntityStorageLocation& currentEntityLocation = entityArchetypeLocations[entity.id];
-
         EntityStorageLocation newEntityLocation =
-            dstArchetype.MoveComponentsFrom(srcArchetype, currentEntityLocation, entity);
+            dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
 
         srcArchetype.RemoveEntity(entity, currentEntityLocation);
+        dstArchetype.ConstructComponentAt(std::forward<Component>(component), componentId, newEntityLocation);
 
-        dstArchetype.ConstructComponentAt(std::forward<Component>(component), newEntityLocation);
+        entityArchetypeLocations[entity.id] = newEntityLocation;
+    }
+
+    // Note: currently you can have an Entity with no Components.
+    // Consider having entities to be destroyed in this senario.
+    template <typename Component>
+    void RemoveComponentFrom(Entity entity)
+    {
+        ValidateEntity(entity);
+        if (!HasComponent<Component>(entity)) return;
+
+        ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
+
+        Archetype& srcArchetype = archetypeRegistry.GetArchetypeById(entityArchetypeLocations[entity.id].archetypeId);
+        ArchetypeComponentSignature distArchetypeSignature = srcArchetype.GetComponentSignature().reset(componentId);
+        Archetype& dstArchetype = archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
+
+        EntityStorageLocation& currentEntityLocation = entityArchetypeLocations[entity.id];
+        EntityStorageLocation newEntityLocation =
+            dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
+
+        srcArchetype.RemoveEntity(entity, currentEntityLocation);
 
         entityArchetypeLocations[entity.id] = newEntityLocation;
     }
@@ -134,7 +151,7 @@ class EntityManager
     }
 
     template <typename Component>
-    Component* TryGetComponent(Entity entity)
+    Component* GetComponentPtr(Entity entity)
     {
         ValidateEntity(entity);
         EntityStorageLocation& entityLocation = entityArchetypeLocations[entity.id];
@@ -143,12 +160,11 @@ class EntityManager
     }
 
     template <typename Component>
-    Component& GetComponent(Entity entity)
+    Component& GetComponentRef(Entity entity)
     {
         ValidateEntity(entity);
         EntityStorageLocation& entityLocation = entityArchetypeLocations[entity.id];
         Archetype& archetype = archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.GetComponent<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
     }
-    // Remove Component from Entity
 };

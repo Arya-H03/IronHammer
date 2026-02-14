@@ -42,7 +42,7 @@ class ArchetypeRegistry
             std::make_unique<Archetype>(id, signature, name, defaultArchetypeChunkCapacity);
 
         /////////////////////////////////////////////
-        newArchetype->InitlizeComponentAllocators(signature);
+        newArchetype->InitializeComponentAllocators(signature);
         ////////////////////////////////////////////
 
         archetypes.emplace_back(std::move(newArchetype));

@@ -51,6 +51,12 @@ int main()
             {
                 entityManager.AddToEntity(e2, CRotation{5,4,3});
             }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+            {
+                entityManager.RemoveComponentFrom<CRotation>(e0);
+                entityManager.RemoveComponentFrom<CVelocity>(e0);
+                entityManager.RemoveComponentFrom<CPosition>(e0);
+            }
 
         }
 

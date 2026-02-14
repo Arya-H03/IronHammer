@@ -1,5 +1,4 @@
 #pragma once
-
 #include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
 #include <cassert>
@@ -64,15 +63,15 @@ class Archetype
 
     uint32_t GetFreeChunkIndex()
     {
-        //Might need changing later if Ref becoms invalid with vector growth
+        // Might need changing later if Ref becoms invalid with vector growth
         if (m_chunks.empty() || m_chunks.back().IsFull()) CreateChunk();
         return m_chunks.size() - 1;
     }
 
   public:
-    ArchetypeId GetArchetypeId() const { return m_archetypeId; }
+    const ArchetypeId GetArchetypeId() const { return m_archetypeId; }
     ArchetypeComponentSignature GetComponentSignature() const { return m_componentSignature; }
-    std::string GetArchetypeName() const { return m_archetypeName; }
+    const std::string& GetArchetypeName() const { return m_archetypeName; }
 
     Archetype(ArchetypeId id, ArchetypeComponentSignature signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -81,7 +80,7 @@ class Archetype
         std::fill(std::begin(m_sparse), std::end(m_sparse), INT16_MAX);
     }
 
-    void InitlizeComponentAllocators(const ArchetypeComponentSignature& signature)
+    void InitializeComponentAllocators(const ArchetypeComponentSignature& signature)
     {
         for (ComponentID id = 0; id < MaxComponents; ++id)
         {
@@ -131,28 +130,24 @@ class Archetype
         return *ptr;
     }
 
-    template<typename Component>
-    void ConstructComponentAt(Component&& component, const EntityStorageLocation& entityLocation)
+    template <typename Component>
+    void ConstructComponentAt(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
     {
-        //using RawComponent = std::remove_cvref_t<Component>;
-
-        ComponentID id = ComponentRegistry::GetComponentID<Component>();
-
         size_t allocatorIndex = m_sparse[id];
         void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
         Component* componentArray = reinterpret_cast<Component*>(rawBlock);
 
-        new(&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
+        new (&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
     }
 
-    // Do later If archetypes are stable, you can precompute a component
-    // move mapping table once when archetype relationship is created
-     EntityStorageLocation MoveComponentsFrom(Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
+    // Do later: If archetypes are stable, you can precompute a component map allowing
+    // components to move without need of index or chunk look up between archetypes.
+    EntityStorageLocation
+    MigrateComponentsFrom(Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
     {
         assert(&srcArchetype != this);
 
         ArchetypeChunk& srcChunk = srcArchetype.m_chunks[entityLocation.chunkIndex];
-
         uint32_t chunkIndex = GetFreeChunkIndex();
         ArchetypeChunk& dstChunk = m_chunks[chunkIndex];
 
@@ -171,7 +166,7 @@ class Archetype
             void* srcRawBlock = srcChunk.components[i];
             void* dstRawBlock = dstChunk.components[dstAllocatorIndex];
 
-            componentInfo.MoveComponentFn(srcRawBlock,dstRawBlock,srcIndex,dstIndex);
+            componentInfo.MoveComponentFn(srcRawBlock, dstRawBlock, srcIndex, dstIndex);
         }
 
         ++dstChunk.size;
@@ -181,7 +176,6 @@ class Archetype
 
         return EntityStorageLocation{m_archetypeId, chunkIndex, dstIndex};
     }
-
 
     template <typename... Components>
     EntityStorageLocation AddEntity(Entity entity, Components&&... components)
@@ -226,7 +220,7 @@ class Archetype
                 void* rawBlock = chunk.components[i];
 
                 const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
-                componentInfo.MoveComponentFn(rawBlock,rawBlock,lastIndexInChunk,indexInChunk);
+                componentInfo.MoveComponentFn(rawBlock, rawBlock, lastIndexInChunk, indexInChunk);
             }
             chunk.entities[indexInChunk] = chunk.entities[lastIndexInChunk];
         }
