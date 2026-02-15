@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <functional>
+#include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/archetype/Archetype.h"
@@ -10,6 +11,9 @@
 class ArchetypeDebugger
 {
   private:
+    EntityManager& m_entityManager;
+    ArchetypeRegistry& m_archetypeRegistry;
+
     void DrawIndividualArchetypeGUI(const Archetype& archetype,
                                     const std::function<void(Entity)>& deleteEntityCallBack) const
     {
@@ -68,12 +72,17 @@ class ArchetypeDebugger
     }
 
   public:
-    void DrawArchetypeGuiTab(EntityManager& entityManager)
+    ArchetypeDebugger(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry)
+        : m_entityManager(entityManager), m_archetypeRegistry(archetypeRegistry)
+    {
+    }
+
+    void DrawArchetypeGuiTab()
     {
         if (ImGui::BeginTabItem("Archetypes"))
         {
             int archetypeTreeNodeId = 0;
-            for (auto& archetype : entityManager.archetypeRegistry.GetAllArchetypes())
+            for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
             {
                 ImGui::PushID(archetypeTreeNodeId);
 
@@ -82,7 +91,7 @@ class ArchetypeDebugger
 
                 if (ImGui::TreeNode(nodeTitle.c_str()))
                 {
-                    DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { entityManager.DeleteEntity(entity); });
+                    DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { m_entityManager.DeleteEntity(entity); });
                     ImGui::TreePop();
                 }
                 ImGui::PopID();

@@ -10,7 +10,7 @@ void GUISystem::HandleGUISystem()
 
     if (ImGui::BeginTabBar("ESC"))
     {
-        m_archetypeDebugger.DrawArchetypeGuiTab(m_entityManager);
+        m_archetypeDebugger.DrawArchetypeGuiTab();
         ImGui::EndTabBar();
     }
 

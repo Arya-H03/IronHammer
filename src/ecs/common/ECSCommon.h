@@ -7,7 +7,7 @@ static constexpr uint16_t MaxComponents = 32;
 using ComponentID = uint32_t;
 
 using ArchetypeId = uint32_t;
-using ArchetypeComponentSignature = std::bitset<MaxComponents>;
+using ComponentSignatureMask = std::bitset<MaxComponents>;
 static constexpr ArchetypeId InvalidArchetypeID = UINT32_MAX;
 
 using EntityID = uint32_t;

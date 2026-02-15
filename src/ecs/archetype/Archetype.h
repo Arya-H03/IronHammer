@@ -12,19 +12,7 @@
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "core/memory/TypeErasedBlockAllocator.hpp"
-
-struct ArchetypeChunk
-{
-    std::vector<void*> components; // Raw ptrs to memory blocks
-    std::vector<Entity> entities;
-
-    size_t capacity = 0;
-    size_t size = 0;
-
-    bool IsFull() const { return size == capacity; }
-
-    ArchetypeChunk(size_t chunkCapacity) : capacity(chunkCapacity) { entities.resize(capacity); }
-};
+#include "ecs/archetype/ArchetypeChunk.hpp"
 
 // Forward declare
 class ArchetypeDebugger;
@@ -41,7 +29,7 @@ class Archetype
     uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get Allocator Index
 
     ArchetypeId m_archetypeId;
-    ArchetypeComponentSignature m_componentSignature;
+    ComponentSignatureMask m_componentSignature;
     std::string m_archetypeName;
 
     size_t m_chunkCapacity = 0;
@@ -53,11 +41,14 @@ class Archetype
         ArchetypeChunk& newChunk = m_chunks.back();
         newChunk.components.resize(m_allocators.size());
 
+        // Sets the component layout for chunk -> chunk.component[i] has the same component as m_allocator[i]
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
             newChunk.components[i] = m_allocators[i].AllocateBlock();
+            ComponentID id = m_densIds[i];
+            newChunk.densIds[i] = id;
+            newChunk.sparse[id] = i;
         }
-
         return m_chunks.back();
     }
 
@@ -70,17 +61,17 @@ class Archetype
 
   public:
     const ArchetypeId GetArchetypeId() const { return m_archetypeId; }
-    ArchetypeComponentSignature GetComponentSignature() const { return m_componentSignature; }
+    ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
     const std::string& GetArchetypeName() const { return m_archetypeName; }
 
-    Archetype(ArchetypeId id, ArchetypeComponentSignature signature, std::string name, size_t chunkCapacity)
+    Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
     {
         std::fill(std::begin(m_densIds), std::end(m_densIds), INT16_MAX);
         std::fill(std::begin(m_sparse), std::end(m_sparse), INT16_MAX);
     }
 
-    void InitializeComponentAllocators(const ArchetypeComponentSignature& signature)
+    void InitializeComponentAllocators(const ComponentSignatureMask& signature)
     {
         for (ComponentID id = 0; id < MaxComponents; ++id)
         {
@@ -110,7 +101,9 @@ class Archetype
         if (id >= MaxComponents) return nullptr;
 
         uint16_t denseIndex = m_sparse[id];
-        if (denseIndex >= m_allocators.size() || chunkIndex >= m_chunks.size()) return nullptr;
+        assert(denseIndex < m_allocators.size() && "Invalid index in m_allocators[index]");
+
+        if (chunkIndex >= m_chunks.size()) return nullptr;
 
         ArchetypeChunk& chunk = m_chunks[chunkIndex];
         if (indexInChunk >= chunk.size) return nullptr;
@@ -129,6 +122,8 @@ class Archetype
 
         return *ptr;
     }
+
+    const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
 
     template <typename Component>
     void ConstructComponentAt(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
@@ -182,7 +177,6 @@ class Archetype
     {
         ArchetypeChunk& targetChunk = m_chunks[GetFreeChunkIndex()];
         const size_t index = targetChunk.size;
-
         (
             [&]
             {
