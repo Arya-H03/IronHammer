@@ -21,14 +21,22 @@ class RenderSystem: public BaseSystem
     {
         m_window.clear();
 
-        for(auto& archetype : m_matchingArchetypes)
+        for (auto& archetype : m_matchingArchetypes)
         {
-            for(auto& chunk: archetype->GetChunks())
+            for (auto& chunk : archetype->GetChunks())
             {
-                auto renderComps = chunk.GetComponentRow<CShape>();
-                for(size_t i = 0; i < chunk.size; ++i)
+                auto shapes = chunk.GetComponentRow<CShape>();
+
+                for (size_t i = 0; i < chunk.size; ++i)
                 {
-                    m_window.draw(renderComps[i].shape);
+                    const CShape& shapeData = shapes[i];
+
+                    sf::CircleShape shape(shapeData.radius, shapeData.points);
+                    shape.setFillColor(shapeData.fillColor);
+                    shape.setOutlineColor(shapeData.outlineColor);
+                    shape.setOutlineThickness(shapeData.outlineThickness);
+
+                    m_window.draw(shape);
                 }
             }
         }
@@ -36,4 +44,5 @@ class RenderSystem: public BaseSystem
         ImGui::SFML::Render(m_window);
         m_window.display();
     }
+
 };
