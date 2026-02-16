@@ -14,7 +14,7 @@ class RenderSystem: public BaseSystem
     public:
     RenderSystem(sf::RenderWindow& window): m_window(window)
     {
-        MakeSignatureMask<CShape>();
+        MakeSignatureMask<CShape,CTransform>();
     }
 
     void HandleRenderSystem()
@@ -25,17 +25,20 @@ class RenderSystem: public BaseSystem
         {
             for (auto& chunk : archetype->GetChunks())
             {
-                auto shapes = chunk.GetComponentRow<CShape>();
+                auto shapeCompRow = chunk.GetComponentRow<CShape>();
+                auto transformCompRow = chunk.GetComponentRow<CTransform>();
 
                 for (size_t i = 0; i < chunk.size; ++i)
                 {
-                    const CShape& shapeData = shapes[i];
+                    const CShape& shapeComp = shapeCompRow[i];
+                    const CTransform& transformComp = transformCompRow[i];
 
-                    sf::CircleShape shape(shapeData.radius, shapeData.points);
-                    shape.setFillColor(shapeData.fillColor);
-                    shape.setOutlineColor(shapeData.outlineColor);
-                    shape.setOutlineThickness(shapeData.outlineThickness);
+                    sf::CircleShape shape(shapeComp.radius, shapeComp.points);
+                    shape.setFillColor(shapeComp.fillColor);
+                    shape.setOutlineColor(shapeComp.outlineColor);
+                    shape.setOutlineThickness(shapeComp.outlineThickness);
 
+                    shape.setPosition({transformComp.position.x, transformComp.position.y});
                     m_window.draw(shape);
                 }
             }

@@ -4,6 +4,7 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "ecs/system/GUISystem.h"
+#include "ecs/system/MovementSystem.h"
 #include "ecs/system/RenderSystem.h"
 #include "ecs/system/SystemRegistry.hpp"
 
@@ -19,6 +20,7 @@ class Engine
 
     GUISystem& m_guiSystem;
     RenderSystem& m_renderSystem;
+    MovementSystem& m_movementSystem;
 
     int m_currentFrame = 0;
     int m_frameLimit = 60;

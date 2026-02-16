@@ -23,7 +23,7 @@ struct ArchetypeChunk
     }
 
     template <typename Component>
-    const Component* GetComponentRow() const
+    Component* GetComponentRow() const
     {
         ComponentID id = ComponentRegistry::GetComponentID<Component>();
         // Invalid Id
