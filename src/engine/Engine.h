@@ -28,7 +28,7 @@ class Engine
     CollisionSystem& m_collisionSystem;
 
     int m_currentFrame = 0;
-    int m_frameLimit = 60;
+    int m_frameLimit = 0;
     uint m_windowWidth = 1280;
     uint m_windowHeight = 720;
 

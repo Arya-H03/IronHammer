@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "assets/FontManager.h"
 #include "core/utils/CustomTypes.hpp"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
@@ -24,6 +25,7 @@ Engine::Engine()
 void Engine::Init()
 {
     Random::Init();
+    FontManager::InitializeFont();
 
     m_window.create(sf::VideoMode({m_windowWidth, m_windowHeight}), "IronHammer");
     m_window.setFramerateLimit(m_frameLimit);
