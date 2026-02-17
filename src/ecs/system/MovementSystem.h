@@ -1,23 +1,25 @@
 #pragma once
-#include "core/utils/Vect2.hpp"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
-#include "ecs/system/BaseSystem.h"
 #include "Tracy.hpp"
 
-class MovementSystem: public BaseSystem
+class MovementSystem
 {
-    public:
+  private:
+    ArchetypeRegistry& m_archetypeRegistry;
+    Query& movementQuery;
 
-    MovementSystem()
+  public:
+    MovementSystem(ArchetypeRegistry& archetypeRegistry)
+        : m_archetypeRegistry(archetypeRegistry), movementQuery(m_archetypeRegistry.CreateQuery<CTransform, CMovement>())
     {
-        MakeSignatureMask<CTransform,CMovement>();
     }
 
     void HandleMovementSystem()
     {
         ZoneScoped;
 
-        for (auto& archetype : m_matchingArchetypes)
+        for (auto& archetype : movementQuery.matchingArchetypes)
         {
             for (auto& chunk : archetype->GetChunks())
             {

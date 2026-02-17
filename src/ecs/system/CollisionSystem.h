@@ -1,21 +1,23 @@
 #pragma once
-
-#include "ecs/component/Components.hpp"
-#include "ecs/system/BaseSystem.h"
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <cstddef>
 #include <cstdlib>
+#include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
 
-class CollisionSystem : public BaseSystem
+class CollisionSystem
 {
   private:
     const sf::RenderWindow& m_window;
+    ArchetypeRegistry& m_ArchetypeRegistry;
+    Query& collisionQuery;
 
   public:
-    CollisionSystem(const sf::RenderWindow& window) : m_window(window)
+    CollisionSystem(const sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
+        : m_window(window),
+          m_ArchetypeRegistry(archetypeRegistry),
+          collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
     {
-        MakeSignatureMask<CTransform, CMovement, CCollider>();
     }
 
     void HandleCollisionSystem()
@@ -105,7 +107,7 @@ class CollisionSystem : public BaseSystem
         //     }
         // }
 
-        for (auto& archetype : m_matchingArchetypes)
+        for (auto& archetype : collisionQuery.matchingArchetypes)
         {
             for (auto& chunk : archetype->GetChunks())
             {

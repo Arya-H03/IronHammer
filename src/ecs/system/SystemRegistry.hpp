@@ -6,6 +6,7 @@
 #include <vector>
 #include "ecs/system/BaseSystem.h"
 
+//Deprecated
 class SystemRegistry
 {
   private:

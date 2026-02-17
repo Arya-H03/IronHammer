@@ -11,15 +11,17 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Window.hpp>
 #include "ecs/component/Components.hpp"
-#include "ecs/system/BaseSystem.h"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "Tracy.hpp"
 
-class RenderSystem : public BaseSystem
+class RenderSystem
 {
 
   private:
     sf::RenderWindow& m_window;
+    ArchetypeRegistry& m_archetypeRegistry;
     sf::VertexArray m_shapeBatch;
+    Query& renderShapesQuery;
 
     // Create a circle with CShape.points triangles
     // Each triangle is made out of 3 points
@@ -46,9 +48,11 @@ class RenderSystem : public BaseSystem
     }
 
   public:
-    RenderSystem(sf::RenderWindow& window) : m_window(window)
+    RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
+        : m_window(window),
+          m_archetypeRegistry(archetypeRegistry),
+          renderShapesQuery(m_archetypeRegistry.CreateQuery<CShape,CTransform>())
     {
-        MakeSignatureMask<CShape, CTransform>();
         m_shapeBatch.setPrimitiveType(sf::PrimitiveType::Triangles);
     }
 
@@ -62,7 +66,7 @@ class RenderSystem : public BaseSystem
             m_shapeBatch.clear();
         }
 
-        for (auto& archetype : m_matchingArchetypes)
+        for (auto& archetype : renderShapesQuery.matchingArchetypes)
         {
             for (auto& chunk : archetype->GetChunks())
             {

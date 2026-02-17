@@ -68,7 +68,7 @@ class EntityManager
             newEntityArchetypeLocationIndex = id;
         }
 
-        ComponentSignatureMask signature = m_archetypeRegistry.MakeArchetypeSignature<std::decay_t<Components>...>();
+        ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask<std::decay_t<Components>...>();
         Archetype& archetype = m_archetypeRegistry.FindOrCreateArchetype(signature);
 
         EntityStorageLocation newEntityArchetypeLocation = archetype.AddEntity(newEntity, components...);

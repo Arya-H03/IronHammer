@@ -4,6 +4,8 @@
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include <vector>
+
+//Deprecated
 class BaseSystem
 {
   protected:

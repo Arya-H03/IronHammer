@@ -4,20 +4,16 @@
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
-#include "ecs/system/CollisionSystem.h"
-#include "ecs/system/MovementSystem.h"
 #include <SFML/Graphics/Color.hpp>
-#include <SFML/System/Vector2.hpp>
 #include <cassert>
 #include "Tracy.hpp"
 
 Engine::Engine()
-    : m_archetypeRegistry(m_systemRegistry),
-      m_entityManager(m_archetypeRegistry),
-      m_guiSystem(m_systemRegistry.RegisterSystem<GUISystem>(m_entityManager, m_archetypeRegistry)),
-      m_renderSystem(m_systemRegistry.RegisterSystem<RenderSystem>(m_window)),
-      m_movementSystem(m_systemRegistry.RegisterSystem<MovementSystem>()),
-      m_collisionSystem(m_systemRegistry.RegisterSystem<CollisionSystem>(m_window))
+    : m_entityManager(m_archetypeRegistry),
+      m_guiSystem(m_entityManager, m_archetypeRegistry),
+      m_renderSystem(m_window,m_archetypeRegistry),
+      m_movementSystem(m_archetypeRegistry),
+      m_collisionSystem(m_window,m_archetypeRegistry)
 {
     Init();
 }
