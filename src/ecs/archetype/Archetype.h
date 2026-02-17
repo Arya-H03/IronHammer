@@ -161,7 +161,7 @@ class Archetype
             void* srcRawBlock = srcChunk.components[i];
             void* dstRawBlock = dstChunk.components[dstAllocatorIndex];
 
-            componentInfo.MoveComponentFn(srcRawBlock, dstRawBlock, srcIndex, dstIndex);
+            componentInfo.MoveComponent(srcRawBlock, dstRawBlock, srcIndex, dstIndex);
         }
 
         ++dstChunk.size;
@@ -214,7 +214,7 @@ class Archetype
                 void* rawBlock = chunk.components[i];
 
                 const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
-                componentInfo.MoveComponentFn(rawBlock, rawBlock, lastIndexInChunk, indexInChunk);
+                componentInfo.MoveComponent(rawBlock, rawBlock, lastIndexInChunk, indexInChunk);
             }
             chunk.entities[indexInChunk] = chunk.entities[lastIndexInChunk];
         }

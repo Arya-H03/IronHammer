@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Graphics/Color.hpp>
 #include <random>
 
 class Random
@@ -23,5 +24,10 @@ class Random
     {
         std::uniform_real_distribution<float> dist(min, max);
         return dist(m_engine);
+    }
+
+    static sf::Color Color()
+    {
+        return sf::Color(Int(0,255),Int(0,255),Int(0,255),255);
     }
 };

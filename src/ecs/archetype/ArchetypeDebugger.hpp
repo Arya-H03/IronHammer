@@ -57,7 +57,7 @@ class ArchetypeDebugger
                         void* componentPtr = base + (componentSize * currentIndexInCunk);
                         ComponentID id = archetype.m_densIds[i];
                         const ComponentInfo& info = ComponentRegistry::GetComponentInfoById(id);
-                        info.DrawGuiFn(componentPtr);
+                        info.DrawGui(componentPtr);
                     }
 
                     ImGui::TreePop();

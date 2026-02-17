@@ -1,8 +1,9 @@
 #include "ecs/system/GUISystem.h"
-
+#include "Tracy.hpp"
 
 void GUISystem::HandleGUISystem()
 {
+    ZoneScoped;
     ImGui::SetNextWindowSize(ImVec2(425, 400), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
 

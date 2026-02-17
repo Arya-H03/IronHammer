@@ -1,16 +1,22 @@
 #include "Engine.h"
+#include "core/utils/CustomTypes.hpp"
 #include "core/utils/Random.hpp"
+#include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
+#include "ecs/system/CollisionSystem.h"
 #include "ecs/system/MovementSystem.h"
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cassert>
+#include "Tracy.hpp"
 
 Engine::Engine()
     : m_archetypeRegistry(m_systemRegistry),
       m_entityManager(m_archetypeRegistry),
       m_guiSystem(m_systemRegistry.RegisterSystem<GUISystem>(m_entityManager, m_archetypeRegistry)),
       m_renderSystem(m_systemRegistry.RegisterSystem<RenderSystem>(m_window)),
-      m_movementSystem(m_systemRegistry.RegisterSystem<MovementSystem>())
+      m_movementSystem(m_systemRegistry.RegisterSystem<MovementSystem>()),
+      m_collisionSystem(m_systemRegistry.RegisterSystem<CollisionSystem>(m_window))
 {
     Init();
 }
@@ -19,7 +25,7 @@ void Engine::Init()
 {
     Random::Init();
 
-    m_window.create(sf::VideoMode({1280, 720}), "IronHammer");
+    m_window.create(sf::VideoMode({m_windowWidth, m_windowHeight}), "IronHammer");
     m_window.setFramerateLimit(m_frameLimit);
 
     const bool isWindowInitialized = ImGui::SFML::Init(m_window);
@@ -28,20 +34,38 @@ void Engine::Init()
     m_guiSystem.AppleGUITheme();
 }
 
+void Engine::SpawnTestEntity()
+{
+    ZoneScoped;
+
+    size_t count = 10000;
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        Vect2f startPos = Vect2f(Random::Float(250, m_windowWidth - 250), Random::Float(250, m_windowHeight - 250));
+        Vect2f startVel = Vect2f(Random::Float(-10, 10), Random::Float(-10, 10));
+        float speed = Random::Float(1, 5);
+
+        float shapeRadius = Random::Float(1, 5);
+        int points = Random::Int(3, 32);
+        sf::Color filColor = Random::Color();
+
+        m_entityManager.CreateEntity(CTransform(startPos, Vect2f(2, 2), Vect2f(3, 3)),
+                                     CMovement(startVel, speed),
+                                     CCollider(BoundingBox(Vect2f(0, 0), Vect2f(shapeRadius, shapeRadius)), false),
+                                     CShape(shapeRadius, points, filColor, sf::Color::White, 1));
+    }
+}
+
 void Engine::Run()
 {
-    //   Entity e0 = m_entityManager.CreateEntity(CShape(30, 3, sf::Color::Black, sf::Color::Yellow, 2));
-    // Entity e5 = m_entityManager.CreateEntity(CShape(50, 3, sf::Color::Black, sf::Color::Green, 2));
-    // Entity e6 = m_entityManager.CreateEntity(CShape(20, 3, sf::Color::Black, sf::Color::Blue, 2));
-    Entity e1 = m_entityManager.CreateEntity(CTransform(Vect2f(100, 100), Vect2f(2, 2), Vect2f(3, 3)),
-                                             CMovement(Vect2f(5, 5), 5),
-                                             CShape(50, 3, sf::Color::Black, sf::Color::Green, 2));
-    //    Entity e2 = m_entityManager.CreateEntity(CTransform(Vect2f(1, 1), Vect2f(2, 2), Vect2f(3, 3)), CMovement(Vect2f(7,
-    //    7)));
+    ZoneScoped;
+
+    SpawnTestEntity();
 
     while (m_window.isOpen())
     {
-        std::cerr<<Random::Float(0, 10)<<"\n";
+        FrameMark;
         ImGui::SFML::Update(m_window, m_clock.restart());
         while (const auto event = m_window.pollEvent())
         {
@@ -54,8 +78,12 @@ void Engine::Run()
         }
 
         m_movementSystem.HandleMovementSystem();
+        m_collisionSystem.HandleCollisionSystem();
         m_guiSystem.HandleGUISystem();
+
+        ///////////Always call LAST/////////
         m_renderSystem.HandleRenderSystem();
+        ////////////////////////////////////
 
         ++m_currentFrame;
     }

@@ -2,6 +2,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
 #include "ecs/system/BaseSystem.h"
+#include "Tracy.hpp"
 
 class MovementSystem: public BaseSystem
 {
@@ -14,6 +15,8 @@ class MovementSystem: public BaseSystem
 
     void HandleMovementSystem()
     {
+        ZoneScoped;
+
         for (auto& archetype : m_matchingArchetypes)
         {
             for (auto& chunk : archetype->GetChunks())

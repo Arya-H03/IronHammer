@@ -17,8 +17,8 @@ struct ComponentInfo
     ComponentID id;
     size_t size;
     const char* name;
-    DrawDebugGuiFn DrawGuiFn;
-    MoveComponentFn MoveComponentFn;
+    DrawDebugGuiFn DrawGui;
+    MoveComponentFn MoveComponent;
 };
 
 class ComponentRegistry
@@ -54,8 +54,8 @@ class ComponentRegistry
 
             newComponentInfo.name = typeid(T).name();
             newComponentInfo.size = sizeof(T);
-            newComponentInfo.DrawGuiFn = [](void* ptr) { DrawDebugGUI<T>(ptr); };
-            newComponentInfo.MoveComponentFn = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
+            newComponentInfo.DrawGui = [](void* ptr) { DrawDebugGUI<T>(ptr); };
+            newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
             {
                 T* srcArray = reinterpret_cast<T*>(src);
                 T* dstArray = reinterpret_cast<T*>(dst);
