@@ -27,23 +27,40 @@ class RenderSystem
     // Each triangle is made out of 3 points
     void AddShapeToBatch(CShape& cshape, CTransform& ctransform)
     {
-        const float radius = cshape.radius;
+        const float innerRadius = cshape.radius - cshape.outlineThickness; // For main shape
+        const float outerRadius = cshape.radius;                           // For outline
+
         const size_t points = cshape.points;
-        const sf::Color fillColor = cshape.fillColor;
+        const float rotationRad = ctransform.rotation * (M_PI / 180.f);
 
         sf::Vector2f center = {ctransform.position.x, ctransform.position.y};
 
         for (size_t i = 0; i < points; ++i)
         {
-            float angle1 = (i * 2 * M_PI) / points;
-            float angle2 = ((i + 1) * 2 * M_PI) / points;
+            float angle1 = (i * 2.f * M_PI) / points + rotationRad;
+            float angle2 = ((i + 1) * 2.f * M_PI) / points + rotationRad;
 
-            sf::Vector2 point1 = {center.x + std::cos(angle1) * radius, center.y + std::sin(angle1) * radius};
-            sf::Vector2 point2 = {center.x + std::cos(angle2) * radius, center.y + std::sin(angle2) * radius};
+            float a1Cos = std::cos(angle1);
+            float a2Cos = std::cos(angle2);
+            float a1Sin = std::sin(angle1);
+            float a2Sin = std::sin(angle2);
 
-            m_shapeBatch.append(sf::Vertex(center, fillColor));
-            m_shapeBatch.append(sf::Vertex(point1, fillColor));
-            m_shapeBatch.append(sf::Vertex(point2, fillColor));
+            if (cshape.outlineThickness > 0)
+            {
+                sf::Vector2f outerPoint1 = {center.x + a1Cos * outerRadius, center.y + a1Sin * outerRadius};
+                sf::Vector2f outerPoint2 = {center.x + a2Cos * outerRadius, center.y + a2Sin * outerRadius};
+
+                m_shapeBatch.append(sf::Vertex(center, cshape.outlineColor));
+                m_shapeBatch.append(sf::Vertex(outerPoint1, cshape.outlineColor));
+                m_shapeBatch.append(sf::Vertex(outerPoint2, cshape.outlineColor));
+            }
+
+            sf::Vector2f innerPoint1 = {center.x + a1Cos * innerRadius, center.y + a1Sin * innerRadius};
+            sf::Vector2f innerPoint2 = {center.x + a2Cos * innerRadius, center.y + a2Sin * innerRadius};
+
+            m_shapeBatch.append(sf::Vertex(center, cshape.fillColor));
+            m_shapeBatch.append(sf::Vertex(innerPoint1, cshape.fillColor));
+            m_shapeBatch.append(sf::Vertex(innerPoint2, cshape.fillColor));
         }
     }
 
@@ -51,7 +68,7 @@ class RenderSystem
     RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
         : m_window(window),
           m_archetypeRegistry(archetypeRegistry),
-          renderShapesQuery(m_archetypeRegistry.CreateQuery<CShape,CTransform>())
+          renderShapesQuery(m_archetypeRegistry.CreateQuery<CShape, CTransform>())
     {
         m_shapeBatch.setPrimitiveType(sf::PrimitiveType::Triangles);
     }

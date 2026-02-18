@@ -1,21 +1,29 @@
 #pragma once
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <cstdint>
 #include <cstdlib>
+#include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
+#include "ecs/entity/EntityManager.hpp"
+#include "physics/BroadPhaseCollisionSystem.h"
 
 class CollisionSystem
 {
   private:
-    const sf::RenderWindow& m_window;
+    Vect2<uint16_t> m_windowSize;
+    EntityManager& m_entityManager;
     ArchetypeRegistry& m_ArchetypeRegistry;
+    BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
     Query& collisionQuery;
 
   public:
-    CollisionSystem(const sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
-        : m_window(window),
+    CollisionSystem(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
+        : m_windowSize(windowSize),
+          m_entityManager(entityManager),
           m_ArchetypeRegistry(archetypeRegistry),
+          m_broadPhaseCollisionSystem(entityManager, m_windowSize),
           collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
     {
     }
@@ -122,13 +130,13 @@ class CollisionSystem
                     CCollider& colliderComp = colliderCompRow[i];
 
                     if (transformComp.position.y - colliderComp.boundingBox.bounds.y <= 0
-                        || transformComp.position.y + colliderComp.boundingBox.bounds.y >= m_window.getSize().y)
+                        || transformComp.position.y + colliderComp.boundingBox.bounds.y >= m_windowSize.y)
                     {
                         movementComp.velocity.y *= -1;
                     }
 
                     if (transformComp.position.x - colliderComp.boundingBox.bounds.x <= 0
-                        || transformComp.position.x + colliderComp.boundingBox.bounds.x >= m_window.getSize().x)
+                        || transformComp.position.x + colliderComp.boundingBox.bounds.x >= m_windowSize.x)
                     {
                         movementComp.velocity.x *= -1;
                     }

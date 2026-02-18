@@ -1,4 +1,7 @@
 #pragma once
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Text.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <format>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <string>
@@ -8,16 +11,15 @@
 struct CTransform
 {
     Vect2f position;
-    Vect2f rotation;
+    float rotation;
     Vect2f scale;
 
     const std::string GetDescription() const
     {
-        return std::format("position ({},{}) rotation ({},{}) scale ({},{})",
+        return std::format("position ({},{}) rotation ({}) scale ({},{})",
                            position.x,
                            position.y,
-                           rotation.x,
-                           rotation.y,
+                           rotation,
                            scale.x,
                            scale.y);
     }
@@ -35,22 +37,12 @@ struct CMovement
 
 struct CShape
 {
-    // sf::CircleShape shape;
     float radius;
     size_t points;
     sf::Color fillColor;
     sf::Color outlineColor;
     float outlineThickness;
 
-    // CShape(float radius, size_t points, sf::Color fillColor, sf::Color outlineColor, float outlineThickness)
-    // {
-    //     shape.setRadius(radius);
-    //     shape.setPointCount(points);
-    //     shape.setOrigin({radius, radius});
-    //     shape.setFillColor(fillColor);
-    //     shape.setOutlineColor(outlineColor);
-    //     shape.setOutlineThickness(outlineThickness);
-    // }
     const std::string GetDescription() const { return std::format("Shaspe"); }
 };
 
@@ -68,4 +60,12 @@ struct CCollider
                            boundingBox.bounds.y,
                            isTrigger);
     }
+};
+
+struct CText
+{
+    std::string content;
+    sf::Color textColor;
+
+    const std::string GetDescription() const { return content; }
 };

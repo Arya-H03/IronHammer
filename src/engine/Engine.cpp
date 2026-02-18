@@ -11,9 +11,9 @@
 Engine::Engine()
     : m_entityManager(m_archetypeRegistry),
       m_guiSystem(m_entityManager, m_archetypeRegistry),
-      m_renderSystem(m_window,m_archetypeRegistry),
+      m_renderSystem(m_window, m_archetypeRegistry),
       m_movementSystem(m_archetypeRegistry),
-      m_collisionSystem(m_window,m_archetypeRegistry)
+      m_collisionSystem(m_entityManager, m_archetypeRegistry, m_windowSize)
 {
     Init();
 }
@@ -23,7 +23,7 @@ void Engine::Init()
     Random::Init();
     FontManager::InitializeFont();
 
-    m_window.create(sf::VideoMode({m_windowWidth, m_windowHeight}), "IronHammer");
+    m_window.create(sf::VideoMode({m_windowSize.x, m_windowSize.y}), "IronHammer");
     m_window.setFramerateLimit(m_frameLimit);
 
     const bool isWindowInitialized = ImGui::SFML::Init(m_window);
@@ -40,7 +40,7 @@ void Engine::SpawnTestEntity()
 
     for (size_t i = 0; i < count; ++i)
     {
-        Vect2f startPos = Vect2f(Random::Float(250, m_windowWidth - 250), Random::Float(250, m_windowHeight - 250));
+        Vect2f startPos = Vect2f(Random::Float(250, m_windowSize.x - 250), Random::Float(250, m_windowSize.y - 250));
         Vect2f startVel = Vect2f(Random::Float(-10, 10), Random::Float(-10, 10));
         float speed = Random::Float(1, 5);
 
@@ -48,7 +48,7 @@ void Engine::SpawnTestEntity()
         int points = Random::Int(3, 32);
         sf::Color filColor = Random::Color();
 
-        m_entityManager.CreateEntity(CTransform(startPos, Vect2f(2, 2), Vect2f(3, 3)),
+        m_entityManager.CreateEntity(CTransform(startPos, 0, Vect2f(3, 3)),
                                      CMovement(startVel, speed),
                                      CCollider(BoundingBox(Vect2f(0, 0), Vect2f(shapeRadius, shapeRadius)), false),
                                      CShape(shapeRadius, points, filColor, sf::Color::White, 1));
