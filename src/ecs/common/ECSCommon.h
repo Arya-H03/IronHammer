@@ -17,6 +17,11 @@ struct Entity
 {
     EntityID id = InvalidEntityID;
     uint32_t generation = InvalidEntityID;
+
+    bool operator == (const Entity otherEntity) const
+    {
+        return id == otherEntity.id && generation == otherEntity.generation;
+    }
 };
 
 struct EntityStorageLocation

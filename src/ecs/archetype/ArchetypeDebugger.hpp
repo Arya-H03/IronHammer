@@ -79,25 +79,25 @@ class ArchetypeDebugger
 
     void DrawArchetypeGuiTab()
     {
-        if (ImGui::BeginTabItem("Archetypes"))
+        // if (ImGui::BeginTabItem("Archetypes"))
+        // {
+        int archetypeTreeNodeId = 0;
+        for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
         {
-            int archetypeTreeNodeId = 0;
-            for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
+            ImGui::PushID(archetypeTreeNodeId);
+
+            std::string nodeTitle =
+                "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();
+
+            if (ImGui::TreeNode(nodeTitle.c_str()))
             {
-                ImGui::PushID(archetypeTreeNodeId);
-
-                std::string nodeTitle =
-                    "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();
-
-                if (ImGui::TreeNode(nodeTitle.c_str()))
-                {
-                    DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { m_entityManager.DeleteEntity(entity); });
-                    ImGui::TreePop();
-                }
-                ImGui::PopID();
-                ++archetypeTreeNodeId;
+                DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { m_entityManager.DeleteEntity(entity); });
+                ImGui::TreePop();
             }
-            ImGui::EndTabItem();
+            ImGui::PopID();
+            ++archetypeTreeNodeId;
         }
+        //     ImGui::EndTabItem();
+        // }
     }
 };

@@ -1,5 +1,6 @@
 #include "ecs/system/GUISystem.h"
 #include "Tracy.hpp"
+#include "imgui.h"
 
 void GUISystem::HandleGUISystem()
 {
@@ -9,12 +10,57 @@ void GUISystem::HandleGUISystem()
 
     ImGui::Begin("Debug");
 
-    if (ImGui::BeginTabBar("ESC"))
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+    if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
     {
-        m_archetypeDebugger.DrawArchetypeGuiTab();
+        if (ImGui::BeginTabItem("ECS"))
+        {
+            m_archetypeDebugger.DrawArchetypeGuiTab();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Rendering"))
+        {
+            bool canDrawText = m_renderSystem.GetCanDrawText();
+            if (ImGui::Checkbox("Draw Text", &canDrawText))
+            {
+                m_renderSystem.SetCanDrawTest(canDrawText);
+            }
+            ImGui::Separator();
+
+            bool canDrawShapes = m_renderSystem.GetCanDrawShapes();
+            if (ImGui::Checkbox("Draw Shapes", &canDrawShapes))
+            {
+                m_renderSystem.SetCanDrawShapes(canDrawShapes);
+            }
+            ImGui::Separator();
+
+            bool canDrawColliders = m_renderSystem.GetCanDrawColliders();
+            if (ImGui::Checkbox("Draw Colliders", &canDrawColliders))
+            {
+                m_renderSystem.SetCanDrawColliders(canDrawColliders);
+            }
+
+
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Physics"))
+        {
+            //ImGui::Text("This is the Physics tab!");
+            if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
+            {
+                m_collisionDebugger.BroadPhaseGui();
+            }
+            if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
+            {
+                ImGui::Text("IsItemHovered: %d", ImGui::IsItemHovered());
+                for (int i = 0; i < 5; i++) ImGui::Text("Some content %d", i);
+            }
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
 
+    //ImGui::Separator();
     ImGui::End();
 }
 

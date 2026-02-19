@@ -78,6 +78,10 @@ class Vect2
         return Vect2(x / length, y / length);
     }
 
+    Vect2<int> Floor() { return Vect2<int>(std::floor(x), std::floor(y)); }
+
+    Vect2<int> Ceil() { return Vect2<int>(std::ceil(x), std::ceil(y)); }
+
     void Print() { std::cerr << "Vector2: (" << x << ", " << y << ")"; }
 };
 

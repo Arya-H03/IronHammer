@@ -8,22 +8,29 @@
 #include "Tracy.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
+#include "physics/CollisionDebugger.h"
 
 class CollisionSystem
 {
+    friend class CollisionDebugger;
+
   private:
     Vect2<uint16_t> m_windowSize;
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_ArchetypeRegistry;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
+    CollisionDebugger m_collisionDebugger;
     Query& collisionQuery;
 
   public:
+    const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
+
     CollisionSystem(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize),
           m_entityManager(entityManager),
           m_ArchetypeRegistry(archetypeRegistry),
-          m_broadPhaseCollisionSystem(entityManager, m_windowSize),
+          m_broadPhaseCollisionSystem(entityManager, m_ArchetypeRegistry, m_windowSize),
+          m_collisionDebugger(m_broadPhaseCollisionSystem),
           collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
     {
     }
@@ -115,33 +122,41 @@ class CollisionSystem
         //     }
         // }
 
-        for (auto& archetype : collisionQuery.matchingArchetypes)
         {
-            for (auto& chunk : archetype->GetChunks())
+            ZoneScopedN("Collision Check Against Bounds");
+            for (auto& archetype : collisionQuery.matchingArchetypes)
             {
-                auto transformCompRow = chunk.GetComponentRow<CTransform>();
-                auto movementCompRow = chunk.GetComponentRow<CMovement>();
-                auto colliderCompRow = chunk.GetComponentRow<CCollider>();
-
-                for (size_t i = 0; i < chunk.size; ++i)
+                for (auto& chunk : archetype->GetChunks())
                 {
-                    CTransform& transformComp = transformCompRow[i];
-                    CMovement& movementComp = movementCompRow[i];
-                    CCollider& colliderComp = colliderCompRow[i];
+                    auto transformCompRow = chunk.GetComponentRow<CTransform>();
+                    auto movementCompRow = chunk.GetComponentRow<CMovement>();
+                    auto colliderCompRow = chunk.GetComponentRow<CCollider>();
 
-                    if (transformComp.position.y - colliderComp.boundingBox.bounds.y <= 0
-                        || transformComp.position.y + colliderComp.boundingBox.bounds.y >= m_windowSize.y)
+                    for (size_t i = 0; i < chunk.size; ++i)
                     {
-                        movementComp.velocity.y *= -1;
-                    }
+                        CTransform& transformComp = transformCompRow[i];
+                        CMovement& movementComp = movementCompRow[i];
+                        CCollider& colliderComp = colliderCompRow[i];
 
-                    if (transformComp.position.x - colliderComp.boundingBox.bounds.x <= 0
-                        || transformComp.position.x + colliderComp.boundingBox.bounds.x >= m_windowSize.x)
-                    {
-                        movementComp.velocity.x *= -1;
+                        if (transformComp.position.y + colliderComp.offset.y - colliderComp.size.y <= 0
+                            || transformComp.position.y + colliderComp.offset.y + colliderComp.size.y >= m_windowSize.y)
+                        {
+                            movementComp.velocity.y *= -1;
+                        }
+
+                        if (transformComp.position.x + colliderComp.offset.x - colliderComp.size.x <= 0
+                            || transformComp.position.x + colliderComp.offset.x + colliderComp.size.x >= m_windowSize.x)
+                        {
+                            movementComp.velocity.x *= -1;
+                        }
                     }
                 }
             }
+        }
+
+        {
+            ZoneScopedN("Broad Phase System");
+            m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem();
         }
     }
 };

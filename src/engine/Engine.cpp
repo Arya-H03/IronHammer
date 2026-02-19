@@ -1,6 +1,6 @@
 #include "Engine.h"
+#include <imgui-SFML.h>
 #include "assets/FontManager.h"
-#include "core/utils/CustomTypes.hpp"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
@@ -10,10 +10,10 @@
 
 Engine::Engine()
     : m_entityManager(m_archetypeRegistry),
-      m_guiSystem(m_entityManager, m_archetypeRegistry),
       m_renderSystem(m_window, m_archetypeRegistry),
       m_movementSystem(m_archetypeRegistry),
-      m_collisionSystem(m_entityManager, m_archetypeRegistry, m_windowSize)
+      m_collisionSystem(m_entityManager, m_archetypeRegistry, m_windowSize),
+      m_guiSystem(m_entityManager, m_renderSystem,m_archetypeRegistry,m_collisionSystem.GetCollsionDebugger())
 {
     Init();
 }
@@ -36,7 +36,7 @@ void Engine::SpawnTestEntity()
 {
     ZoneScoped;
 
-    size_t count = 10000;
+    size_t count = 100;
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -44,13 +44,13 @@ void Engine::SpawnTestEntity()
         Vect2f startVel = Vect2f(Random::Float(-10, 10), Random::Float(-10, 10));
         float speed = Random::Float(1, 5);
 
-        float shapeRadius = Random::Float(1, 5);
-        int points = Random::Int(3, 32);
+        float shapeRadius = Random::Float(10, 50);
+        int points = Random::Int(3, 20);
         sf::Color filColor = Random::Color();
 
         m_entityManager.CreateEntity(CTransform(startPos, 0, Vect2f(3, 3)),
                                      CMovement(startVel, speed),
-                                     CCollider(BoundingBox(Vect2f(0, 0), Vect2f(shapeRadius, shapeRadius)), false),
+                                     CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
                                      CShape(shapeRadius, points, filColor, sf::Color::White, 1));
     }
 }
@@ -69,20 +69,26 @@ void Engine::Run()
         {
             ImGui::SFML::ProcessEvent(m_window, *event);
             if (event->is<sf::Event::Closed>()) m_window.close();
-            // if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-            // {
-            //     entityManager.AddToEntity(e2, CRotation{5,4,3});
-            // }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::P))
+            {
+                isPaused = true;
+            }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::U))
+            {
+                isPaused = false;
+            }
         }
 
-        m_movementSystem.HandleMovementSystem();
-        m_collisionSystem.HandleCollisionSystem();
-        m_guiSystem.HandleGUISystem();
+        if (!isPaused)
+        {
+            m_movementSystem.HandleMovementSystem();
+            m_collisionSystem.HandleCollisionSystem();
+        }
 
+        m_guiSystem.HandleGUISystem();
         ///////////Always call LAST/////////
         m_renderSystem.HandleRenderSystem();
         ////////////////////////////////////
-
         ++m_currentFrame;
     }
 }

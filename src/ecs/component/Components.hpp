@@ -16,12 +16,8 @@ struct CTransform
 
     const std::string GetDescription() const
     {
-        return std::format("position ({},{}) rotation ({}) scale ({},{})",
-                           position.x,
-                           position.y,
-                           rotation,
-                           scale.x,
-                           scale.y);
+        return std::format(
+            "position ({},{}) rotation ({}) scale ({},{})", position.x, position.y, rotation, scale.x, scale.y);
     }
 };
 
@@ -48,17 +44,15 @@ struct CShape
 
 struct CCollider
 {
-    BoundingBox boundingBox;
+    Vect2f size; // Box only for now
+    Vect2f offset;
+
     bool isTrigger = false;
 
     const std::string GetDescription() const
     {
-        return std::format("Bounding Box: origin({}, {}) , bounds({}, {}) , isTrigger: {}",
-                           boundingBox.origin.x,
-                           boundingBox.origin.y,
-                           boundingBox.bounds.x,
-                           boundingBox.bounds.y,
-                           isTrigger);
+        return std::format(
+            "Size: ({}, {}) , offset: ({}, {}) , isTrigger: {}", size.x, size.y, offset.x, offset.y, isTrigger);
     }
 };
 
@@ -66,6 +60,8 @@ struct CText
 {
     std::string content;
     sf::Color textColor;
+    Vect2f offset;
+    float fontSize;
 
     const std::string GetDescription() const { return content; }
 };
