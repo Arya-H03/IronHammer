@@ -29,6 +29,7 @@ void Engine::Init()
     const bool isWindowInitialized = ImGui::SFML::Init(m_window);
     assert(isWindowInitialized && "Window wasn't initialized");
 
+    //Colors::ApplyImGuiTheme();
     m_guiSystem.AppleGUITheme();
 }
 

@@ -9,10 +9,10 @@
 #include "assets/FontManager.h"
 #include "Tracy.hpp"
 #include "ecs/component/Components.hpp"
+#include "core/utils/Colors.h"
 
 RenderSystem::RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
-    : m_window(window),
-      m_archetypeRegistry(archetypeRegistry),
+    : m_window(window), m_archetypeRegistry(archetypeRegistry),
       shapeQuery(m_archetypeRegistry.CreateQuery<CShape, CTransform>()),
       textQuery(m_archetypeRegistry.CreateQuery<CText, CTransform>()),
       colliderQuery(m_archetypeRegistry.CreateQuery<CTransform, CCollider>())
@@ -76,17 +76,17 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
     sf::Vector2f bottomLeft{center.x - halfWidth, center.y + halfHeight};
 
     // Each pair = one line segment
-    batch.append(sf::Vertex(topLeft, m_colliderColor));
-    batch.append(sf::Vertex(topRight, m_colliderColor));
+    batch.append(sf::Vertex(topLeft, Colors::OxidizedGreen_SFML));
+    batch.append(sf::Vertex(topRight, Colors::OxidizedGreen_SFML));
 
-    batch.append(sf::Vertex(topRight, m_colliderColor));
-    batch.append(sf::Vertex(bottomRight, m_colliderColor));
+    batch.append(sf::Vertex(topRight, Colors::OxidizedGreen_SFML));
+    batch.append(sf::Vertex(bottomRight, Colors::OxidizedGreen_SFML));
 
-    batch.append(sf::Vertex(bottomRight, m_colliderColor));
-    batch.append(sf::Vertex(bottomLeft, m_colliderColor));
+    batch.append(sf::Vertex(bottomRight, Colors::OxidizedGreen_SFML));
+    batch.append(sf::Vertex(bottomLeft, Colors::OxidizedGreen_SFML));
 
-    batch.append(sf::Vertex(bottomLeft, m_colliderColor));
-    batch.append(sf::Vertex(topLeft, m_colliderColor));
+    batch.append(sf::Vertex(bottomLeft, Colors::OxidizedGreen_SFML));
+    batch.append(sf::Vertex(topLeft, Colors::OxidizedGreen_SFML));
 
     return 8;
 }

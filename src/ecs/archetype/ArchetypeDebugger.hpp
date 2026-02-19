@@ -1,12 +1,13 @@
 #pragma once
 #include <cstddef>
 #include <functional>
+#include <imgui.h>
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/entity/EntityManager.hpp"
-#include <imgui.h>
+#include "core/utils/Colors.h"
 
 class ArchetypeDebugger
 {
@@ -23,15 +24,15 @@ class ArchetypeDebugger
         ImGui::SameLine();
         ImGui::Text("|");
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.8f, 0.15f, 0.15f, 1.0f), "Size: %zu", archetype.m_totalSize);
+        ImGui::TextColored(Colors::HazardYellow_ImGui, "Size: %zu", archetype.m_totalSize);
         ImGui::SameLine();
         ImGui::Text("|");
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "Chunk: %zu", archetype.m_chunks.size());
+        ImGui::TextColored(Colors::ColdSteelBlue_ImGui, "Chunk: %zu", archetype.m_chunks.size());
         ImGui::SameLine();
         ImGui::Text("|");
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(0.85f, 0.55f, 0.2f, 1.0f), "Chunk Capacity: %zu", archetype.m_chunkCapacity);
+        ImGui::TextColored(Colors::RustRed_ImGui, "Chunk Capacity: %zu", archetype.m_chunkCapacity);
 
         ImGui::Separator();
         for (int currentChunkIndex = 0; currentChunkIndex < archetype.m_chunks.size(); ++currentChunkIndex)

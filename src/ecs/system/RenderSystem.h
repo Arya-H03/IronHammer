@@ -15,7 +15,6 @@ class RenderSystem
     Query& shapeQuery;
     Query& textQuery;
     Query& colliderQuery;
-    sf::Color m_colliderColor = sf::Color(0, 255, 0, 255);
 
     // Flags
     bool m_canDrawText = true;

@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include "core/utils/Colors.h"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/EntityManager.hpp"
@@ -20,11 +21,8 @@ class GUISystem
               RenderSystem& renderSystem,
               ArchetypeRegistry& archetypeRegistry,
               const CollisionDebugger& collisionDebugger)
-        : m_entityManager(entityManager),
-          m_renderSystem(renderSystem),
-          m_archetypeRegistry(archetypeRegistry),
-          m_archetypeDebugger(entityManager, archetypeRegistry),
-          m_collisionDebugger(collisionDebugger)
+        : m_entityManager(entityManager), m_renderSystem(renderSystem), m_archetypeRegistry(archetypeRegistry),
+          m_archetypeDebugger(entityManager, archetypeRegistry), m_collisionDebugger(collisionDebugger)
     {
     }
     void HandleGUISystem();
