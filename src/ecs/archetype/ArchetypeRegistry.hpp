@@ -20,6 +20,7 @@ class ArchetypeRegistry
     inline static size_t defaultArchetypeChunkCapacity = 64;
 
   private:
+
     std::vector<std::unique_ptr<Archetype>> m_archetypes;
     std::unordered_map<ComponentSignatureMask, ArchetypeId> m_signatureToArchetypIdMap;
     std::unordered_map<ComponentSignatureMask, std::unique_ptr<Query>> m_signatureToQueryMap;
@@ -67,6 +68,7 @@ class ArchetypeRegistry
     }
 
   public:
+
     const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return m_archetypes; };
     Archetype& GetArchetypeById(ArchetypeId id) { return *m_archetypes[id]; }
 

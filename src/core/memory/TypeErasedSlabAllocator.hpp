@@ -14,6 +14,7 @@ struct Slot
 class TypeErasedSlabAllocator
 {
   private:
+
     std::vector<void*> m_slabs; // Raw slab blocks
     size_t m_dataSize;          // Size of the data that needs to be stored
     size_t m_slotPerSlab;
@@ -55,7 +56,11 @@ class TypeErasedSlabAllocator
     }
 
   public:
-    TypeErasedSlabAllocator(size_t dataSize, size_t slotsPerSlab = 64) : m_dataSize(dataSize), m_slotPerSlab(slotsPerSlab) {}
+
+    TypeErasedSlabAllocator(size_t dataSize, size_t slotsPerSlab = 64)
+        : m_dataSize(dataSize), m_slotPerSlab(slotsPerSlab)
+    {
+    }
 
     ~TypeErasedSlabAllocator()
     {

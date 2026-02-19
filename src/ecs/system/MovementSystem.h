@@ -6,12 +6,15 @@
 class MovementSystem
 {
   private:
+
     ArchetypeRegistry& m_archetypeRegistry;
     Query& movementQuery;
 
   public:
+
     MovementSystem(ArchetypeRegistry& archetypeRegistry)
-        : m_archetypeRegistry(archetypeRegistry), movementQuery(m_archetypeRegistry.CreateQuery<CTransform, CMovement>())
+        : m_archetypeRegistry(archetypeRegistry)
+        , movementQuery(m_archetypeRegistry.CreateQuery<CTransform, CMovement>())
     {
     }
 

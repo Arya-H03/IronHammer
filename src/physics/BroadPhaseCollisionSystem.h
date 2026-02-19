@@ -16,7 +16,7 @@ struct Cell
     std::vector<Entity> overlapingEntities;
 
     Cell() = default;
-    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) {}
+    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) { }
 };
 
 struct CollisionPair
@@ -39,13 +39,15 @@ class BroadPhaseCollisionSystem
     friend class CollisionDebugger;
 
   private:
+
     const float m_cellSize = 48;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
     uint16_t m_cellPerRow, m_cellPerCol;
+
     Vect2<uint16_t> m_windowSize;
     std::vector<Cell> m_grid;
-
     std::vector<Entity> m_entities;
+
     std::unordered_set<CollisionPair, PairHash> m_uniquePairs;
 
     EntityManager& m_entityManger;
@@ -61,9 +63,9 @@ class BroadPhaseCollisionSystem
     void FindUniqueCollisionPairs();
 
   public:
-    BroadPhaseCollisionSystem(EntityManager& entityManager,
-                              ArchetypeRegistry& archetypeRegistry,
-                              Vect2<uint16_t> windowSize);
+
+    BroadPhaseCollisionSystem(
+        EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize);
 
     void HandleBroadPhaseCollisionSystem();
 

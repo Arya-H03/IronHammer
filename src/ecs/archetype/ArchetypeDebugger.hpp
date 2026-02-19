@@ -12,11 +12,12 @@
 class ArchetypeDebugger
 {
   private:
+
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_archetypeRegistry;
 
-    void DrawIndividualArchetypeGUI(const Archetype& archetype,
-                                    const std::function<void(Entity)>& deleteEntityCallBack) const
+    void DrawIndividualArchetypeGUI(
+        const Archetype& archetype, const std::function<void(Entity)>& deleteEntityCallBack) const
     {
         int entityTreeID = 0;
         ImGui::TextColored(
@@ -73,6 +74,7 @@ class ArchetypeDebugger
     }
 
   public:
+
     ArchetypeDebugger(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry)
         : m_entityManager(entityManager), m_archetypeRegistry(archetypeRegistry)
     {

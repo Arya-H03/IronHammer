@@ -1,11 +1,11 @@
 #pragma once
+#include "ecs/archetype/Archetype.h"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
 #include <cassert>
 #include <utility>
 #include <vector>
-#include "ecs/archetype/Archetype.h"
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/common/ECSCommon.h"
 class EntityManager
 {
     struct EntitySlot
@@ -16,6 +16,7 @@ class EntityManager
     };
 
   private:
+
     static constexpr size_t initialEntitySize = 1024;
     uint32_t m_freeListHeadIndex = UINT32_MAX;
 
@@ -34,7 +35,8 @@ class EntityManager
     }
 
   public:
-    EntityManager(ArchetypeRegistry& archetypeRegistry): m_archetypeRegistry(archetypeRegistry)
+
+    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
     {
         m_entitySlots.reserve(initialEntitySize);
         m_entityArchetypeLocations.reserve(initialEntitySize);
@@ -103,7 +105,8 @@ class EntityManager
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
 
-        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
+        Archetype& srcArchetype =
+            m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);
         Archetype& dstArchetype = m_archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
 
@@ -127,7 +130,8 @@ class EntityManager
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
 
-        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
+        Archetype& srcArchetype =
+            m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().reset(componentId);
         Archetype& dstArchetype = m_archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
 

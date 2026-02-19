@@ -9,11 +9,11 @@
 #include "Tracy.hpp"
 
 Engine::Engine()
-    : m_entityManager(m_archetypeRegistry),
-      m_renderSystem(m_window, m_archetypeRegistry),
-      m_movementSystem(m_archetypeRegistry),
-      m_collisionSystem(m_entityManager, m_archetypeRegistry, m_windowSize),
-      m_guiSystem(m_entityManager, m_renderSystem,m_archetypeRegistry,m_collisionSystem.GetCollsionDebugger())
+    : m_entityManager(m_archetypeRegistry)
+    , m_renderSystem(m_window, m_archetypeRegistry)
+    , m_movementSystem(m_archetypeRegistry)
+    , m_collisionSystem(m_entityManager, m_archetypeRegistry, m_windowSize)
+    , m_guiSystem(m_entityManager, m_renderSystem, m_archetypeRegistry, m_collisionSystem.GetCollsionDebugger())
 {
     Init();
 }
@@ -23,13 +23,12 @@ void Engine::Init()
     Random::Init();
     FontManager::InitializeFont();
 
-    m_window.create(sf::VideoMode({m_windowSize.x, m_windowSize.y}), "IronHammer");
+    m_window.create(sf::VideoMode({ m_windowSize.x, m_windowSize.y }), "IronHammer");
     m_window.setFramerateLimit(m_frameLimit);
 
     const bool isWindowInitialized = ImGui::SFML::Init(m_window);
     assert(isWindowInitialized && "Window wasn't initialized");
 
-    //Colors::ApplyImGuiTheme();
     m_guiSystem.AppleGUITheme();
 }
 
@@ -50,9 +49,9 @@ void Engine::SpawnTestEntity()
         sf::Color filColor = Random::Color();
 
         m_entityManager.CreateEntity(CTransform(startPos, 0, Vect2f(3, 3)),
-                                     CMovement(startVel, speed),
-                                     CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
-                                     CShape(shapeRadius, points, filColor, sf::Color::White, 1));
+            CMovement(startVel, speed),
+            CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
+            CShape(shapeRadius, points, filColor, sf::Color::White, 1));
     }
 }
 

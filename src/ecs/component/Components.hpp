@@ -6,7 +6,6 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <string>
 #include "core/utils/Vect2.hpp"
-#include "core/utils/CustomTypes.hpp"
 
 struct CTransform
 {

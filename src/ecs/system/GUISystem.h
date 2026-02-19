@@ -10,6 +10,7 @@
 class GUISystem
 {
   private:
+
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_archetypeRegistry;
     ArchetypeDebugger m_archetypeDebugger;
@@ -17,12 +18,16 @@ class GUISystem
     RenderSystem& m_renderSystem;
 
   public:
+
     GUISystem(EntityManager& entityManager,
-              RenderSystem& renderSystem,
-              ArchetypeRegistry& archetypeRegistry,
-              const CollisionDebugger& collisionDebugger)
-        : m_entityManager(entityManager), m_renderSystem(renderSystem), m_archetypeRegistry(archetypeRegistry),
-          m_archetypeDebugger(entityManager, archetypeRegistry), m_collisionDebugger(collisionDebugger)
+        RenderSystem& renderSystem,
+        ArchetypeRegistry& archetypeRegistry,
+        const CollisionDebugger& collisionDebugger)
+        : m_entityManager(entityManager)
+        , m_renderSystem(renderSystem)
+        , m_archetypeRegistry(archetypeRegistry)
+        , m_archetypeDebugger(entityManager, archetypeRegistry)
+        , m_collisionDebugger(collisionDebugger)
     {
     }
     void HandleGUISystem();

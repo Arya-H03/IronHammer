@@ -15,6 +15,7 @@ class CollisionSystem
     friend class CollisionDebugger;
 
   private:
+
     Vect2<uint16_t> m_windowSize;
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_ArchetypeRegistry;
@@ -23,15 +24,16 @@ class CollisionSystem
     Query& collisionQuery;
 
   public:
+
     const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
 
     CollisionSystem(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
-        : m_windowSize(windowSize),
-          m_entityManager(entityManager),
-          m_ArchetypeRegistry(archetypeRegistry),
-          m_broadPhaseCollisionSystem(entityManager, m_ArchetypeRegistry, m_windowSize),
-          m_collisionDebugger(m_broadPhaseCollisionSystem),
-          collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
+        : m_windowSize(windowSize)
+        , m_entityManager(entityManager)
+        , m_ArchetypeRegistry(archetypeRegistry)
+        , m_broadPhaseCollisionSystem(entityManager, m_ArchetypeRegistry, m_windowSize)
+        , m_collisionDebugger(m_broadPhaseCollisionSystem)
+        , collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
     {
     }
 

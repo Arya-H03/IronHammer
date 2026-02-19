@@ -5,9 +5,11 @@
 class Random
 {
   private:
+
     inline static std::mt19937 m_engine; // Random engine
 
   public:
+
     static void Init()
     {
         std::random_device rd;
@@ -26,8 +28,5 @@ class Random
         return dist(m_engine);
     }
 
-    static sf::Color Color()
-    {
-        return sf::Color(Int(0,255),Int(0,255),Int(0,255),255);
-    }
+    static sf::Color Color() { return sf::Color(Int(0, 255), Int(0, 255), Int(0, 255), 255); }
 };

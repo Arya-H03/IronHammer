@@ -6,13 +6,15 @@
 #include <vector>
 #include "ecs/system/BaseSystem.h"
 
-//Deprecated
+// Deprecated
 class SystemRegistry
 {
   private:
+
     std::vector<std::unique_ptr<BaseSystem>> m_systems;
 
   public:
+
     const std::vector<std::unique_ptr<BaseSystem>>& GetSystems() const { return m_systems; }
 
     template <std::derived_from<BaseSystem> System, typename... Args>

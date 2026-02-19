@@ -14,9 +14,10 @@
 class Engine
 {
   private:
+
     int m_currentFrame = 0;
     int m_frameLimit = 0;
-    const Vect2<uint16_t> m_windowSize{1920,1080};
+    const Vect2<uint16_t> m_windowSize { 1920, 1080 };
     bool isPaused = false;
 
     sf::RenderWindow m_window;
@@ -37,6 +38,7 @@ class Engine
     void SpawnTestEntity();
 
   public:
+
     Engine();
     void Run();
 };

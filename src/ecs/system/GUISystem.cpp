@@ -1,5 +1,6 @@
 #include "ecs/system/GUISystem.h"
 #include "Tracy.hpp"
+#include "core/utils/Colors.h"
 #include "imgui.h"
 
 void GUISystem::HandleGUISystem()
@@ -40,12 +41,11 @@ void GUISystem::HandleGUISystem()
                 m_renderSystem.SetCanDrawColliders(canDrawColliders);
             }
 
-
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Physics"))
         {
-            //ImGui::Text("This is the Physics tab!");
+            // ImGui::Text("This is the Physics tab!");
             if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
             {
                 m_collisionDebugger.BroadPhaseGui();
@@ -60,7 +60,7 @@ void GUISystem::HandleGUISystem()
         ImGui::EndTabBar();
     }
 
-    //ImGui::Separator();
+    // ImGui::Separator();
     ImGui::End();
 }
 
@@ -68,11 +68,11 @@ void GUISystem::AppleGUITheme()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
-    // ---- Shape & Spacing ----
+    // Shape & Layout (Flat Industrial)
     style.WindowRounding = 2.0f;
     style.FrameRounding = 2.0f;
     style.ScrollbarRounding = 2.0f;
-    style.GrabRounding = 1.0f;
+    style.GrabRounding = 2.0f;
 
     style.WindowBorderSize = 1.0f;
     style.FrameBorderSize = 1.0f;
@@ -82,57 +82,64 @@ void GUISystem::AppleGUITheme()
     style.FramePadding = ImVec2(8, 4);
     style.ItemSpacing = ImVec2(8, 6);
 
-    // ---- Colors ----
     ImVec4* c = style.Colors;
 
-    // Backgrounds
-    c[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.09f, 0.10f, 1.00f); // Gunmetal
-    c[ImGuiCol_ChildBg] = ImVec4(0.11f, 0.11f, 0.12f, 1.00f);
-    c[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.09f, 0.98f);
+    // BACKGROUNDS (Very Dark Minimal)
+    c[ImGuiCol_WindowBg] = Colors::UltraDark_ImGui;
+    c[ImGuiCol_ChildBg] = Colors::DeepPanel_ImGui;
+    c[ImGuiCol_PopupBg] = Colors::UltraDark_ImGui;
 
-    // Borders
-    c[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.26f, 1.00f);
-    c[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    // BORDERS
+    c[ImGuiCol_Border] = Colors::Brass_ImGui;
+    c[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
 
-    // Text
-    c[ImGuiCol_Text] = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
-    c[ImGuiCol_TextDisabled] = ImVec4(0.55f, 0.55f, 0.55f, 1.00f);
+    // TEXT
+    c[ImGuiCol_Text] = Colors::ConcreteGrey_ImGui;
+    c[ImGuiCol_TextDisabled] = Colors::Disabled_ImGui;
 
-    // Headers (TreeNodes, Collapsing)
-    c[ImGuiCol_Header] = ImVec4(0.18f, 0.18f, 0.19f, 1.00f);
-    c[ImGuiCol_HeaderHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.65f); // Hazard yellow
-    c[ImGuiCol_HeaderActive] = ImVec4(0.85f, 0.72f, 0.15f, 0.85f);
+    // HEADERS (Dark base, hazard only on interaction)
+    c[ImGuiCol_Header] = Colors::Surface_ImGui;
+    c[ImGuiCol_HeaderHovered] = Colors::Selection_ImGui; // subtle hazard alpha
+    c[ImGuiCol_HeaderActive] = Colors::HazardYellow_ImGui;
 
-    // Buttons
-    c[ImGuiCol_Button] = ImVec4(0.18f, 0.18f, 0.19f, 1.00f);
-    c[ImGuiCol_ButtonHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.70f);
-    c[ImGuiCol_ButtonActive] = ImVec4(0.85f, 0.72f, 0.15f, 0.95f);
+    // BUTTONS (Minimal default)
+    c[ImGuiCol_Button] = Colors::Surface_ImGui;
+    c[ImGuiCol_ButtonHovered] = Colors::ButtonHover_ImGui;
+    c[ImGuiCol_ButtonActive] = Colors::ButtonActive_ImGui;
 
-    // Frame BG (inputs, sliders)
-    c[ImGuiCol_FrameBg] = ImVec4(0.15f, 0.15f, 0.16f, 1.00f);
-    c[ImGuiCol_FrameBgHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.45f);
-    c[ImGuiCol_FrameBgActive] = ImVec4(0.85f, 0.72f, 0.15f, 0.75f);
+    // INPUTS / SLIDERS
+    c[ImGuiCol_FrameBg] = Colors::Surface_ImGui;
+    c[ImGuiCol_FrameBgHovered] = Colors::Selection_ImGui;
+    c[ImGuiCol_FrameBgActive] = Colors::ButtonHover_ImGui;
 
-    // Tabs
-    c[ImGuiCol_Tab] = ImVec4(0.14f, 0.14f, 0.15f, 1.00f);
-    c[ImGuiCol_TabHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.65f);
-    c[ImGuiCol_TabActive] = ImVec4(0.22f, 0.22f, 0.23f, 1.00f);
-    c[ImGuiCol_TabUnfocused] = ImVec4(0.12f, 0.12f, 0.13f, 1.00f);
-    c[ImGuiCol_TabUnfocusedActive] = ImVec4(0.18f, 0.18f, 0.19f, 1.00f);
+    c[ImGuiCol_SliderGrab] = Colors::NeutralHover_ImGui;
+    c[ImGuiCol_SliderGrabActive] = Colors::HazardYellow_ImGui;
 
-    // Title bar
-    c[ImGuiCol_TitleBg] = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
-    c[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.19f, 1.00f);
-    c[ImGuiCol_TitleBgCollapsed] = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
+    c[ImGuiCol_CheckMark] = Colors::RustRed_ImGui;
 
-    // Scrollbar
-    c[ImGuiCol_ScrollbarBg] = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
-    c[ImGuiCol_ScrollbarGrab] = ImVec4(0.25f, 0.25f, 0.26f, 1.00f);
-    c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.60f);
-    c[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.85f, 0.72f, 0.15f, 0.90f);
+    // TABS (Flat industrial)
+    c[ImGuiCol_Tab] = Colors::DeepPanel_ImGui;
+    c[ImGuiCol_TabHovered] = Colors::Selection_ImGui;
+    c[ImGuiCol_TabActive] = Colors::Surface_ImGui;
+    c[ImGuiCol_TabUnfocused] = Colors::UltraDark_ImGui;
+    c[ImGuiCol_TabUnfocusedActive] = Colors::DeepPanel_ImGui;
 
-    // Separators
-    c[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.30f, 1.00f);
-    c[ImGuiCol_SeparatorHovered] = ImVec4(0.72f, 0.60f, 0.12f, 0.70f);
-    c[ImGuiCol_SeparatorActive] = ImVec4(0.85f, 0.72f, 0.15f, 0.90f);
+    // TITLE BAR
+    c[ImGuiCol_TitleBg] = Colors::UltraDark_ImGui;
+    c[ImGuiCol_TitleBgActive] = Colors::DeepPanel_ImGui;
+    c[ImGuiCol_TitleBgCollapsed] = Colors::UltraDark_ImGui;
+
+    // SCROLLBAR
+    c[ImGuiCol_ScrollbarBg] = Colors::UltraDark_ImGui;
+    c[ImGuiCol_ScrollbarGrab] = Colors::NeutralHover_ImGui;
+    c[ImGuiCol_ScrollbarGrabHovered] = Colors::Selection_ImGui;
+    c[ImGuiCol_ScrollbarGrabActive] = Colors::HazardYellow_ImGui;
+
+    // SEPARATORS
+    c[ImGuiCol_Separator] = Colors::Separator_ImGui;
+    c[ImGuiCol_SeparatorHovered] = Colors::Selection_ImGui;
+    c[ImGuiCol_SeparatorActive] = Colors::HazardYellow_ImGui;
+
+    // TEXT SELECTION
+    c[ImGuiCol_TextSelectedBg] = Colors::Selection_ImGui;
 }

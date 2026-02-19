@@ -9,6 +9,7 @@ template <typename T>
 class Vect2
 {
   public:
+
     T x;
     T y;
 
@@ -17,8 +18,8 @@ class Vect2
         x = 0;
         y = 0;
     };
-    Vect2(T X, T Y) : x(X), y(Y) {}
-    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2) {}
+    Vect2(T X, T Y) : x(X), y(Y) { }
+    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2) { }
 
     Vect2 operator+(const Vect2& rhs) const { return Vect2(x + rhs.x, y + rhs.y); }
 

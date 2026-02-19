@@ -12,10 +12,11 @@
 #include "core/utils/Colors.h"
 
 RenderSystem::RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
-    : m_window(window), m_archetypeRegistry(archetypeRegistry),
-      shapeQuery(m_archetypeRegistry.CreateQuery<CShape, CTransform>()),
-      textQuery(m_archetypeRegistry.CreateQuery<CText, CTransform>()),
-      colliderQuery(m_archetypeRegistry.CreateQuery<CTransform, CCollider>())
+    : m_window(window)
+    , m_archetypeRegistry(archetypeRegistry)
+    , shapeQuery(m_archetypeRegistry.CreateQuery<CShape, CTransform>())
+    , textQuery(m_archetypeRegistry.CreateQuery<CText, CTransform>())
+    , colliderQuery(m_archetypeRegistry.CreateQuery<CTransform, CCollider>())
 {
 }
 
@@ -23,11 +24,12 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
 {
     const float innerRadius = cshape.radius - cshape.outlineThickness;
     const float outerRadius = cshape.radius;
-    const size_t points = cshape.points;
     const float rotationRad = ctransform.rotation * (M_PI / 180.f);
-    sf::Vector2f center = {ctransform.position.x, ctransform.position.y};
+    const size_t points = cshape.points;
 
     size_t verticesAdded = 0;
+
+    sf::Vector2f center = { ctransform.position.x, ctransform.position.y };
 
     for (size_t i = 0; i < points; ++i)
     {
@@ -40,8 +42,8 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
         // Outline
         if (cshape.outlineThickness > 0)
         {
-            sf::Vector2f outer1{center.x + a1Cos * outerRadius, center.y + a1Sin * outerRadius};
-            sf::Vector2f outer2{center.x + a2Cos * outerRadius, center.y + a2Sin * outerRadius};
+            sf::Vector2f outer1 { center.x + a1Cos * outerRadius, center.y + a1Sin * outerRadius };
+            sf::Vector2f outer2 { center.x + a2Cos * outerRadius, center.y + a2Sin * outerRadius };
 
             batch.append(sf::Vertex(center, cshape.outlineColor));
             batch.append(sf::Vertex(outer1, cshape.outlineColor));
@@ -50,8 +52,8 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
         }
 
         // Fill
-        sf::Vector2f inner1{center.x + a1Cos * innerRadius, center.y + a1Sin * innerRadius};
-        sf::Vector2f inner2{center.x + a2Cos * innerRadius, center.y + a2Sin * innerRadius};
+        sf::Vector2f inner1 { center.x + a1Cos * innerRadius, center.y + a1Sin * innerRadius };
+        sf::Vector2f inner2 { center.x + a2Cos * innerRadius, center.y + a2Sin * innerRadius };
 
         batch.append(sf::Vertex(center, cshape.fillColor));
         batch.append(sf::Vertex(inner1, cshape.fillColor));
@@ -70,10 +72,10 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
     sf::Vector2f center(ctransform.position.x + ccollider.offset.x, ctransform.position.y + ccollider.offset.y);
 
     // 4 corners
-    sf::Vector2f topLeft{center.x - halfWidth, center.y - halfHeight};
-    sf::Vector2f topRight{center.x + halfWidth, center.y - halfHeight};
-    sf::Vector2f bottomRight{center.x + halfWidth, center.y + halfHeight};
-    sf::Vector2f bottomLeft{center.x - halfWidth, center.y + halfHeight};
+    sf::Vector2f topLeft { center.x - halfWidth, center.y - halfHeight };
+    sf::Vector2f topRight { center.x + halfWidth, center.y - halfHeight };
+    sf::Vector2f bottomRight { center.x + halfWidth, center.y + halfHeight };
+    sf::Vector2f bottomLeft { center.x - halfWidth, center.y + halfHeight };
 
     // Each pair = one line segment
     batch.append(sf::Vertex(topLeft, Colors::OxidizedGreen_SFML));
@@ -94,6 +96,7 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
 void RenderSystem::RenderShapes()
 {
     sf::VertexArray batch(sf::PrimitiveType::Triangles);
+
     size_t verticesInBatch = 0;
 
     for (auto& archetype : shapeQuery.matchingArchetypes)
@@ -134,6 +137,7 @@ void RenderSystem::RenderShapes()
 void RenderSystem::RenderColliders()
 {
     sf::VertexArray batch(sf::PrimitiveType::Lines);
+
     size_t verticesInBatch = 0;
 
     for (auto& archetype : colliderQuery.matchingArchetypes)
@@ -194,7 +198,7 @@ void RenderSystem::RenderText()
                     text.setFillColor(textComp.textColor);
                     text.setCharacterSize(textComp.fontSize);
                     text.setPosition(
-                        {transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y});
+                        { transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y });
 
                     {
                         ZoneScopedN("Draw Text");

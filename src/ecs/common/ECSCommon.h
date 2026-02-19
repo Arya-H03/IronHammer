@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <bitset>
 
-
 static constexpr uint16_t MaxComponents = 32;
 using ComponentID = uint32_t;
 
@@ -18,7 +17,7 @@ struct Entity
     EntityID id = InvalidEntityID;
     uint32_t generation = InvalidEntityID;
 
-    bool operator == (const Entity otherEntity) const
+    bool operator==(const Entity otherEntity) const
     {
         return id == otherEntity.id && generation == otherEntity.generation;
     }
@@ -30,8 +29,5 @@ struct EntityStorageLocation
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 
-    static constexpr EntityStorageLocation InvalidLocation()
-    {
-        return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX};
-    }
+    static constexpr EntityStorageLocation InvalidLocation() { return { InvalidArchetypeID, UINT32_MAX, UINT32_MAX }; }
 };

@@ -24,6 +24,7 @@ struct ComponentInfo
 class ComponentRegistry
 {
   private:
+
     inline static std::vector<ComponentInfo> componentInfos;
 
     static ComponentID MakeComponentID()
@@ -38,8 +39,8 @@ class ComponentRegistry
         TComponent& component = *reinterpret_cast<TComponent*>(ptr);
 
         ImGui::Text("%s: %s",
-                    ComponentRegistry::GetComponentNameByType(component),
-                    ComponentRegistry::GetComponentDescription(component).c_str());
+            ComponentRegistry::GetComponentNameByType(component),
+            ComponentRegistry::GetComponentDescription(component).c_str());
     }
 
     template <typename T>
@@ -84,6 +85,7 @@ class ComponentRegistry
     }
 
   public:
+
     template <typename T>
     static ComponentID GetComponentID()
     {

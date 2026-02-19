@@ -3,11 +3,11 @@
 #include "ecs/component/Components.hpp"
 #include "core/utils/Colors.h"
 
-BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(EntityManager& entityManager,
-                                                     ArchetypeRegistry& archetypeRegistry,
-                                                     Vect2<uint16_t> windowSize)
-    : m_entityManger(entityManager), m_windowSize(windowSize),
-      broadPhaseQuery(archetypeRegistry.CreateQuery<CCollider, CTransform>())
+BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(
+    EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
+    : m_entityManger(entityManager)
+    , m_windowSize(windowSize)
+    , broadPhaseQuery(archetypeRegistry.CreateQuery<CCollider, CTransform>())
 {
     m_cellPerCol = m_windowSize.y / m_cellSize;
     m_cellPerRow = m_windowSize.x / m_cellSize;
@@ -25,17 +25,17 @@ void BroadPhaseCollisionSystem::PopulateGrid()
         for (size_t j = 0; j < m_cellPerRow; ++j)
         {
             size_t index = i * m_cellPerRow + j;
-            Vect2<int> coord(i, j);
+
             Vect2f pos(((j * m_cellSize) + (m_cellSize / 2)), ((i * m_cellSize) + (m_cellSize / 2)));
+            Vect2<int> coord(i, j);
             m_grid[index] = Cell(coord, pos);
 
-            m_entities[index] =
-                m_entityManger.CreateEntity(CTransform(pos, 45, Vect2f(1, 1)),
-                                            CText(std::to_string(coord.x) + ", " + std::to_string(coord.y),
-                                                  sf::Color::White,
-                                                  Vect2f(m_cellRadius / 3, m_cellRadius / 3),
-                                                  18),
-                                            CShape(m_cellRadius, 4, Colors::DarkSteel_SFML, sf::Color::White, 2));
+            m_entities[index] = m_entityManger.CreateEntity(CTransform(pos, 45, Vect2f(1, 1)),
+                CShape(m_cellRadius, 4, Colors::DarkSteel_SFML, sf::Color::White, 2),
+                CText(std::to_string(coord.x) + ", " + std::to_string(coord.y),
+                    sf::Color::White,
+                    Vect2f(m_cellRadius / 3, m_cellRadius / 3),
+                    18));
         }
     }
 }
@@ -117,7 +117,7 @@ void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
                 Entity e2 = cell.overlapingEntities[j];
 
                 if (e1.id > e2.id) std::swap(e1, e2);
-                m_uniquePairs.insert({e1, e2});
+                m_uniquePairs.insert({ e1, e2 });
             }
         }
     }

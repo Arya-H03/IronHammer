@@ -1,5 +1,5 @@
-#include <cassert>
 #include <bit>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -7,11 +7,11 @@
 
 template <typename T, size_t SlabSize>
 class TemplatedSlabAllocator
-
 {
     static_assert(SlabSize > 0, "SlotCount must be positive");
 
   private:
+
     struct Slab
     {
         static constexpr size_t wordCount = (SlabSize + 63) / 64;
@@ -143,7 +143,7 @@ class TemplatedSlabAllocator
         {
             auto base = slabs[i].blocks;
 
-            if (ptr >= base && ptr < base + SlabSize) return {i, size_t(ptr - base)};
+            if (ptr >= base && ptr < base + SlabSize) return { i, size_t(ptr - base) };
         }
         assert(false && "Pointer wans't found");
     }
@@ -151,12 +151,15 @@ class TemplatedSlabAllocator
     size_t LocateSlab(T* arrayPtr)
     {
         for (size_t i = 0; i < slabs.size(); ++i)
+        {
             if (arrayPtr == slabs[i].blocks) return i;
+        }
 
         assert(false && "Pointer wans't found");
     }
 
   public:
+
     T* Allocate()
     {
         // When no free Slabs Exist
@@ -210,8 +213,8 @@ class TemplatedSlabAllocator
         slabs[arrayIndex].ResetBitSetToOne();
         slabs[arrayIndex].freeCount = SlabSize;
 
-        // This sets index to an entire empty slab. There might be cases in the futher that it should be set to the first
-        // Free slab.
+        // This sets index to an entire empty slab. There might be cases in the
+        // futher that it should be set to the first Free slab.
         currentSlabIndex = arrayIndex;
     }
 };

@@ -6,6 +6,7 @@
 class CollisionDebugger
 {
   private:
+
     BroadPhaseCollisionSystem& m_broadPhaseCollision;
     ImVec4 defaultTextColor;
     ImVec4 yellowTextColor;
@@ -34,7 +35,7 @@ class CollisionDebugger
                 ImGui::PushID(i);
                 Cell& cell = m_broadPhaseCollision.m_grid[i];
 
-                if(cell.overlapingEntities.size() > 2)
+                if (cell.overlapingEntities.size() > 2)
                 {
                     ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui);
                 }
@@ -67,7 +68,7 @@ class CollisionDebugger
         {
             for (auto& pair : m_broadPhaseCollision.m_uniquePairs)
             {
-                ImGui::Text("Entity %i & Entity %i", pair.e1.id,pair.e2.id);
+                ImGui::Text("Entity %i & Entity %i", pair.e1.id, pair.e2.id);
                 ImGui::Separator();
             }
             ImGui::TreePop();
@@ -75,7 +76,8 @@ class CollisionDebugger
     }
 
   public:
-    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision) : m_broadPhaseCollision(broadPhaseCollision) {}
+
+    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision) : m_broadPhaseCollision(broadPhaseCollision) { }
 
     void BroadPhaseGui() const { BroadPhaseCellGui(); }
 };

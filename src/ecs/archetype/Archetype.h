@@ -1,4 +1,8 @@
 #pragma once
+#include "core/memory/TypeErasedBlockAllocator.hpp"
+#include "ecs/archetype/ArchetypeChunk.hpp"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
 #include <cassert>
@@ -9,10 +13,6 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/common/ECSCommon.h"
-#include "core/memory/TypeErasedBlockAllocator.hpp"
-#include "ecs/archetype/ArchetypeChunk.hpp"
 
 // Forward declare
 class ArchetypeDebugger;
@@ -22,11 +22,14 @@ class Archetype
     friend class ArchetypeDebugger;
 
   private:
+
     std::vector<ArchetypeChunk> m_chunks;
 
     std::vector<TypeErasedBlockAllocator> m_allocators; // dens
-    uint16_t m_densIds[MaxComponents];                  // dens Ids : Give Allocator Index -> Get ComponentId
-    uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get Allocator Index
+    uint16_t m_densIds[MaxComponents];                  // dens Ids : Give Allocator Index -> Get
+                                                        // ComponentId
+    uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get
+                                                        // Allocator Index
 
     ArchetypeId m_archetypeId;
     ComponentSignatureMask m_componentSignature;
@@ -41,7 +44,8 @@ class Archetype
         ArchetypeChunk& newChunk = m_chunks.back();
         newChunk.components.resize(m_allocators.size());
 
-        // Sets the component layout for chunk -> chunk.component[i] has the same component as m_allocator[i]
+        // Sets the component layout for chunk -> chunk.component[i] has the same
+        // component as m_allocator[i]
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
             newChunk.components[i] = m_allocators[i].AllocateBlock();
@@ -60,9 +64,10 @@ class Archetype
     }
 
   public:
+
     const ArchetypeId GetArchetypeId() const { return m_archetypeId; }
-    ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
     const std::string& GetArchetypeName() const { return m_archetypeName; }
+    ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
 
     Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -135,10 +140,11 @@ class Archetype
         new (&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
     }
 
-    // Do later: If archetypes are stable, you can precompute a component map allowing
-    // components to move without need of index or chunk look up between archetypes.
-    EntityStorageLocation
-    MigrateComponentsFrom(Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
+    // Do later: If archetypes are stable, you can precompute a component map
+    // allowing components to move without need of index or chunk look up between
+    // archetypes.
+    EntityStorageLocation MigrateComponentsFrom(
+        Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
     {
         assert(&srcArchetype != this);
 
@@ -169,7 +175,7 @@ class Archetype
 
         dstChunk.entities[dstIndex] = entity;
 
-        return EntityStorageLocation{m_archetypeId, chunkIndex, dstIndex};
+        return EntityStorageLocation { m_archetypeId, chunkIndex, dstIndex };
     }
 
     template <typename... Components>
@@ -193,9 +199,10 @@ class Archetype
 
         uint32_t chunkIndex = static_cast<uint32_t>(m_chunks.size() - 1);
         uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
+
         targetChunk.entities[indexInChunk] = entity;
 
-        return EntityStorageLocation{m_archetypeId, chunkIndex, indexInChunk};
+        return EntityStorageLocation { m_archetypeId, chunkIndex, indexInChunk };
     }
 
     std::pair<Entity, EntityStorageLocation> RemoveEntity(Entity entity, EntityStorageLocation& entityLocation)
@@ -204,6 +211,7 @@ class Archetype
         uint32_t indexInChunk = entityLocation.indexInChunk;
 
         ArchetypeChunk& chunk = m_chunks[chunkIndex];
+
         const size_t lastIndexInChunk = chunk.size - 1;
 
         if (indexInChunk != lastIndexInChunk)
@@ -222,6 +230,6 @@ class Archetype
         --chunk.size;
         --m_totalSize;
 
-        return {chunk.entities[indexInChunk], {m_archetypeId, chunkIndex, indexInChunk}};
+        return { chunk.entities[indexInChunk], { m_archetypeId, chunkIndex, indexInChunk } };
     }
 };
