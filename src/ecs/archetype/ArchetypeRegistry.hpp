@@ -1,6 +1,5 @@
 #pragma once
-#include <bitset>
-#include <cstddef>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -8,11 +7,16 @@
 #include "ecs/archetype/Archetype.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "ecs/query/Query.hpp"
 
-struct Query
+template <typename... Component>
+struct RequiredComponents
 {
-    ComponentSignatureMask queryMask;
-    std::vector<Archetype*> matchingArchetypes;
+};
+
+template <typename... Component>
+struct ExcludedComponents
+{
 };
 
 class ArchetypeRegistry
@@ -22,8 +26,10 @@ class ArchetypeRegistry
   private:
 
     std::vector<std::unique_ptr<Archetype>> m_archetypes;
-    std::unordered_map<ComponentSignatureMask, ArchetypeId> m_signatureToArchetypIdMap;
-    std::unordered_map<ComponentSignatureMask, std::unique_ptr<Query>> m_signatureToQueryMap;
+    std::unordered_map<ComponentSignatureMask, ArchetypeId> m_signatureToArchetypeIdMap;
+    std::unordered_map<QueryKey, std::unique_ptr<Query>, QueryKeyHash> m_queryCache;
+
+  private:
 
     std::string MakeArchetypeName(const ComponentSignatureMask& signature)
     {
@@ -37,40 +43,60 @@ class ArchetypeRegistry
                 name += " ";
             }
         }
-
         return name;
     }
 
     Archetype& RegisterArchetype(const ComponentSignatureMask& signature)
     {
         ArchetypeId id = static_cast<ArchetypeId>(m_archetypes.size());
-        std::string name = MakeArchetypeName(signature);
 
-        std::unique_ptr<Archetype> newArchetype =
-            std::make_unique<Archetype>(id, signature, name, defaultArchetypeChunkCapacity);
+        std::unique_ptr<Archetype> archetype =
+            std::make_unique<Archetype>(id, signature, MakeArchetypeName(signature), defaultArchetypeChunkCapacity);
 
-        /////////////////////////////////////////////
-        newArchetype->InitializeComponentAllocators(signature);
-        ////////////////////////////////////////////
+        ////////////////////////////////////////////////////
+        archetype->InitializeComponentAllocators(signature);
+        ////////////////////////////////////////////////////
 
-        m_archetypes.emplace_back(std::move(newArchetype));
-        m_signatureToArchetypIdMap.emplace(signature, id);
+        Archetype& ref = *archetype;
+        m_archetypes.emplace_back(std::move(archetype));
+        m_signatureToArchetypeIdMap.emplace(signature, id);
 
-        for (auto& [mask, query] : m_signatureToQueryMap)
+        // Notify all cached queries
+        for (auto& [key, query] : m_queryCache)
         {
-            if ((mask & signature) == mask)
-            {
-                query->matchingArchetypes.push_back(m_archetypes.back().get());
-            }
+            query->TryAddArchetype(ref);
         }
 
-        return *m_archetypes.back();
+        return ref;
+    }
+
+    template <typename... T>
+    void ProcessArgumentsForQueryKey(RequiredComponents<T...>, QueryKey& key)
+    {
+        (key.requiredMask.set(ComponentRegistry::GetComponentID<T>()), ...);
+    }
+
+    template <typename... T>
+    void ProcessArgumentsForQueryKey(ExcludedComponents<T...>, QueryKey& key)
+    {
+        (key.excludedMask.set(ComponentRegistry::GetComponentID<T>()), ...);
     }
 
   public:
 
-    const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return m_archetypes; };
+    const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return m_archetypes; }
     Archetype& GetArchetypeById(ArchetypeId id) { return *m_archetypes[id]; }
+
+    Archetype& GetArchetype(const ComponentSignatureMask& signature)
+    {
+        auto it = m_signatureToArchetypeIdMap.find(signature);
+        if (it != m_signatureToArchetypeIdMap.end())
+        {
+            return *m_archetypes[it->second];
+        }
+
+        return RegisterArchetype(signature);
+    }
 
     template <typename... Components>
     ComponentSignatureMask MakeSignatureMask()
@@ -80,46 +106,29 @@ class ArchetypeRegistry
         return signature;
     }
 
-    Archetype& FindOrCreateArchetype(const ComponentSignatureMask& signature)
-    {
-
-        auto it = m_signatureToArchetypIdMap.find(signature);
-        if (it != m_signatureToArchetypIdMap.end())
-        {
-            return *m_archetypes[it->second];
-        }
-
-        Archetype& newArchetype = RegisterArchetype(signature);
-
-        return newArchetype;
-    }
-    template <typename... Components>
+    template <typename... QueryGroup>
     Query& CreateQuery()
     {
-        ComponentSignatureMask querySignatureMask = MakeSignatureMask<Components...>();
+        QueryKey key;
+        (ProcessArgumentsForQueryKey(QueryGroup {}, key), ...);
 
-        // Already Exists
-        auto it = m_signatureToQueryMap.find(querySignatureMask);
-        if (it != m_signatureToQueryMap.end())
+        auto it = m_queryCache.find(key);
+        if (it != m_queryCache.end())
         {
             return *it->second;
         }
 
-        // Create New
-        std::unique_ptr<Query> newQuery = std::make_unique<Query>();
-        newQuery->queryMask = querySignatureMask;
+        std::unique_ptr<Query> query = std::make_unique<Query>(key);
 
+        // Let query evaluate existing archetypes
         for (auto& archetype : m_archetypes)
         {
-            if ((querySignatureMask & archetype->GetComponentSignature()) == querySignatureMask)
-            {
-                newQuery->matchingArchetypes.push_back(archetype.get());
-            }
+            query->TryAddArchetype(*archetype);
         }
 
-        Query& newQueryRef = *newQuery;
-        m_signatureToQueryMap.emplace(querySignatureMask, std::move(newQuery));
+        Query& ref = *query;
+        m_queryCache.emplace(key, std::move(query));
 
-        return newQueryRef;
+        return ref;
     }
 };

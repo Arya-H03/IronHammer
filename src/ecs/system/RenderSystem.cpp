@@ -14,9 +14,9 @@
 RenderSystem::RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
     : m_window(window)
     , m_archetypeRegistry(archetypeRegistry)
-    , shapeQuery(m_archetypeRegistry.CreateQuery<CShape, CTransform>())
-    , textQuery(m_archetypeRegistry.CreateQuery<CText, CTransform>())
-    , colliderQuery(m_archetypeRegistry.CreateQuery<CTransform, CCollider>())
+    , shapeQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CShape, CTransform>>())
+    , textQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CText, CTransform>>())
+    , colliderQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CCollider, CTransform>>())
 {
 }
 
@@ -99,7 +99,7 @@ void RenderSystem::RenderShapes()
 
     size_t verticesInBatch = 0;
 
-    for (auto& archetype : shapeQuery.matchingArchetypes)
+    for (auto& archetype : shapeQuery.GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {
@@ -140,7 +140,7 @@ void RenderSystem::RenderColliders()
 
     size_t verticesInBatch = 0;
 
-    for (auto& archetype : colliderQuery.matchingArchetypes)
+    for (auto& archetype : colliderQuery.GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {
@@ -177,7 +177,7 @@ void RenderSystem::RenderColliders()
 
 void RenderSystem::RenderText()
 {
-    for (auto& archetype : textQuery.matchingArchetypes)
+    for (auto& archetype : textQuery.GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {

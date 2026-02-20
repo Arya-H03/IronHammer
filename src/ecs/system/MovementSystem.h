@@ -14,7 +14,7 @@ class MovementSystem
 
     MovementSystem(ArchetypeRegistry& archetypeRegistry)
         : m_archetypeRegistry(archetypeRegistry)
-        , movementQuery(m_archetypeRegistry.CreateQuery<CTransform, CMovement>())
+        , movementQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CTransform, CMovement>>())
     {
     }
 
@@ -22,7 +22,7 @@ class MovementSystem
     {
         ZoneScoped;
 
-        for (auto& archetype : movementQuery.matchingArchetypes)
+        for (auto& archetype : movementQuery.GetMatchingArchetypes())
         {
             for (auto& chunk : archetype->GetChunks())
             {

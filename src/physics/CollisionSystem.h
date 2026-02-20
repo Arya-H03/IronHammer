@@ -33,7 +33,7 @@ class CollisionSystem
         , m_ArchetypeRegistry(archetypeRegistry)
         , m_broadPhaseCollisionSystem(entityManager, m_ArchetypeRegistry, m_windowSize)
         , m_collisionDebugger(m_broadPhaseCollisionSystem)
-        , collisionQuery(m_ArchetypeRegistry.CreateQuery<CTransform, CCollider, CMovement>())
+        , collisionQuery(m_ArchetypeRegistry.CreateQuery<RequiredComponents<CTransform,CCollider,CMovement>>())
     {
     }
 
@@ -126,7 +126,7 @@ class CollisionSystem
 
         {
             ZoneScopedN("Collision Check Against Bounds");
-            for (auto& archetype : collisionQuery.matchingArchetypes)
+            for (auto& archetype : collisionQuery.GetMatchingArchetypes())
             {
                 for (auto& chunk : archetype->GetChunks())
                 {

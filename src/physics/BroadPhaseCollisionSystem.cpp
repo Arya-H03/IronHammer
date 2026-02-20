@@ -7,7 +7,7 @@ BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(
     EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
     : m_entityManger(entityManager)
     , m_windowSize(windowSize)
-    , broadPhaseQuery(archetypeRegistry.CreateQuery<CCollider, CTransform>())
+    , broadPhaseQuery(archetypeRegistry.CreateQuery<RequiredComponents<CCollider, CTransform>>())
 {
     m_cellPerCol = m_windowSize.y / m_cellSize;
     m_cellPerRow = m_windowSize.x / m_cellSize;
@@ -50,7 +50,7 @@ void BroadPhaseCollisionSystem::ClearAllCells()
 
 void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
 {
-    for (auto& archetype : broadPhaseQuery.matchingArchetypes)
+    for (auto& archetype : broadPhaseQuery.GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {

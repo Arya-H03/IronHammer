@@ -71,7 +71,7 @@ class EntityManager
         }
 
         ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask<std::decay_t<Components>...>();
-        Archetype& archetype = m_archetypeRegistry.FindOrCreateArchetype(signature);
+        Archetype& archetype = m_archetypeRegistry.GetArchetype(signature);
 
         EntityStorageLocation newEntityArchetypeLocation = archetype.AddEntity(newEntity, components...);
         m_entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
@@ -108,7 +108,7 @@ class EntityManager
         Archetype& srcArchetype =
             m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);
-        Archetype& dstArchetype = m_archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
+        Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
 
         EntityStorageLocation& currentEntityLocation = m_entityArchetypeLocations[entity.id];
         EntityStorageLocation newEntityLocation =
@@ -133,7 +133,7 @@ class EntityManager
         Archetype& srcArchetype =
             m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().reset(componentId);
-        Archetype& dstArchetype = m_archetypeRegistry.FindOrCreateArchetype(distArchetypeSignature);
+        Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
 
         EntityStorageLocation& currentEntityLocation = m_entityArchetypeLocations[entity.id];
         EntityStorageLocation newEntityLocation =
