@@ -1,8 +1,8 @@
 #pragma once
 #include <imgui.h>
-#include "core/utils/Colors.h"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "ecs/system/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
@@ -13,6 +13,7 @@ class GUISystem
 
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_archetypeRegistry;
+    CommandBuffer& m_commandBuffer;
     ArchetypeDebugger m_archetypeDebugger;
     const CollisionDebugger& m_collisionDebugger;
     RenderSystem& m_renderSystem;
@@ -20,13 +21,15 @@ class GUISystem
   public:
 
     GUISystem(EntityManager& entityManager,
+        CommandBuffer& commandBuffer,
         RenderSystem& renderSystem,
         ArchetypeRegistry& archetypeRegistry,
         const CollisionDebugger& collisionDebugger)
         : m_entityManager(entityManager)
+        , m_commandBuffer(commandBuffer)
         , m_renderSystem(renderSystem)
         , m_archetypeRegistry(archetypeRegistry)
-        , m_archetypeDebugger(entityManager, archetypeRegistry)
+        , m_archetypeDebugger(entityManager, archetypeRegistry,m_commandBuffer)
         , m_collisionDebugger(collisionDebugger)
     {
     }

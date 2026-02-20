@@ -8,15 +8,19 @@
 #include <cmath>
 #include "assets/FontManager.h"
 #include "Tracy.hpp"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "core/utils/Colors.h"
 
 RenderSystem::RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
     : m_window(window)
     , m_archetypeRegistry(archetypeRegistry)
-    , shapeQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CShape, CTransform>>())
-    , textQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CText, CTransform>>())
-    , colliderQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CCollider, CTransform>>())
+    , shapeQuery(
+          m_archetypeRegistry.CreateQuery<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , textQuery(
+          m_archetypeRegistry.CreateQuery<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , colliderQuery(m_archetypeRegistry
+                        .CreateQuery<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
 }
 

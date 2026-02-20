@@ -45,7 +45,6 @@ void GUISystem::HandleGUISystem()
         }
         if (ImGui::BeginTabItem("Physics"))
         {
-            // ImGui::Text("This is the Physics tab!");
             if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
             {
                 m_collisionDebugger.BroadPhaseGui();

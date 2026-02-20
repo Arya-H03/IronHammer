@@ -64,3 +64,8 @@ struct CText
 
     const std::string GetDescription() const { return content; }
 };
+
+struct CNotDrawable
+{
+    const std::string GetDescription() const { return ""; }
+};

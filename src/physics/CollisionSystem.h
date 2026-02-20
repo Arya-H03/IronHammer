@@ -6,6 +6,7 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
+#include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionDebugger.h"
@@ -19,6 +20,7 @@ class CollisionSystem
     Vect2<uint16_t> m_windowSize;
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_ArchetypeRegistry;
+    CommandBuffer& m_commandBuffer;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
     CollisionDebugger m_collisionDebugger;
     Query& collisionQuery;
@@ -27,13 +29,17 @@ class CollisionSystem
 
     const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
 
-    CollisionSystem(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
+    CollisionSystem(EntityManager& entityManager,
+        ArchetypeRegistry& archetypeRegistry,
+        CommandBuffer& commandBuffer,
+        Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize)
         , m_entityManager(entityManager)
         , m_ArchetypeRegistry(archetypeRegistry)
-        , m_broadPhaseCollisionSystem(entityManager, m_ArchetypeRegistry, m_windowSize)
+        , m_commandBuffer(commandBuffer)
+        , m_broadPhaseCollisionSystem(entityManager, commandBuffer, m_ArchetypeRegistry, m_windowSize)
         , m_collisionDebugger(m_broadPhaseCollisionSystem)
-        , collisionQuery(m_ArchetypeRegistry.CreateQuery<RequiredComponents<CTransform,CCollider,CMovement>>())
+        , collisionQuery(m_ArchetypeRegistry.CreateQuery<RequiredComponents<CTransform, CCollider, CMovement>>())
     {
     }
 

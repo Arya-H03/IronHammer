@@ -52,7 +52,6 @@ class ComponentRegistry
 
             newComponentInfo.id = MakeComponentID();
             assert(newComponentInfo.id < MaxComponents);
-
             newComponentInfo.name = typeid(T).name();
             newComponentInfo.size = sizeof(T);
             newComponentInfo.DrawGui = [](void* ptr) { DrawDebugGUI<T>(ptr); };
@@ -69,9 +68,8 @@ class ComponentRegistry
                 else
                 {
                     // For non-trivial types, use move constructor
-                    T* dstObject = dstArray + dstIndex;
-                    dstObject->~T();
                     new (&dstArray[dstIndex]) T(std::move(srcArray[srcIndex]));
+                    //srcArray[srcIndex].~T();
                 }
             };
 

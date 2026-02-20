@@ -26,10 +26,8 @@ class Archetype
     std::vector<ArchetypeChunk> m_chunks;
 
     std::vector<TypeErasedBlockAllocator> m_allocators; // dens
-    uint16_t m_densIds[MaxComponents];                  // dens Ids : Give Allocator Index -> Get
-                                                        // ComponentId
-    uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get
-                                                        // Allocator Index
+    uint16_t m_densIds[MaxComponents];                  // dens Ids : Give Allocator Index -> Get ComponentId
+    uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get Allocator Index
 
     ArchetypeId m_archetypeId;
     ComponentSignatureMask m_componentSignature;
@@ -100,7 +98,7 @@ class Archetype
     bool HasComponent(ComponentID id) { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
 
     template <typename Component>
-    Component* TryGetComponent(uint32_t chunkIndex, uint32_t indexInChunk)
+    Component* GetComponentPtr(uint32_t chunkIndex, uint32_t indexInChunk)
     {
         ComponentID id = ComponentRegistry::GetComponentID<Component>();
         if (id >= MaxComponents) return nullptr;
@@ -119,15 +117,6 @@ class Archetype
         return reinterpret_cast<Component*>(byteBase + (indexInChunk * sizeof(Component)));
     }
 
-    template <typename Component>
-    Component& GetComponent(uint32_t chunkIndex, uint32_t indexInChunk)
-    {
-        Component* ptr = TryGetComponent<Component>(chunkIndex, indexInChunk);
-        assert(ptr != nullptr && "Component not found");
-
-        return *ptr;
-    }
-
     const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
 
     template <typename Component>
@@ -140,9 +129,8 @@ class Archetype
         new (&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
     }
 
-    // Do later: If archetypes are stable, you can precompute a component map
-    // allowing components to move without need of index or chunk look up between
-    // archetypes.
+    // Do later: If archetypes are stable, you can precompute a component map allowing
+    // components to move without need of index or chunk look up between archetypes.
     EntityStorageLocation MigrateComponentsFrom(
         Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
     {
@@ -205,6 +193,7 @@ class Archetype
         return EntityStorageLocation { m_archetypeId, chunkIndex, indexInChunk };
     }
 
+    // A Swap Pop happens in RemoveEntity(...). The returned pair is {SwapedEntity, newSwapedEntityStorageLocation}.
     std::pair<Entity, EntityStorageLocation> RemoveEntity(Entity entity, EntityStorageLocation& entityLocation)
     {
         uint32_t chunkIndex = entityLocation.chunkIndex;

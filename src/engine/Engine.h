@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/CollisionSystem.h"
 #include "ecs/system/GUISystem.h"
@@ -25,6 +26,7 @@ class Engine
 
     ArchetypeRegistry m_archetypeRegistry;
     EntityManager m_entityManager;
+    CommandBuffer m_commandBuffer;
 
     MovementSystem m_movementSystem;
     CollisionSystem m_collisionSystem;

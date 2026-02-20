@@ -1,13 +1,18 @@
 #pragma once
+#include <cassert>
+#include <utility>
+#include <vector>
+#include <format>
+#include <iostream>
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
-#include <cassert>
-#include <utility>
-#include <vector>
+
 class EntityManager
 {
+    friend class CommandBuffer;
+
     struct EntitySlot
     {
         uint32_t generation = 1;
@@ -24,40 +29,51 @@ class EntityManager
     // EntitySlot         0   1   2   3  ...
     // EntityLocation     0   1   2   3  ...
     std::vector<EntitySlot> m_entitySlots;
-    std::vector<EntityStorageLocation> m_entityArchetypeLocations;
+    std::vector<EntityStorageLocation> m_entityStorageLocaions;
     ArchetypeRegistry& m_archetypeRegistry;
-    void ValidateEntity(Entity entity) const
+    bool ValidateEntity(Entity entity) const
     {
-        assert(entity.id < m_entitySlots.size() && "Trid to delete an Entity with an Id out of pool bounds");
-        assert(m_entitySlots[entity.id].isOccupied && "Tried to delete a none occupied Entity");
-        assert(m_entitySlots[entity.id].generation == entity.generation
-               && "Tried to delete an Entity with miss match generation");
-    }
+        bool isIdValid = entity.id < m_entitySlots.size();
+        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
+        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
 
-  public:
+#ifndef NDEBUG
+        if (!isIdValid)
+        {
+            std::cerr << std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation) << "\n";
+        }
+        if (!isEntityOccupied)
+        {
+            std::cerr << std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation) << "\n";
+        }
+        if (!isGenValid)
+        {
+            std::cerr << std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation)
+                      << "\n";
+        }
+#endif
 
-    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
-    {
-        m_entitySlots.reserve(initialEntitySize);
-        m_entityArchetypeLocations.reserve(initialEntitySize);
+        return isIdValid && isEntityOccupied && isGenValid;
     }
 
     template <typename... Components>
     Entity CreateEntity(Components&&... components)
     {
         Entity newEntity;
-        size_t newEntityArchetypeLocationIndex;
-        // No free slots
+        size_t newEntityArchetypeStorageIndex;
+
+        // No free Entity Slots
         if (m_freeListHeadIndex == UINT32_MAX)
         {
             m_entitySlots.emplace_back(1, true, UINT32_MAX);
-            m_entityArchetypeLocations.emplace_back();
+            m_entityStorageLocaions.emplace_back();
             uint32_t id = (unsigned int) m_entitySlots.size() - 1;
             newEntity.id = id;
             newEntity.generation = m_entitySlots[id].generation;
-            newEntityArchetypeLocationIndex = m_entityArchetypeLocations.size() - 1;
+            newEntityArchetypeStorageIndex = m_entityStorageLocaions.size() - 1;
         }
-        // Reuse a slot
+
+        // Reuse an Entity Slot
         else
         {
             uint32_t id = m_freeListHeadIndex;
@@ -67,19 +83,21 @@ class EntityManager
             ++slot.generation;
             newEntity.id = id;
             newEntity.generation = slot.generation;
-            newEntityArchetypeLocationIndex = id;
+            newEntityArchetypeStorageIndex = id;
         }
 
+        // Find Archetype
         ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask<std::decay_t<Components>...>();
         Archetype& archetype = m_archetypeRegistry.GetArchetype(signature);
+        EntityStorageLocation newEntityArchetypeStorage = archetype.AddEntity(newEntity, components...);
 
-        EntityStorageLocation newEntityArchetypeLocation = archetype.AddEntity(newEntity, components...);
-        m_entityArchetypeLocations[newEntityArchetypeLocationIndex] = newEntityArchetypeLocation;
+        // Update Entity Storage Location
+        m_entityStorageLocaions[newEntityArchetypeStorageIndex] = newEntityArchetypeStorage;
 
         return newEntity;
     }
 
-    void DeleteEntity(Entity entity)
+    void DestroyEntity(Entity entity)
     {
         ValidateEntity(entity);
 
@@ -89,12 +107,15 @@ class EntityManager
         slot.nextFreeEntityIndex = m_freeListHeadIndex;
         m_freeListHeadIndex = entity.id;
 
-        // Recycle EntityLocation
-        EntityStorageLocation& currentEntityLocation = m_entityArchetypeLocations[entity.id];
+        // Find Archetype
+        EntityStorageLocation& currentEntityLocation = m_entityStorageLocaions[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(currentEntityLocation.archetypeId);
+
         std::pair<Entity, EntityStorageLocation> deletionResult = archetype.RemoveEntity(entity, currentEntityLocation);
-        m_entityArchetypeLocations[entity.id] = EntityStorageLocation::InvalidLocation();
-        m_entityArchetypeLocations[deletionResult.first.id] = deletionResult.second;
+
+        // Have to update the EntityStorageLocation of BOTH Entities.
+        m_entityStorageLocaions[deletionResult.first.id] = deletionResult.second;      // Swaped Entity
+        m_entityStorageLocaions[entity.id] = EntityStorageLocation::InvalidLocation(); // Poped Entity
     }
 
     template <typename Component>
@@ -105,19 +126,24 @@ class EntityManager
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
 
-        Archetype& srcArchetype =
-            m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
+        // Find source and destination Archetypes
+        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocaions[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);
         Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
 
-        EntityStorageLocation& currentEntityLocation = m_entityArchetypeLocations[entity.id];
+        // Migrate components from src to dst
+        EntityStorageLocation& currentEntityLocation = m_entityStorageLocaions[entity.id];
         EntityStorageLocation newEntityLocation =
             dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
 
-        srcArchetype.RemoveEntity(entity, currentEntityLocation);
-        dstArchetype.ConstructComponentAt(std::forward<Component>(component), componentId, newEntityLocation);
+        std::pair<Entity, EntityStorageLocation> deletionResult = srcArchetype.RemoveEntity(entity, currentEntityLocation);
 
-        m_entityArchetypeLocations[entity.id] = newEntityLocation;
+        // Have to update the EntityStorageLocation of BOTH Entities.
+        m_entityStorageLocaions[deletionResult.first.id] = deletionResult.second; // Swaped Entity
+        m_entityStorageLocaions[entity.id] = newEntityLocation;                   // Poped Entity
+
+        // Add new Component
+        dstArchetype.ConstructComponentAt(std::forward<Component>(component), componentId, newEntityLocation);
     }
 
     // Note: currently you can have an Entity with no Components.
@@ -130,44 +156,47 @@ class EntityManager
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
 
-        Archetype& srcArchetype =
-            m_archetypeRegistry.GetArchetypeById(m_entityArchetypeLocations[entity.id].archetypeId);
+        // Find source and destination Archetypes
+        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocaions[entity.id].archetypeId);
         ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().reset(componentId);
         Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
 
-        EntityStorageLocation& currentEntityLocation = m_entityArchetypeLocations[entity.id];
+        // Migrate components from src to dst
+        EntityStorageLocation& currentEntityLocation = m_entityStorageLocaions[entity.id];
         EntityStorageLocation newEntityLocation =
             dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
 
-        srcArchetype.RemoveEntity(entity, currentEntityLocation);
+        std::pair<Entity, EntityStorageLocation> deletionResult = srcArchetype.RemoveEntity(entity, currentEntityLocation);
 
-        m_entityArchetypeLocations[entity.id] = newEntityLocation;
+        // Have to update the EntityStorageLocation of BOTH Entities.
+        m_entityStorageLocaions[deletionResult.first.id] = deletionResult.second; // Swaped Entity
+        m_entityStorageLocaions[entity.id] = newEntityLocation;                   // Poped Entity
+    }
+
+  public:
+
+    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
+    {
+        m_entitySlots.reserve(initialEntitySize);
+        m_entityStorageLocaions.reserve(initialEntitySize);
     }
 
     template <typename Component>
     bool HasComponent(Entity entity)
     {
         ValidateEntity(entity);
-        EntityStorageLocation& entityLocation = m_entityArchetypeLocations[entity.id];
+        EntityStorageLocation& entityLocation = m_entityStorageLocaions[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.HasComponent<Component>();
     }
 
     template <typename Component>
-    Component* GetComponentPtr(Entity entity)
+    Component* TryGetComponent(Entity entity)
     {
-        ValidateEntity(entity);
-        EntityStorageLocation& entityLocation = m_entityArchetypeLocations[entity.id];
+        bool isValid = ValidateEntity(entity);
+        if (!isValid) return nullptr;
+        EntityStorageLocation& entityLocation = m_entityStorageLocaions[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.TryGetComponent<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
-    }
-
-    template <typename Component>
-    Component& GetComponentRef(Entity entity)
-    {
-        ValidateEntity(entity);
-        EntityStorageLocation& entityLocation = m_entityArchetypeLocations[entity.id];
-        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.GetComponent<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
+        return archetype.GetComponentPtr<Component>(entityLocation.chunkIndex, entityLocation.indexInChunk);
     }
 };

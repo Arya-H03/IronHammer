@@ -7,6 +7,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 
 struct Cell
@@ -46,15 +47,16 @@ class BroadPhaseCollisionSystem
 
     Vect2<uint16_t> m_windowSize;
     std::vector<Cell> m_grid;
-    std::vector<Entity> m_entities;
+    std::vector<Entity> m_gridDisplayEntities;
 
     std::unordered_set<CollisionPair, PairHash> m_uniquePairs;
 
     EntityManager& m_entityManger;
+    CommandBuffer& m_commandBuffer;
     Query& broadPhaseQuery;
 
     // Flags
-    bool m_toggleGrid = true;
+    bool m_canDisplayGrid = true;
     bool m_canHighlightGrid = true;
 
     void PopulateGrid();
@@ -64,13 +66,15 @@ class BroadPhaseCollisionSystem
 
   public:
 
-    BroadPhaseCollisionSystem(
-        EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize);
+    BroadPhaseCollisionSystem(EntityManager& entityManager,
+        CommandBuffer& commandBuffer,
+        ArchetypeRegistry& archetypeRegistry,
+        Vect2<uint16_t> windowSize);
 
     void HandleBroadPhaseCollisionSystem();
 
-    bool GetToggleGrid() const;
+    bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;
-    void SetToggleGrid(bool val);
+    void SetCanDisplayGrid(bool val);
     void SetCanHighlightGrid(bool val);
 };

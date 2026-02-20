@@ -14,10 +14,10 @@ class CollisionDebugger
 
     void BroadPhaseCellGui() const
     {
-        bool canDrawText = true;
-        if (ImGui::Checkbox("Toggle Grid", &canDrawText))
+        bool canDisplayGrid = m_broadPhaseCollision.GetCanDisplayGrid();
+        if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
         {
-            // m_renderSystem.SetCanDrawTest(canDrawText);
+            m_broadPhaseCollision.SetCanDisplayGrid(canDisplayGrid);
         }
         ImGui::SameLine(0, 50);
 
@@ -64,8 +64,13 @@ class CollisionDebugger
             ImGui::TreePop();
         }
 
+
         if (ImGui::TreeNode("Unique Pairs"))
         {
+            ImGui::PushStyleColor(ImGuiCol_Text,Colors::OxidizedGreen_ImGui);
+            ImGui::Text("Pair Count: %zu", m_broadPhaseCollision.m_uniquePairs.size());
+            ImGui::PopStyleColor();
+
             for (auto& pair : m_broadPhaseCollision.m_uniquePairs)
             {
                 ImGui::Text("Entity %i & Entity %i", pair.e1.id, pair.e2.id);
