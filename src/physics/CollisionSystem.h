@@ -10,6 +10,7 @@
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionDebugger.h"
+#include "physics/NarrowPhaseCollisionSystem.h"
 
 class CollisionSystem
 {
@@ -22,6 +23,7 @@ class CollisionSystem
     ArchetypeRegistry& m_ArchetypeRegistry;
     CommandBuffer& m_commandBuffer;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
+    NarrowPhaseCollisonSystem m_narrowPhaseCollisionSystem;
     CollisionDebugger m_collisionDebugger;
     Query& collisionQuery;
 
@@ -38,7 +40,8 @@ class CollisionSystem
         , m_ArchetypeRegistry(archetypeRegistry)
         , m_commandBuffer(commandBuffer)
         , m_broadPhaseCollisionSystem(entityManager, commandBuffer, m_ArchetypeRegistry, m_windowSize)
-        , m_collisionDebugger(m_broadPhaseCollisionSystem)
+        , m_narrowPhaseCollisionSystem(entityManager)
+        , m_collisionDebugger(m_broadPhaseCollisionSystem,m_narrowPhaseCollisionSystem)
         , collisionQuery(m_ArchetypeRegistry.CreateQuery<RequiredComponents<CTransform, CCollider, CMovement>>())
     {
     }
@@ -164,7 +167,12 @@ class CollisionSystem
 
         {
             ZoneScopedN("Broad Phase System");
-            m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem();
+            auto& pair = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem();
+            {
+                 ZoneScopedN("Narrow Phase System");
+                 auto& collisions =  m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(pair);
+            }
+
         }
     }
 };

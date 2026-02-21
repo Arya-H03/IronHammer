@@ -45,15 +45,7 @@ void GUISystem::HandleGUISystem()
         }
         if (ImGui::BeginTabItem("Physics"))
         {
-            if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
-            {
-                m_collisionDebugger.BroadPhaseGui();
-            }
-            if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
-            {
-                ImGui::Text("IsItemHovered: %d", ImGui::IsItemHovered());
-                for (int i = 0; i < 5; i++) ImGui::Text("Some content %d", i);
-            }
+            m_collisionDebugger.CollisionSystemGui();
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();

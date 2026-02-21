@@ -13,12 +13,9 @@ Engine::Engine()
     , m_commandBuffer(m_entityManager)
     , m_renderSystem(m_window, m_archetypeRegistry)
     , m_movementSystem(m_archetypeRegistry)
-    , m_collisionSystem(m_entityManager, m_archetypeRegistry, m_commandBuffer,m_windowSize)
-    , m_guiSystem(m_entityManager,
-          m_commandBuffer,
-          m_renderSystem,
-          m_archetypeRegistry,
-          m_collisionSystem.GetCollsionDebugger())
+    , m_collisionSystem(m_entityManager, m_archetypeRegistry, m_commandBuffer, m_windowSize)
+    , m_guiSystem(
+          m_entityManager, m_commandBuffer, m_renderSystem, m_archetypeRegistry, m_collisionSystem.GetCollsionDebugger())
 {
     Init();
 }
@@ -41,24 +38,24 @@ void Engine::SpawnTestEntity()
 {
     ZoneScoped;
 
-    size_t count = 100;
+    size_t count = 10000;
 
     for (size_t i = 0; i < count; ++i)
     {
-        Vect2f startPos = Vect2f(Random::Float(250, m_windowSize.x - 250), Random::Float(250, m_windowSize.y - 250));
+        Vect2f startPos = Vect2f(Random::Float(50, m_windowSize.x - 50), Random::Float(50, m_windowSize.y - 50));
         Vect2f startVel = Vect2f(Random::Float(-10, 10), Random::Float(-10, 10));
         float speed = Random::Float(1, 5);
 
-        float shapeRadius = Random::Float(10, 50);
+        float shapeRadius = Random::Float(1, 5);
         int points = Random::Int(3, 20);
         sf::Color filColor = Random::Color();
 
         Entity e;
         m_commandBuffer.CreateEntity(e,
-            CTransform(startPos, 0, Vect2f(3, 3)),
+            CTransform(startPos, Vect2f(3, 3), 0),
             CMovement(startVel, speed),
             CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
-            CShape(shapeRadius, points, filColor, sf::Color::White, 1));
+            CShape(points, filColor, sf::Color::White, shapeRadius, 0));
     }
 }
 
@@ -96,9 +93,11 @@ void Engine::Run()
         }
 
         m_guiSystem.HandleGUISystem();
+
         ///////////Always call LAST/////////
         m_renderSystem.HandleRenderSystem();
         ////////////////////////////////////
+
         ++m_currentFrame;
     }
 }

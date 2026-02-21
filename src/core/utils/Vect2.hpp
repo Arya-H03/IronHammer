@@ -25,14 +25,6 @@ class Vect2
 
     Vect2 operator-(const Vect2& rhs) const { return Vect2(x - rhs.x, y - rhs.y); }
 
-    Vect2 operator*(const Vect2& rhs) const { return Vect2(x * rhs.x, y * rhs.y); }
-
-    Vect2 operator/(const Vect2& rhs) const
-    {
-        assert(rhs.x != 0 || rhs.y != 0 && "Attempted to divide by zero");
-        return Vect2(x / rhs.x, y / rhs.y);
-    }
-
     Vect2 operator*(const T value) const { return Vect2(x * value, y * value); }
 
     Vect2 operator/(const T value) const
@@ -53,17 +45,17 @@ class Vect2
         y -= rhs.y;
     }
 
-    void operator*=(const Vect2& rhs)
+    void operator*=(const T value)
     {
-        x *= rhs.x;
-        y *= rhs.y;
+        x *= value;
+        y *= value;
     }
 
-    void operator/=(const Vect2& rhs)
+    void operator/=(const T value)
     {
-        assert(rhs.x != 0 || rhs.y != 0 && "Attempted to divide by zero");
-        x /= rhs.x;
-        y /= rhs.y;
+        assert(value != 0 && "Attempted to divide by zero");
+        x /= value;
+        y /= value;
     }
 
     float Length() { return std::sqrt((x * x) + (y * y)); }
@@ -78,6 +70,8 @@ class Vect2
 
         return Vect2(x / length, y / length);
     }
+
+    Vect2 Abs() { return Vect2(std::abs(x), std::abs(y)); }
 
     Vect2<int> Floor() { return Vect2<int>(std::floor(x), std::floor(y)); }
 

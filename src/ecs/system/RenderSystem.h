@@ -19,8 +19,8 @@ class RenderSystem
     Query& colliderQuery;
 
     // Flags
-    bool m_canDrawText = true;
-    bool m_canDrawColliders = true;
+    bool m_canDrawText = false;
+    bool m_canDrawColliders = false;
     bool m_canDrawShapes = true;
 
     const size_t maxVerticesPerBatch = 1000;

@@ -3,16 +3,18 @@
 #include "ecs/common/ECSCommon.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "core/utils/Colors.h"
+#include "physics/NarrowPhaseCollisionSystem.h"
 class CollisionDebugger
 {
   private:
 
     BroadPhaseCollisionSystem& m_broadPhaseCollision;
+    NarrowPhaseCollisonSystem& m_narrowPhaseCollision;
     ImVec4 defaultTextColor;
     ImVec4 yellowTextColor;
     ImVec4 rustTextColor;
 
-    void BroadPhaseCellGui() const
+    void BroadPhaseGui() const
     {
         bool canDisplayGrid = m_broadPhaseCollision.GetCanDisplayGrid();
         if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
@@ -64,25 +66,64 @@ class CollisionDebugger
             ImGui::TreePop();
         }
 
-
-        if (ImGui::TreeNode("Unique Pairs"))
+        if (ImGui::TreeNode("Potential Collision Pairs"))
         {
-            ImGui::PushStyleColor(ImGuiCol_Text,Colors::OxidizedGreen_ImGui);
-            ImGui::Text("Pair Count: %zu", m_broadPhaseCollision.m_uniquePairs.size());
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
+            ImGui::Text("Pair Count: %zu", m_broadPhaseCollision.m_uniquePotentialPairs.size());
             ImGui::PopStyleColor();
+            ImGui::Separator();
 
-            for (auto& pair : m_broadPhaseCollision.m_uniquePairs)
+            for (auto& pair : m_broadPhaseCollision.m_uniquePotentialPairs)
             {
-                ImGui::Text("Entity %i & Entity %i", pair.e1.id, pair.e2.id);
+                ImGui::Text("Entity %i", pair.e1.id);
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+                ImGui::SameLine();
+                ImGui::Text("&");
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
+                ImGui::Text("Entity %i", pair.e2.id);
                 ImGui::Separator();
             }
             ImGui::TreePop();
         }
     }
 
+    void NarrowPhaseGui() const
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
+        ImGui::Text("Total Collison Count: %zu", m_narrowPhaseCollision.m_collisionPair.size());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        for (auto& pair : m_narrowPhaseCollision.m_collisionPair)
+        {
+            ImGui::Text("Entity %i", pair.e1.id);
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", pair.e2.id);
+            ImGui::Separator();
+        }
+    }
+
   public:
 
-    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision) : m_broadPhaseCollision(broadPhaseCollision) { }
+    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision, NarrowPhaseCollisonSystem& narrowPhaseSystem)
+        : m_broadPhaseCollision(broadPhaseCollision), m_narrowPhaseCollision(narrowPhaseSystem)
+    {
+    }
 
-    void BroadPhaseGui() const { BroadPhaseCellGui(); }
+    void CollisionSystemGui() const
+    {
+        if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
+        {
+            BroadPhaseGui();
+        }
+        if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
+        {
+            NarrowPhaseGui();
+        }
+    }
 };

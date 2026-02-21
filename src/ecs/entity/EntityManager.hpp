@@ -99,7 +99,7 @@ class EntityManager
 
     void DestroyEntity(Entity entity)
     {
-        ValidateEntity(entity);
+        if(!ValidateEntity(entity)) return;
 
         // Recycle EntitySlot
         EntitySlot& slot = m_entitySlots[entity.id];
@@ -121,7 +121,7 @@ class EntityManager
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)
     {
-        ValidateEntity(entity);
+        if(!ValidateEntity(entity)) return;
         if (HasComponent<Component>(entity)) return;
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
@@ -151,7 +151,7 @@ class EntityManager
     template <typename Component>
     void RemoveComponentFrom(Entity entity)
     {
-        ValidateEntity(entity);
+        if(!ValidateEntity(entity)) return;
         if (!HasComponent<Component>(entity)) return;
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
@@ -184,7 +184,7 @@ class EntityManager
     template <typename Component>
     bool HasComponent(Entity entity)
     {
-        ValidateEntity(entity);
+        if(!ValidateEntity(entity)) return false;
         EntityStorageLocation& entityLocation = m_entityStorageLocaions[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.HasComponent<Component>();

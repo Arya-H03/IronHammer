@@ -20,16 +20,16 @@ struct Cell
     Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) { }
 };
 
-struct CollisionPair
+struct PotentialCollisionPair
 {
     Entity e1, e2;
 
-    bool operator==(const CollisionPair& otherPair) const { return e1 == otherPair.e1 && e2 == otherPair.e2; }
+    bool operator==(const PotentialCollisionPair& otherPair) const { return e1 == otherPair.e1 && e2 == otherPair.e2; }
 };
 
-struct PairHash
+struct PotentialPairHash
 {
-    size_t operator()(const CollisionPair& pair) const
+    size_t operator()(const PotentialCollisionPair& pair) const
     {
         return std::hash<uint32_t>()(pair.e1.id) ^ (std::hash<uint32_t>()(pair.e2.id) << 1);
     }
@@ -41,7 +41,7 @@ class BroadPhaseCollisionSystem
 
   private:
 
-    const float m_cellSize = 48;
+    const float m_cellSize = 8;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
     uint16_t m_cellPerRow, m_cellPerCol;
 
@@ -49,15 +49,15 @@ class BroadPhaseCollisionSystem
     std::vector<Cell> m_grid;
     std::vector<Entity> m_gridDisplayEntities;
 
-    std::unordered_set<CollisionPair, PairHash> m_uniquePairs;
+    std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairs;
 
     EntityManager& m_entityManger;
     CommandBuffer& m_commandBuffer;
     Query& broadPhaseQuery;
 
     // Flags
-    bool m_canDisplayGrid = true;
-    bool m_canHighlightGrid = true;
+    bool m_canDisplayGrid = false;
+    bool m_canHighlightGrid = false;
 
     void PopulateGrid();
     void ClearAllCells();
@@ -71,7 +71,7 @@ class BroadPhaseCollisionSystem
         ArchetypeRegistry& archetypeRegistry,
         Vect2<uint16_t> windowSize);
 
-    void HandleBroadPhaseCollisionSystem();
+    std::unordered_set<PotentialCollisionPair,PotentialPairHash>&  HandleBroadPhaseCollisionSystem();
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;

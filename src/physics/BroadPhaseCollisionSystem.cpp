@@ -3,6 +3,7 @@
 #include "ecs/component/Components.hpp"
 #include "core/utils/Colors.h"
 #include "ecs/entity/EntityCommands.hpp"
+#include <unordered_set>
 
 BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(EntityManager& entityManager,
     CommandBuffer& commandBuffer,
@@ -36,12 +37,13 @@ void BroadPhaseCollisionSystem::PopulateGrid()
 
             Entity& entity = m_gridDisplayEntities[index];
             m_commandBuffer.CreateEntity(entity,
-                CTransform(pos, 45, Vect2f(1, 1)),
-                CShape(m_cellRadius, 4, Colors::DarkSteel_SFML, sf::Color::White, 2),
+                CTransform(pos, Vect2f(1, 1), 45),
+                CShape(4, Colors::DarkSteel_SFML, sf::Color::White, m_cellRadius, 2),
                 CText(std::to_string(coord.x) + ", " + std::to_string(coord.y),
                     sf::Color::White,
                     Vect2f(m_cellRadius / 3, m_cellRadius / 3),
-                    18));
+                    18),
+                CNotDrawable {});
         }
     }
 }
@@ -69,9 +71,9 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
                 CTransform& transformComp = transformCompRow[i];
 
                 Vect2<int> topLeftCoord =
-                    ((transformComp.position + colliderComp.offset - (colliderComp.size / 2)) / m_cellSize).Floor();
+                    ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
                 Vect2<int> bottomRightCoord =
-                    ((transformComp.position + colliderComp.offset + (colliderComp.size / 2)) / m_cellSize).Ceil();
+                    ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Ceil();
 
                 for (size_t r = topLeftCoord.y; r < bottomRightCoord.y; ++r)
                 {
@@ -92,7 +94,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
         {
             size_t count = m_grid[i].overlapingEntities.size();
             CShape* shape = m_entityManger.TryGetComponent<CShape>(m_gridDisplayEntities[i]);
-            if(!shape) continue;
+            if (!shape) continue;
             if (count >= 2)
             {
                 shape->fillColor = Colors::RustRed_SFML;
@@ -111,7 +113,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
 
 void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
 {
-    m_uniquePairs.clear();
+    m_uniquePotentialPairs.clear();
 
     for (auto& cell : m_grid)
     {
@@ -124,7 +126,7 @@ void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
                 Entity e2 = cell.overlapingEntities[j];
 
                 if (e1.id > e2.id) std::swap(e1, e2);
-                m_uniquePairs.insert({ e1, e2 });
+                m_uniquePotentialPairs.insert({ e1, e2 });
             }
         }
     }
@@ -168,7 +170,7 @@ void BroadPhaseCollisionSystem::SetCanHighlightGrid(bool val)
     }
 }
 
-void BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
+std::unordered_set<PotentialCollisionPair,PotentialPairHash>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
 {
     ClearAllCells();
     {
@@ -179,4 +181,6 @@ void BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
         ZoneScopedN("BroadPhaseSystem/FindUniqueCollisionPairs");
         FindUniqueCollisionPairs();
     }
+
+    return m_uniquePotentialPairs;
 }
