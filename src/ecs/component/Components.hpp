@@ -1,13 +1,14 @@
 #pragma once
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Text.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <cstdint>
-#include <format>
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <string>
+#include "gui/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
+
+using namespace EntityInspectorHelpers;
 
 struct CTransform
 {
@@ -17,39 +18,21 @@ struct CTransform
 
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
 
-    std::string GetDescription() const
+    void GuiInspectorDisplay(void* ptr)
     {
-        return std::format("position ({},{}) rotation ({}) scale ({},{})", position.x, position.y, rotation, scale.x, scale.y);
-    }
-
-    void GuiInspectorDisplay()
-    {
-        ImGui::SeparatorText("Transform");
-
-        ImGui::Text("Position");
-        ImGui::PushItemWidth(150.f);
-        ImGui::DragFloat("##TransformPosX", &position.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("##TransformPosY", &position.y, 0.1f);
-
-        ImGui::Spacing();
-
-        ImGui::Text("Scale");
-        ImGui::DragFloat("##TransformScaleX", &scale.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("##TransformScaleY", &scale.y, 0.1f);
-
-        ImGui::Spacing();
-
-        ImGui::Text("Rotation");
-        ImGui::DragFloat("##TransformRotation", &rotation, 0.5f, -360.f, 360.f);
-        ImGui::PopItemWidth();
+        TypeHeader<CTransform>("CTransform", ptr);
+        if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            TableNextField("Position");
+            DragFloat2("##PosX", &position.x, "##PosY", &position.y);
+            TableNextField("Scale");
+            DragFloat2("##ScaleX", &scale.x, "##ScaleY", &scale.y);
+            TableNextField("Rotation");
+            DragFloatWithLimits("##Rotation", &rotation, 0.5f, -360.f, 360.f);
+            ImGui::EndTable();
+        }
     }
 };
-
-// ============================================================
-// MOVEMENT
-// ============================================================
 
 struct CMovement
 {
@@ -58,26 +41,19 @@ struct CMovement
 
     CMovement(const Vect2f& vel, float spd) : velocity(vel), speed(spd) { }
 
-    std::string GetDescription() const { return std::format("Velocity:({},{}) Speed:{}", velocity.x, velocity.y, speed); }
-
-    void GuiInspectorDisplay()
+    void GuiInspectorDisplay(void* ptr)
     {
-        ImGui::SeparatorText("Movement");
-
-        ImGui::Text("Velocity");
-        ImGui::DragFloat("X##MoveVelX", &velocity.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("Y##MoveVelY", &velocity.y, 0.1f);
-
-        ImGui::Spacing();
-
-        ImGui::DragFloat("Speed##MoveSpeed", &speed, 0.1f, 0.0f, 10000.0f);
+        TypeHeader<CMovement>("CMovement", ptr);
+        if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            TableNextField("Velocity");
+            DragFloat2("##VelX", &velocity.x, "##VelY", &velocity.y);
+            TableNextField("Speed");
+            DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f);
+            ImGui::EndTable();
+        }
     }
 };
-
-// ============================================================
-// SHAPE
-// ============================================================
 
 struct CShape
 {
@@ -92,43 +68,25 @@ struct CShape
     {
     }
 
-    std::string GetDescription() const { return std::format("Shape: points({}) radius({})", points, radius); }
-
-    void GuiInspectorDisplay()
+    void GuiInspectorDisplay(void* ptr)
     {
-        ImGui::SeparatorText("Shape");
-
-        ImGui::InputScalar("Points##ShapePoints", ImGuiDataType_U64, &points);
-
-        ImGui::DragFloat("Radius##ShapeRadius", &radius, 0.1f, 0.0f, 10000.0f);
-
-        ImGui::DragFloat("Outline Thickness##ShapeThickness", &outlineThickness, 0.1f, 0.0f, 100.0f);
-
-        float fill[4] = { fillColor.r / 255.f, fillColor.g / 255.f, fillColor.b / 255.f, fillColor.a / 255.f };
-
-        if (ImGui::ColorEdit4("Fill Color##ShapeFill", fill))
+        TypeHeader<CShape>("CShape", ptr);
+        if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            fillColor = sf::Color(static_cast<uint8_t>(fill[0] * 255),
-                static_cast<uint8_t>(fill[1] * 255),
-                static_cast<uint8_t>(fill[2] * 255),
-                static_cast<uint8_t>(fill[3] * 255));
-        }
-
-        float outline[4] = { outlineColor.r / 255.f, outlineColor.g / 255.f, outlineColor.b / 255.f, outlineColor.a / 255.f };
-
-        if (ImGui::ColorEdit4("Outline Color##ShapeOutline", outline))
-        {
-            outlineColor = sf::Color(static_cast<uint8_t>(outline[0] * 255),
-                static_cast<uint8_t>(outline[1] * 255),
-                static_cast<uint8_t>(outline[2] * 255),
-                static_cast<uint8_t>(outline[3] * 255));
+            TableNextField("Points");
+            DragScalar("##Points", &points);
+            TableNextField("Radius");
+            DragFloatWithLimits("##ShapeRadius", &radius, 0.1f);
+            TableNextField("Outline Thickness");
+            DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f);
+            TableNextField("Fill Color");
+            ColorEdit4("##ShapeFill", fillColor);
+            TableNextField("Outline Color");
+            ColorEdit4("##ShapeOutline", outlineColor);
+            ImGui::EndTable();
         }
     }
 };
-
-// ============================================================
-// COLLIDER
-// ============================================================
 
 struct CCollider
 {
@@ -142,38 +100,25 @@ struct CCollider
     {
     }
 
-    std::string GetDescription() const
+    void GuiInspectorDisplay(void* ptr)
     {
-        return std::format("Size: ({}, {}) , offset: ({}, {}) , isTrigger: {}", size.x, size.y, offset.x, offset.y, isTrigger);
-    }
+        TypeHeader<CCollider>("CCollider", ptr);
 
-    void GuiInspectorDisplay()
-    {
-        ImGui::SeparatorText("Collider");
+        if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            TableNextField("Size");
+            DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y);
+            halfSize = { size.x * 0.5f, size.y * 0.5f };
 
-        ImGui::Text("Size");
-        ImGui::DragFloat("W##ColliderWidth", &size.x, 0.1f, 0.0f);
-        ImGui::SameLine();
-        ImGui::DragFloat("H##ColliderHeight", &size.y, 0.1f, 0.0f);
+            TableNextField("Offset");
+            DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y);
+            TableNextField("Is Trigger");
+            Checkbox("##ColliderTrigger", &isTrigger);
 
-        halfSize = { size.x * 0.5f, size.y * 0.5f };
-
-        ImGui::Spacing();
-
-        ImGui::Text("Offset");
-        ImGui::DragFloat("X##ColliderOffsetX", &offset.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("Y##ColliderOffsetY", &offset.y, 0.1f);
-
-        ImGui::Spacing();
-
-        ImGui::Checkbox("Is Trigger##ColliderTrigger", &isTrigger);
+            ImGui::EndTable();
+        }
     }
 };
-
-// ============================================================
-// RIGIDBODY
-// ============================================================
 
 struct CRigidBody
 {
@@ -183,37 +128,29 @@ struct CRigidBody
 
     CRigidBody(const Vect2f& vel, float m, bool stat) : velocity(vel), mass(m), isStatic(stat) { }
 
-    std::string GetDescription() const { return std::format("Velocity:({},{}) Mass:{} Static:{}", velocity.x, velocity.y, mass, isStatic); }
-
-    void GuiInspectorDisplay()
+    void GuiInspectorDisplay(void* ptr)
     {
-        ImGui::SeparatorText("RigidBody");
+        TypeHeader<CRigidBody>("CRigidBody", ptr);
 
-        ImGui::Text("Velocity");
-        ImGui::DragFloat("X##RBVelX", &velocity.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("Y##RBVelY", &velocity.y, 0.1f);
-
-        ImGui::Spacing();
-
-        ImGui::DragFloat("Mass##RBMass", &mass, 0.1f, 0.0f, 10000.0f);
-
-        ImGui::Checkbox("Is Static##RBStatic", &isStatic);
-
-        if (!isStatic && mass > 0.f)
+        if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            ImGui::Text("Inverse Mass: %.4f", 1.f / mass);
-        }
-        else
-        {
-            ImGui::Text("Inverse Mass: 0 (Static)");
+            TableNextField("Velocity");
+            DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y);
+            TableNextField("Mass");
+            DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f);
+            TableNextField("Is Static");
+            Checkbox("##RBStatic", &isStatic);
+
+            TableNextField("Inverse Mass");
+            if (!isStatic && mass > 0.f)
+                ImGui::Text("%.4f", 1.f / mass);
+            else
+                ImGui::Text("0 (Static)");
+
+            ImGui::EndTable();
         }
     }
 };
-
-// ============================================================
-// TEXT
-// ============================================================
 
 struct CText
 {
@@ -226,52 +163,37 @@ struct CText
     {
     }
 
-    std::string GetDescription() const { return content; }
-
-    void GuiInspectorDisplay()
+    void GuiInspectorDisplay(void* ptr)
     {
-        ImGui::SeparatorText("Text");
+        TypeHeader<CText>("CText", ptr);
 
-        char buffer[256] {};
-        strncpy(buffer, content.c_str(), sizeof(buffer) - 1);
-
-        if (ImGui::InputText("Content##TextContent", buffer, sizeof(buffer)))
+        if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            content = buffer;
-        }
+            TableNextField("Content");
+            InputText("##TextContent", content);
+            TableNextField("Font Size");
+            DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f);
+            TableNextField("Offset");
+            DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y);
+            TableNextField("Text Color");
+            ColorEdit4("##TextColor", textColor);
 
-        ImGui::DragFloat("Font Size##TextSize", &fontSize, 1.0f, 1.0f, 200.0f);
-
-        ImGui::Spacing();
-
-        ImGui::Text("Offset");
-        ImGui::DragFloat("X##TextOffsetX", &offset.x, 0.1f);
-        ImGui::SameLine();
-        ImGui::DragFloat("Y##TextOffsetY", &offset.y, 0.1f);
-
-        float color[4] = { textColor.r / 255.f, textColor.g / 255.f, textColor.b / 255.f, textColor.a / 255.f };
-
-        if (ImGui::ColorEdit4("Text Color##TextColor", color))
-        {
-            textColor = sf::Color(static_cast<uint8_t>(color[0] * 255),
-                static_cast<uint8_t>(color[1] * 255),
-                static_cast<uint8_t>(color[2] * 255),
-                static_cast<uint8_t>(color[3] * 255));
+            ImGui::EndTable();
         }
     }
 };
 
-// ============================================================
-// NOT DRAWABLE
-// ============================================================
-
 struct CNotDrawable
 {
-    std::string GetDescription() const { return ""; }
-
-    void GuiInspectorDisplay()
+    void GuiInspectorDisplay(void* ptr)
     {
-        ImGui::SeparatorText("Not Drawable");
-        ImGui::TextDisabled("This entity is not renderable.");
+        TypeHeader<CNotDrawable>("CNotDrawable", ptr);
+
+        if (ImGui::BeginTable("CNotDrawableTable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            TableNextField("Info");
+            ImGui::TextDisabled("This entity is not renderable.");
+            ImGui::EndTable();
+        }
     }
 };

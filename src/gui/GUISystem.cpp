@@ -1,4 +1,4 @@
-#include "ecs/system/GUISystem.h"
+#include "GUISystem.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
 #include "imgui.h"

@@ -49,10 +49,18 @@ class EntityInspector
     {
         ImGui::SetNextWindowSize(ImVec2(inspectorWidth, inspectorHeight), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImVec2(m_windowSize.x - inspectorWidth, 2), ImGuiCond_Once);
-        ImGui::Begin("Inspector",nullptr,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
         if (m_inspectorEntityData.entity.id != InvalidEntityID && m_entityManager.ValidateEntity(m_inspectorEntityData.entity))
         {
+            ImGui::SeparatorText("Entity");
+            ImGui::Text("Id:%u | Gen:%u", m_inspectorEntityData.entity.id, m_inspectorEntityData.entity.generation);
+            ImGui::SeparatorText("Archetype");
+            ImGui::Text("Id:%u | Chunk:%u | Index:%u",
+                m_inspectorEntityData.location.archetypeId,
+                m_inspectorEntityData.location.chunkIndex,
+                m_inspectorEntityData.location.indexInChunk);
+
             m_inspectorEntityData.archetype->ForEachComponent(
                 m_inspectorEntityData.location, [&](ComponentID id, void* ptr) { DrawComponentDisplay(id, ptr); });
         }

@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdlib>
-#include <unordered_set>
 #include <vector>
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"

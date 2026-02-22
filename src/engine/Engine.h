@@ -8,7 +8,7 @@
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/CollisionSystem.h"
-#include "ecs/system/GUISystem.h"
+#include "gui/GUISystem.h"
 #include "ecs/system/MovementSystem.h"
 #include "ecs/system/RenderSystem.h"
 

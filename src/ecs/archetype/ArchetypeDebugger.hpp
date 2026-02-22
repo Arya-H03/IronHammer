@@ -1,17 +1,14 @@
 #pragma once
-#include <cstddef>
-#include <format>
 #include <functional>
 #include <imgui.h>
 #include <string>
 #include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "core/utils/Colors.h"
-#include "ecs/system/EntityInspector.hpp"
+#include "gui/EntityInspector.hpp"
 
 class ArchetypeDebugger
 {

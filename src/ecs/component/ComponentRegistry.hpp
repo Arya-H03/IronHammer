@@ -54,7 +54,7 @@ class ComponentRegistry
             newComponentInfo.DisplayComponent = [](void* ptr)
                 {
                     T* component = reinterpret_cast<T*>(ptr);
-                    component->GuiInspectorDisplay();
+                    component->GuiInspectorDisplay(ptr);
                     //DrawDebugGUI<T>(ptr);
                 };
             newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)

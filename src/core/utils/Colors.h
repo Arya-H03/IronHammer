@@ -23,7 +23,7 @@ namespace Colors
 
     // Brass
     inline constexpr sf::Color Brass_SFML { 184, 153, 31, 255 };
-    inline constexpr ImVec4 Brass_ImGui { 0.722f, 0.600f, 0.122f, 1.0f };
+    inline constexpr ImVec4 Brass_ImGui { 0.722f, 0.600f, 0.122f, 0.8f };
 
     // Rust Red
     inline constexpr sf::Color RustRed_SFML { 122, 46, 46, 255 };

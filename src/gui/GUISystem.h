@@ -7,7 +7,7 @@
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
-#include "ecs/system/EntityInspector.hpp"
+#include "gui/EntityInspector.hpp"
 #include "ecs/system/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
 
