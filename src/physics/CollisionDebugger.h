@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include <utility>
 #include "ecs/common/ECSCommon.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "core/utils/Colors.h"
@@ -9,7 +10,7 @@ class CollisionDebugger
   private:
 
     BroadPhaseCollisionSystem& m_broadPhaseCollision;
-    NarrowPhaseCollisonSystem& m_narrowPhaseCollision;
+    NarrowPhaseCollisionSystem& m_narrowPhaseCollision;
     ImVec4 defaultTextColor;
     ImVec4 yellowTextColor;
     ImVec4 rustTextColor;
@@ -32,36 +33,42 @@ class CollisionDebugger
 
         if (ImGui::TreeNode("Cells"))
         {
-            for (size_t i = 0; i < m_broadPhaseCollision.m_grid.size(); ++i)
+            ImGuiListClipper clipper;
+            clipper.Begin((int) m_broadPhaseCollision.m_grid.size());
+
+            while (clipper.Step())
             {
-                ImGui::PushID(i);
-                Cell& cell = m_broadPhaseCollision.m_grid[i];
+                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+                {
+                    Cell& cell = m_broadPhaseCollision.m_grid[i];
+                    ImGui::PushID(&cell);
 
-                if (cell.overlapingEntities.size() > 2)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui);
-                }
-                else if (cell.overlapingEntities.size() > 0 && cell.overlapingEntities.size() < 2)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_ImGui);
-                }
-                else
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gunmetal_ImGui);
-                }
-
-                if (ImGui::TreeNode("", "Cell (%i, %i)", cell.coord.x, cell.coord.y))
-                {
-                    for (size_t j = 0; j < cell.overlapingEntities.size(); ++j)
+                    if (cell.overlapingEntities.size() > 2)
                     {
-                        ImGui::Text("Entity %i", cell.overlapingEntities[j].id);
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui);
+                    }
+                    else if (cell.overlapingEntities.size() == 1)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_ImGui);
+                    }
+                    else
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gunmetal_ImGui);
                     }
 
-                    ImGui::TreePop();
+                    if (ImGui::TreeNode("", "Cell (%i, %i)", cell.coord.x, cell.coord.y))
+                    {
+                        for (size_t j = 0; j < cell.overlapingEntities.size(); ++j)
+                        {
+                            ImGui::Text("Entity %i", cell.overlapingEntities[j].id);
+                        }
+
+                        ImGui::TreePop();
+                    }
+                    ImGui::PopStyleColor();
+                    ImGui::PopID();
+                    ImGui::Separator();
                 }
-                ImGui::PopStyleColor();
-                ImGui::PopID();
-                ImGui::Separator();
             }
             ImGui::TreePop();
         }
@@ -69,20 +76,28 @@ class CollisionDebugger
         if (ImGui::TreeNode("Potential Collision Pairs"))
         {
             ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-            ImGui::Text("Pair Count: %zu", m_broadPhaseCollision.m_uniquePotentialPairs.size());
+            ImGui::Text("Pair Count: %zu", m_broadPhaseCollision.m_uniquePotentialPairsVector.size());
             ImGui::PopStyleColor();
             ImGui::Separator();
 
-            for (auto& pair : m_broadPhaseCollision.m_uniquePotentialPairs)
+            ImGuiListClipper clipper;
+            clipper.Begin((int) m_broadPhaseCollision.m_uniquePotentialPairsVector.size());
+
+            while (clipper.Step())
             {
-                ImGui::Text("Entity %i", pair.e1.id);
-                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-                ImGui::SameLine();
-                ImGui::Text("&");
-                ImGui::PopStyleColor();
-                ImGui::SameLine();
-                ImGui::Text("Entity %i", pair.e2.id);
-                ImGui::Separator();
+                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+                {
+                    const auto& pair = m_broadPhaseCollision.m_uniquePotentialPairsVector[i];
+
+                    ImGui::Text("Entity %i", pair.e1.id);
+                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+                    ImGui::SameLine();
+                    ImGui::Text("&");
+                    ImGui::PopStyleColor();
+                    ImGui::SameLine();
+                    ImGui::Text("Entity %i", pair.e2.id);
+                    ImGui::Separator();
+                }
             }
             ImGui::TreePop();
         }
@@ -95,22 +110,29 @@ class CollisionDebugger
         ImGui::PopStyleColor();
         ImGui::Separator();
 
-        for (auto& pair : m_narrowPhaseCollision.m_collisionPair)
+        ImGuiListClipper clipper;
+        clipper.Begin((int) m_narrowPhaseCollision.m_collisionPair.size());
+
+        while (clipper.Step())
         {
-            ImGui::Text("Entity %i", pair.e1.id);
-            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-            ImGui::SameLine();
-            ImGui::Text("&");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::Text("Entity %i", pair.e2.id);
-            ImGui::Separator();
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+            {
+                CollisionPair pair = m_narrowPhaseCollision.m_collisionPair[i];
+                ImGui::Text("Entity %i", pair.e1.id);
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+                ImGui::SameLine();
+                ImGui::Text("&");
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
+                ImGui::Text("Entity %i", pair.e2.id);
+                ImGui::Separator();
+            }
         }
     }
 
   public:
 
-    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision, NarrowPhaseCollisonSystem& narrowPhaseSystem)
+    CollisionDebugger(BroadPhaseCollisionSystem& broadPhaseCollision, NarrowPhaseCollisionSystem& narrowPhaseSystem)
         : m_broadPhaseCollision(broadPhaseCollision), m_narrowPhaseCollision(narrowPhaseSystem)
     {
     }

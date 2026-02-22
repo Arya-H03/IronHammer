@@ -23,7 +23,7 @@ class CollisionSystem
     ArchetypeRegistry& m_ArchetypeRegistry;
     CommandBuffer& m_commandBuffer;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
-    NarrowPhaseCollisonSystem m_narrowPhaseCollisionSystem;
+    NarrowPhaseCollisionSystem m_narrowPhaseCollisionSystem;
     CollisionDebugger m_collisionDebugger;
     Query& collisionQuery;
 
@@ -31,17 +31,14 @@ class CollisionSystem
 
     const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
 
-    CollisionSystem(EntityManager& entityManager,
-        ArchetypeRegistry& archetypeRegistry,
-        CommandBuffer& commandBuffer,
-        Vect2<uint16_t> windowSize)
+    CollisionSystem(EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize)
         , m_entityManager(entityManager)
         , m_ArchetypeRegistry(archetypeRegistry)
         , m_commandBuffer(commandBuffer)
         , m_broadPhaseCollisionSystem(entityManager, commandBuffer, m_ArchetypeRegistry, m_windowSize)
         , m_narrowPhaseCollisionSystem(entityManager)
-        , m_collisionDebugger(m_broadPhaseCollisionSystem,m_narrowPhaseCollisionSystem)
+        , m_collisionDebugger(m_broadPhaseCollisionSystem, m_narrowPhaseCollisionSystem)
         , collisionQuery(m_ArchetypeRegistry.CreateQuery<RequiredComponents<CTransform, CCollider, CMovement>>())
     {
     }
@@ -165,14 +162,7 @@ class CollisionSystem
             }
         }
 
-        {
-            ZoneScopedN("Broad Phase System");
-            auto& pair = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem();
-            {
-                 ZoneScopedN("Narrow Phase System");
-                 auto& collisions =  m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(pair);
-            }
-
-        }
+        auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem();
+        auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(potentialPairs);
     }
 };

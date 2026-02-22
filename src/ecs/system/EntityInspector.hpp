@@ -1,0 +1,62 @@
+#pragma once
+#include <cstdint>
+#include <imgui.h>
+#include "core/utils/Vect2.hpp"
+#include "ecs/archetype/Archetype.h"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/entity/EntityManager.hpp"
+
+class EntityInspector
+{
+    struct InspectorEntityData
+    {
+        Entity entity {};
+        Archetype* archetype = nullptr;
+        EntityStorageLocation location {};
+    };
+
+  private:
+
+    InspectorEntityData m_inspectorEntityData;
+    EntityManager& m_entityManager;
+    Vect2<uint16_t> m_windowSize;
+    const uint16_t inspectorWidth = 350;
+    const uint16_t inspectorHeight = 750;
+
+    void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const
+    {
+        ComponentRegistry::GetComponentInfoById(componentId).DisplayComponent(componentPtr);
+    }
+
+  public:
+
+    EntityInspector(EntityManager& entityManager, Vect2<uint16_t> windowSize) : m_entityManager(entityManager), m_windowSize(windowSize) { }
+
+    void SetCurrentInspectorEntity(Entity entity)
+    {
+        if (m_inspectorEntityData.entity != entity)
+        {
+            m_inspectorEntityData.entity = entity;
+            m_inspectorEntityData.location = m_entityManager.m_entityStorageLocations[m_inspectorEntityData.entity.id];
+            m_inspectorEntityData.archetype = &m_entityManager.m_archetypeRegistry.GetArchetypeById(m_inspectorEntityData.location.archetypeId);
+        }
+    }
+
+    const Entity GetCurrentInspectorEntity() const { return m_inspectorEntityData.entity; }
+
+    void DrawInspectorGuiWindow()
+    {
+        ImGui::SetNextWindowSize(ImVec2(inspectorWidth, inspectorHeight), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(m_windowSize.x - inspectorWidth, 2), ImGuiCond_Once);
+        ImGui::Begin("Inspector",nullptr,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+        if (m_inspectorEntityData.entity.id != InvalidEntityID && m_entityManager.ValidateEntity(m_inspectorEntityData.entity))
+        {
+            m_inspectorEntityData.archetype->ForEachComponent(
+                m_inspectorEntityData.location, [&](ComponentID id, void* ptr) { DrawComponentDisplay(id, ptr); });
+        }
+
+        ImGui::End();
+    };
+};

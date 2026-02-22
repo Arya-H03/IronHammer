@@ -65,7 +65,9 @@ class Archetype
 
     const ArchetypeId GetArchetypeId() const { return m_archetypeId; }
     const std::string& GetArchetypeName() const { return m_archetypeName; }
+    const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
     ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
+    bool HasComponent(ComponentID id) const { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
 
     Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -95,10 +97,8 @@ class Archetype
         return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
     }
 
-    bool HasComponent(ComponentID id) { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
-
     template <typename Component>
-    Component* GetComponentPtr(uint32_t chunkIndex, uint32_t indexInChunk)
+    Component* GetComponentPtrByTemplate(const EntityStorageLocation& entityLocation)
     {
         ComponentID id = ComponentRegistry::GetComponentID<Component>();
         if (id >= MaxComponents) return nullptr;
@@ -106,18 +106,43 @@ class Archetype
         uint16_t denseIndex = m_sparse[id];
         assert(denseIndex < m_allocators.size() && "Invalid index in m_allocators[index]");
 
-        if (chunkIndex >= m_chunks.size()) return nullptr;
+        if (entityLocation.chunkIndex >= m_chunks.size()) return nullptr;
 
-        ArchetypeChunk& chunk = m_chunks[chunkIndex];
-        if (indexInChunk >= chunk.size) return nullptr;
+        ArchetypeChunk& chunk = m_chunks[entityLocation.chunkIndex];
+        if (entityLocation.indexInChunk >= chunk.size) return nullptr;
 
         void* base = chunk.components[denseIndex];
         char* byteBase = static_cast<char*>(base);
 
-        return reinterpret_cast<Component*>(byteBase + (indexInChunk * sizeof(Component)));
+        return reinterpret_cast<Component*>(byteBase + (entityLocation.indexInChunk * sizeof(Component)));
     }
 
-    const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
+    void* GetComponentPtrById(const EntityStorageLocation& entityLocation, ComponentID componentId)
+    {
+        if (componentId >= MaxComponents) return nullptr;
+        if (m_sparse[componentId] >= m_allocators.size()) return nullptr;
+
+        ComponentInfo componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
+        void* rawBlock = m_chunks[entityLocation.chunkIndex].components[m_sparse[componentId]];
+        char* byteBase = static_cast<char*>(rawBlock);
+        void* componentPtr = byteBase + (entityLocation.indexInChunk * componentInfo.size);
+
+        return componentPtr;
+    }
+
+    template<typename Func>
+    void ForEachComponent(const EntityStorageLocation& entityLocation ,Func&& func)
+    {
+        for (size_t i = 0; i < m_allocators.size(); ++i)
+        {
+            ComponentID componentId = m_densIds[i];
+            ComponentInfo componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
+            void* rawBlock = m_chunks[entityLocation.chunkIndex].components[m_sparse[componentId]];
+            char* byteBase = static_cast<char*>(rawBlock);
+            void* componentPtr = byteBase + (entityLocation.indexInChunk * componentInfo.size);
+            func(componentId,componentPtr);
+        }
+    }
 
     template <typename Component>
     void ConstructComponentAt(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
@@ -131,8 +156,7 @@ class Archetype
 
     // Do later: If archetypes are stable, you can precompute a component map allowing
     // components to move without need of index or chunk look up between archetypes.
-    EntityStorageLocation MigrateComponentsFrom(
-        Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
+    EntityStorageLocation MigrateComponentsFrom(Archetype& srcArchetype, EntityStorageLocation& entityLocation, Entity entity)
     {
         assert(&srcArchetype != this);
 

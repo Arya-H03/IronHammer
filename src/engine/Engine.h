@@ -17,7 +17,7 @@ class Engine
   private:
 
     int m_currentFrame = 0;
-    int m_frameLimit = 0;
+    int m_frameLimit = 60;
     const Vect2<uint16_t> m_windowSize { 1920, 1080 };
     bool isPaused = false;
 

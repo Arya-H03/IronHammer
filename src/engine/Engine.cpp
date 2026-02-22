@@ -14,8 +14,7 @@ Engine::Engine()
     , m_renderSystem(m_window, m_archetypeRegistry)
     , m_movementSystem(m_archetypeRegistry)
     , m_collisionSystem(m_entityManager, m_archetypeRegistry, m_commandBuffer, m_windowSize)
-    , m_guiSystem(
-          m_entityManager, m_commandBuffer, m_renderSystem, m_archetypeRegistry, m_collisionSystem.GetCollsionDebugger())
+    , m_guiSystem(m_entityManager, m_commandBuffer, m_renderSystem, m_archetypeRegistry, m_collisionSystem.GetCollsionDebugger(), m_windowSize)
 {
     Init();
 }

@@ -49,7 +49,8 @@ class BroadPhaseCollisionSystem
     std::vector<Cell> m_grid;
     std::vector<Entity> m_gridDisplayEntities;
 
-    std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairs;
+    std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
+    std::vector<PotentialCollisionPair> m_uniquePotentialPairsVector;
 
     EntityManager& m_entityManger;
     CommandBuffer& m_commandBuffer;
@@ -71,7 +72,7 @@ class BroadPhaseCollisionSystem
         ArchetypeRegistry& archetypeRegistry,
         Vect2<uint16_t> windowSize);
 
-    std::unordered_set<PotentialCollisionPair,PotentialPairHash>&  HandleBroadPhaseCollisionSystem();
+    std::vector<PotentialCollisionPair>&  HandleBroadPhaseCollisionSystem();
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;

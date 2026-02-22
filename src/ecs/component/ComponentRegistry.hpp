@@ -9,7 +9,7 @@
 #include <vector>
 #include "ecs/common/ECSCommon.h"
 
-using DrawDebugGuiFn = void (*)(void*);
+using DisplatComponentFn = void (*)(void*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 
 struct ComponentInfo
@@ -17,7 +17,7 @@ struct ComponentInfo
     ComponentID id;
     size_t size;
     const char* name;
-    DrawDebugGuiFn DrawGui;
+    DisplatComponentFn DisplayComponent;
     MoveComponentFn MoveComponent;
 };
 
@@ -37,10 +37,7 @@ class ComponentRegistry
     static void DrawDebugGUI(void* ptr)
     {
         TComponent& component = *reinterpret_cast<TComponent*>(ptr);
-
-        ImGui::Text("%s: %s",
-            ComponentRegistry::GetComponentNameByType(component),
-            ComponentRegistry::GetComponentDescription(component).c_str());
+        component.GuiInspectorDisplay();
     }
 
     template <typename T>
@@ -54,7 +51,12 @@ class ComponentRegistry
             assert(newComponentInfo.id < MaxComponents);
             newComponentInfo.name = typeid(T).name();
             newComponentInfo.size = sizeof(T);
-            newComponentInfo.DrawGui = [](void* ptr) { DrawDebugGUI<T>(ptr); };
+            newComponentInfo.DisplayComponent = [](void* ptr)
+                {
+                    T* component = reinterpret_cast<T*>(ptr);
+                    component->GuiInspectorDisplay();
+                    //DrawDebugGUI<T>(ptr);
+                };
             newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
             {
                 T* srcArray = reinterpret_cast<T*>(src);

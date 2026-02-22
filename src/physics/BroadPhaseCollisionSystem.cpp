@@ -1,14 +1,12 @@
 #include "BroadPhaseCollisionSystem.h"
 #include "Tracy.hpp"
-#include "ecs/component/Components.hpp"
 #include "core/utils/Colors.h"
+#include "ecs/component/Components.hpp"
 #include "ecs/entity/EntityCommands.hpp"
 #include <unordered_set>
 
-BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(EntityManager& entityManager,
-    CommandBuffer& commandBuffer,
-    ArchetypeRegistry& archetypeRegistry,
-    Vect2<uint16_t> windowSize)
+BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(
+    EntityManager& entityManager, CommandBuffer& commandBuffer, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
     : m_entityManger(entityManager)
     , m_commandBuffer(commandBuffer)
     , m_windowSize(windowSize)
@@ -39,10 +37,7 @@ void BroadPhaseCollisionSystem::PopulateGrid()
             m_commandBuffer.CreateEntity(entity,
                 CTransform(pos, Vect2f(1, 1), 45),
                 CShape(4, Colors::DarkSteel_SFML, sf::Color::White, m_cellRadius, 2),
-                CText(std::to_string(coord.x) + ", " + std::to_string(coord.y),
-                    sf::Color::White,
-                    Vect2f(m_cellRadius / 3, m_cellRadius / 3),
-                    18),
+                CText(std::to_string(coord.x) + ", " + std::to_string(coord.y), sf::Color::White, Vect2f(m_cellRadius / 3, m_cellRadius / 3), 18),
                 CNotDrawable {});
         }
     }
@@ -70,10 +65,8 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
                 CCollider& colliderComp = colliderCompRow[i];
                 CTransform& transformComp = transformCompRow[i];
 
-                Vect2<int> topLeftCoord =
-                    ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
-                Vect2<int> bottomRightCoord =
-                    ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Ceil();
+                Vect2<int> topLeftCoord = ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
+                Vect2<int> bottomRightCoord = ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Ceil();
 
                 for (size_t r = topLeftCoord.y; r < bottomRightCoord.y; ++r)
                 {
@@ -99,7 +92,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
             {
                 shape->fillColor = Colors::RustRed_SFML;
             }
-            else if (count > 0 && count < 2)
+            else if (count == 1)
             {
                 shape->fillColor = Colors::HazardYellow_SFML;
             }
@@ -113,8 +106,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
 
 void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
 {
-    m_uniquePotentialPairs.clear();
-
+    m_uniquePotentialPairsSet.clear();
     for (auto& cell : m_grid)
     {
         const size_t count = cell.overlapingEntities.size();
@@ -126,9 +118,16 @@ void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
                 Entity e2 = cell.overlapingEntities[j];
 
                 if (e1.id > e2.id) std::swap(e1, e2);
-                m_uniquePotentialPairs.insert({ e1, e2 });
+                m_uniquePotentialPairsSet.insert({ e1, e2 });
             }
         }
+    }
+
+    m_uniquePotentialPairsVector.clear();
+    m_uniquePotentialPairsVector.reserve(m_uniquePotentialPairsVector.size());
+    for (auto& pair : m_uniquePotentialPairsSet)
+    {
+        m_uniquePotentialPairsVector.push_back(pair);
     }
 }
 
@@ -170,7 +169,7 @@ void BroadPhaseCollisionSystem::SetCanHighlightGrid(bool val)
     }
 }
 
-std::unordered_set<PotentialCollisionPair,PotentialPairHash>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
+std::vector<PotentialCollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
 {
     ClearAllCells();
     {
@@ -182,5 +181,5 @@ std::unordered_set<PotentialCollisionPair,PotentialPairHash>& BroadPhaseCollisio
         FindUniqueCollisionPairs();
     }
 
-    return m_uniquePotentialPairs;
+    return m_uniquePotentialPairsVector;
 }

@@ -3,13 +3,11 @@
 #include "core/utils/Colors.h"
 #include "imgui.h"
 
-void GUISystem::HandleGUISystem()
+void GUISystem::DrawDebugGuiWindow()
 {
-    ZoneScoped;
-    ImGui::SetNextWindowSize(ImVec2(425, 400), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
-
-    ImGui::Begin("Debug");
+    ImGui::SetNextWindowSize(ImVec2(450, 400), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(2, 2), ImGuiCond_Once);
+    ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoMove);
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
@@ -50,9 +48,15 @@ void GUISystem::HandleGUISystem()
         }
         ImGui::EndTabBar();
     }
-
-    // ImGui::Separator();
     ImGui::End();
+}
+
+void GUISystem::HandleGUISystem()
+{
+    ZoneScoped;
+
+    DrawDebugGuiWindow();
+    m_entityInspector.DrawInspectorGuiWindow();
 }
 
 void GUISystem::AppleGUITheme()
