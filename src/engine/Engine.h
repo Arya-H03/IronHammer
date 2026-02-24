@@ -1,16 +1,19 @@
 #pragma once
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/InputStream.hpp>
 #include <cstdint>
 #include <sys/types.h>
 #include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
+#include "input/InputManager.h"
 #include "physics/CollisionSystem.h"
 #include "gui/GUISystem.h"
-#include "ecs/system/MovementSystem.h"
-#include "ecs/system/RenderSystem.h"
+#include "physics/MovementSystem.h"
+#include "rendering/RenderSystem.h"
+#include "input/InputSystem.h"
 
 class Engine
 {
@@ -30,6 +33,8 @@ class Engine
 
     MovementSystem m_movementSystem;
     CollisionSystem m_collisionSystem;
+    InputSystem m_inputSystem;
+    InputManager m_inputManager;
     RenderSystem m_renderSystem;
     //////Declare Last////
     GUISystem m_guiSystem;

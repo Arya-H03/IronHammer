@@ -8,7 +8,7 @@
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "gui/EntityInspector.hpp"
-#include "ecs/system/RenderSystem.h"
+#include "rendering/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
 
 class GUISystem

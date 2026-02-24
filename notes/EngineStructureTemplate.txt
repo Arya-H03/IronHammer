@@ -1,0 +1,113 @@
+IronHammer
+│
+├── CMakeLists.txt
+├── README.md
+├── .gitignore
+│
+├── Engine/
+│   ├── CMakeLists.txt
+│   │
+│   ├── Core/
+│   │   ├── Application.h
+│   │   ├── Application.cpp
+│   │   ├── Time.h
+│   │   ├── Time.cpp
+│   │   ├── Logger.h
+│   │   ├── Logger.cpp
+│   │   ├── Config.h
+│   │   └── Config.cpp
+│   │
+│   ├── ECS/
+│   │   ├── Entity.h
+│   │   ├── EntityManager.h
+│   │   ├── EntityManager.cpp
+│   │   ├── Archetype.h
+│   │   ├── Archetype.cpp
+│   │   ├── Chunk.h
+│   │   ├── Chunk.cpp
+│   │   ├── Component.h
+│   │   └── System.h
+│   │
+│   ├── Rendering/
+│   │   ├── Renderer.h
+│   │   ├── Renderer.cpp
+│   │   ├── SpriteBatch.h
+│   │   ├── SpriteBatch.cpp
+│   │   ├── Camera.h
+│   │   ├── Camera.cpp
+│   │   ├── RenderSystem.h
+│   │   └── RenderSystem.cpp
+│   │
+│   ├── Physics/
+│   │   ├── PhysicsSystem.h
+│   │   ├── PhysicsSystem.cpp
+│   │   ├── Collision.h
+│   │   ├── Collision.cpp
+│   │   ├── BroadPhaseGrid.h
+│   │   └── BroadPhaseGrid.cpp
+│   │
+│   ├── Input/
+│   │   ├── Input.h
+│   │   ├── Input.cpp
+│   │   ├── InputMapping.h
+│   │   └── InputMapping.cpp
+│   │
+│   ├── Assets/
+│   │   ├── AssetManager.h
+│   │   ├── AssetManager.cpp
+│   │   ├── TextureManager.h
+│   │   ├── TextureManager.cpp
+│   │   ├── FontManager.h
+│   │   └── FontManager.cpp
+│   │
+│   ├── Scene/
+│   │   ├── Scene.h
+│   │   ├── Scene.cpp
+│   │   ├── SceneManager.h
+│   │   └── SceneManager.cpp
+│   │
+│   ├── Debug/
+│   │   ├── DebugUI.h
+│   │   ├── DebugUI.cpp
+│   │   ├── Inspector.h
+│   │   └── Inspector.cpp
+│   │
+│   └── Components/
+│       ├── CTransform.h
+│       ├── CSprite.h
+│       ├── CVelocity.h
+│       ├── CCollider.h
+│       └── CCamera.h
+│
+├── Game/
+│   ├── CMakeLists.txt
+│   │
+│   ├── Main.cpp
+│   │
+│   ├── Scenes/
+│   │   ├── MenuScene.h
+│   │   ├── MenuScene.cpp
+│   │   ├── GameScene.h
+│   │   └── GameScene.cpp
+│   │
+│   ├── Systems/
+│   │   ├── PlayerSystem.h
+│   │   ├── PlayerSystem.cpp
+│   │   ├── EnemySystem.h
+│   │   └── EnemySystem.cpp
+│   │
+│   └── Prefabs/
+│       ├── PlayerPrefab.h
+│       └── EnemyPrefab.h
+│
+├── Assets/
+│   ├── Textures/
+│   ├── Fonts/
+│   ├── Audio/
+│   └── Config/
+│
+├── ThirdParty/
+│   ├── imgui/
+│   └── (optional other libs)
+│
+└── Build/
