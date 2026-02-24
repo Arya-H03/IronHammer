@@ -6,10 +6,11 @@
 #include "ecs/entity/EntityManager.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 
-struct CollisionPair
+struct CollisionData
 {
     Entity e1, e2;
-    Vect2f overlapSize;
+    Vect2f normal;
+    float penetration;
 };
 
 class NarrowPhaseCollisionSystem
@@ -19,11 +20,14 @@ class NarrowPhaseCollisionSystem
   private:
 
     EntityManager& m_entityManager;
-    std::vector<CollisionPair> m_collisionPair;
+    std::vector<CollisionData> m_collisionDataVector;
+
+    // Axis Aligned Bounding Box
+    void AABBCheck(Entity e1, Entity e2);
 
   public:
 
     NarrowPhaseCollisionSystem(EntityManager& entityManager);
 
-    std::vector<CollisionPair>& ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs);
+    std::vector<CollisionData>& ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs);
 };

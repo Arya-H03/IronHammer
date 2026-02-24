@@ -18,19 +18,30 @@ class CommandBuffer
     };
 
     template <typename... Components>
-    struct CreateEntityCommand : public ICommand
+    struct CreateEntityCommandWithReturn : public ICommand
     {
         Entity& m_entity;
         std::tuple<Components...> m_componentTuple;
-        CreateEntityCommand(Entity& entity, Components&&... components)
+        CreateEntityCommandWithReturn(Entity& entity, Components&&... components)
             : m_entity(entity), m_componentTuple(std::forward<Components>(components)...)
         {
         }
         void Execute(EntityManager& entityManager) override
         {
-            m_entity = std::apply([&](auto&&... comps)
-                { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); },
-                std::move(m_componentTuple));
+            m_entity = std::apply(
+                [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(m_componentTuple));
+        }
+    };
+
+    template <typename... Components>
+    struct CreateEntityCommandNoReturn : public ICommand
+    {
+        std::tuple<Components...> m_componentTuple;
+        CreateEntityCommandNoReturn(Components&&... components) : m_componentTuple(std::forward<Components>(components)...) { }
+        void Execute(EntityManager& entityManager) override
+        {
+            std::apply(
+                [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(m_componentTuple));
         }
     };
 
@@ -48,10 +59,7 @@ class CommandBuffer
         Entity m_entity;
         AddToEntityCommand(Entity entity, Component&& component) : m_component(component), m_entity(entity) { }
 
-        void Execute(EntityManager& entityManager) override
-        {
-            entityManager.AddToEntity(m_entity, std::forward<Component>(m_component));
-        }
+        void Execute(EntityManager& entityManager) override { entityManager.AddToEntity(m_entity, std::forward<Component>(m_component)); }
     };
 
     template <typename Component>
@@ -82,8 +90,13 @@ class CommandBuffer
     template <typename... Components>
     void CreateEntity(Entity& entity, Components&&... components)
     {
-        m_commands.push_back(
-            std::make_unique<CreateEntityCommand<Components...>>(entity, std::forward<Components>(components)...));
+        m_commands.push_back(std::make_unique<CreateEntityCommandWithReturn<Components...>>(entity, std::forward<Components>(components)...));
+    }
+
+    template <typename... Components>
+    void CreateEntity(Components&&... components)
+    {
+        m_commands.push_back(std::make_unique<CreateEntityCommandNoReturn<Components...>>(std::forward<Components>(components)...));
     }
 
     void DestroyEntity(Entity entity) { m_commands.push_back(std::make_unique<DestroyEntityCommand>(entity)); }
@@ -91,8 +104,7 @@ class CommandBuffer
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)
     {
-        m_commands.push_back(
-            std::make_unique<AddToEntityCommand<std::decay_t<Component>>>(entity, std::forward<Component>(component)));
+        m_commands.push_back(std::make_unique<AddToEntityCommand<std::decay_t<Component>>>(entity, std::forward<Component>(component)));
     }
 
     template <typename Component>

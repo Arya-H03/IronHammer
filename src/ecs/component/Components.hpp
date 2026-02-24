@@ -36,18 +36,15 @@ struct CTransform
 
 struct CMovement
 {
-    Vect2f velocity;
     float speed;
 
-    CMovement(const Vect2f& vel, float spd) : velocity(vel), speed(spd) { }
+    CMovement(float spd) : speed(spd) { }
 
     void GuiInspectorDisplay(void* ptr)
     {
         TypeHeader<CMovement>("CMovement", ptr);
         if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            TableNextField("Velocity");
-            DragFloat2("##VelX", &velocity.x, "##VelY", &velocity.y);
             TableNextField("Speed");
             DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f);
             ImGui::EndTable();
@@ -123,10 +120,24 @@ struct CCollider
 struct CRigidBody
 {
     Vect2f velocity;
+    Vect2f previousPosition;
     float mass;
+    float inverseMass;
+    float bounciness; // [0,1]
     bool isStatic;
 
-    CRigidBody(const Vect2f& vel, float m, bool stat) : velocity(vel), mass(m), isStatic(stat) { }
+    CRigidBody(const Vect2f& vel, float m, float bounciness, bool stat) : velocity(vel), mass(m), bounciness(bounciness), isStatic(stat)
+    {
+        if (isStatic)
+        {
+            mass = 0;
+            inverseMass = 0;
+        }
+        else
+        {
+            inverseMass = 1.0f / mass;
+        }
+    }
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -136,17 +147,14 @@ struct CRigidBody
         {
             TableNextField("Velocity");
             DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y);
+            TableNextField("Previous Position");
+            DragFloat2("##RBVelX", &previousPosition.x, "##RBVelY", &previousPosition.y);
             TableNextField("Mass");
             DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f);
+            TableNextField("Bounciness");
+            DragFloatWithLimits("##RBMass", &bounciness, 0.1f, 0.f, 1.f);
             TableNextField("Is Static");
             Checkbox("##RBStatic", &isStatic);
-
-            TableNextField("Inverse Mass");
-            if (!isStatic && mass > 0.f)
-                ImGui::Text("%.4f", 1.f / mass);
-            else
-                ImGui::Text("0 (Static)");
-
             ImGui::EndTable();
         }
     }

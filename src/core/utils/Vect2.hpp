@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Window/Joystick.hpp>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -62,6 +63,8 @@ class Vect2
 
     float Distance(Vect2 rhs) { return std::sqrt((x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y)); }
     float DistanceSquare(Vect2 rhs) { return (x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y); }
+
+    float DotProduct(const Vect2& other) { return (x * other.x) + (y * other.y); }
 
     Vect2 Normalize()
     {

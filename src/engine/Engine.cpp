@@ -37,12 +37,12 @@ void Engine::SpawnTestEntity()
 {
     ZoneScoped;
 
-    size_t count = 10000;
+    size_t count = 1000;
 
     for (size_t i = 0; i < count; ++i)
     {
         Vect2f startPos = Vect2f(Random::Float(50, m_windowSize.x - 50), Random::Float(50, m_windowSize.y - 50));
-        Vect2f startVel = Vect2f(Random::Float(-10, 10), Random::Float(-10, 10));
+        Vect2f startVel = Vect2f(Random::Float(-90, 90), Random::Float(-90, 90));
         float speed = Random::Float(1, 5);
 
         float shapeRadius = Random::Float(1, 5);
@@ -51,8 +51,9 @@ void Engine::SpawnTestEntity()
 
         Entity e;
         m_commandBuffer.CreateEntity(e,
-            CTransform(startPos, Vect2f(3, 3), 0),
-            CMovement(startVel, speed),
+            CTransform(startPos, Vect2f(3, 3), 45),
+            CMovement(speed),
+            CRigidBody(startVel,shapeRadius,0.1f,false),
             CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
             CShape(points, filColor, sf::Color::White, shapeRadius, 0));
     }
@@ -87,8 +88,8 @@ void Engine::Run()
 
         if (!isPaused)
         {
-            m_movementSystem.HandleMovementSystem();
             m_collisionSystem.HandleCollisionSystem();
+            m_movementSystem.HandleMovementSystem();
         }
 
         m_guiSystem.HandleGUISystem();
