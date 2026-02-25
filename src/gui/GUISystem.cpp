@@ -3,10 +3,27 @@
 #include "core/utils/Colors.h"
 #include "imgui.h"
 
-void GUISystem::DrawDebugGuiWindow()
+GUISystem::GUISystem(EntityManager& entityManager,
+    CommandBuffer& commandBuffer,
+    RenderSystem& renderSystem,
+    ArchetypeRegistry& archetypeRegistry,
+    const CollisionDebugger& collisionDebugger,
+    Vect2<uint16_t> windowSize)
+    : m_entityManager(entityManager)
+    , m_commandBuffer(commandBuffer)
+    , m_renderSystem(renderSystem)
+    , m_archetypeRegistry(archetypeRegistry)
+    , m_windowSize(windowSize)
+    , m_entityInspector(m_entityManager)
+    , m_collisionDebugger(collisionDebugger)
+    , m_archetypeDebugger(entityManager, archetypeRegistry, m_commandBuffer, m_entityInspector)
 {
-    ImGui::SetNextWindowSize(ImVec2(450, 400), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(2, 2), ImGuiCond_Once);
+}
+
+void GUISystem::DrawDebugWindow()
+{
+    ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
     ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoMove);
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
@@ -51,12 +68,32 @@ void GUISystem::DrawDebugGuiWindow()
     ImGui::End();
 }
 
+void GUISystem::DrawInspectorWindow()
+{
+    ImGui::SetNextWindowSize(ImVec2(m_inspectorWindowWidth, m_inspectorWindowHeight), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(m_windowSize.x - m_inspectorWindowWidth - m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
+    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    m_entityInspector.DrawInspectorGui();
+    ImGui::End();
+}
+
+void GUISystem::DrawLogWindow()
+{
+    ImGui::SetNextWindowSize(ImVec2(m_logWindowWidth, m_logWindowHeight), ImGuiCond_Once);
+    ImGui::Begin("Logs", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImVec2 actualSize = ImGui::GetWindowSize();
+    ImGui::SetWindowPos(ImVec2(m_offsetFromScreenEdge, m_windowSize.y - actualSize.y - 70));
+    m_logWindow.DrawLogsGui();
+    ImGui::End();
+}
+
 void GUISystem::HandleGUISystem()
 {
     ZoneScoped;
 
-    DrawDebugGuiWindow();
-    m_entityInspector.DrawInspectorGuiWindow();
+    DrawDebugWindow();
+    DrawInspectorWindow();
+    DrawLogWindow();
 }
 
 void GUISystem::AppleGUITheme()

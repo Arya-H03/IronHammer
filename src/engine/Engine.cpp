@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include <SFML/Window/Keyboard.hpp>
 #include <imgui-SFML.h>
 #include "assets/FontManager.h"
 #include "core/utils/Random.hpp"
@@ -8,6 +9,7 @@
 #include <cassert>
 #include "Tracy.hpp"
 #include "input/InputManager.h"
+#include "core/utils/Debug.h"
 
 Engine::Engine()
     : m_entityManager(m_archetypeRegistry)
@@ -35,6 +37,10 @@ void Engine::Init()
     assert(isWindowInitialized && "Window wasn't initialized");
 
     m_guiSystem.AppleGUITheme();
+
+    m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, [](){Debug::Log("Log");});
+    m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [](){Debug::Warning("Warning");});
+    m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, [](){Debug::Error("Error");});
 
 }
 

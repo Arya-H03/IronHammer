@@ -148,11 +148,11 @@ struct CRigidBody
             TableNextField("Velocity");
             DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y);
             TableNextField("Previous Position");
-            DragFloat2("##RBVelX", &previousPosition.x, "##RBVelY", &previousPosition.y);
+            DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y);
             TableNextField("Mass");
             DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f);
             TableNextField("Bounciness");
-            DragFloatWithLimits("##RBMass", &bounciness, 0.1f, 0.f, 1.f);
+            DragFloatWithLimits("##RBBounciness", &bounciness, 0.1f, 0.f, 1.f);
             TableNextField("Is Static");
             Checkbox("##RBStatic", &isStatic);
             ImGui::EndTable();

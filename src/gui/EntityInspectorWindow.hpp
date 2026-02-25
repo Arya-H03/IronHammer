@@ -1,13 +1,11 @@
 #pragma once
-#include <cstdint>
 #include <imgui.h>
-#include "core/utils/Vect2.hpp"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityManager.hpp"
 
-class EntityInspector
+class EntityInspectorWindow
 {
     struct InspectorEntityData
     {
@@ -20,9 +18,6 @@ class EntityInspector
 
     InspectorEntityData m_inspectorEntityData;
     EntityManager& m_entityManager;
-    Vect2<uint16_t> m_windowSize;
-    const uint16_t inspectorWidth = 350;
-    const uint16_t inspectorHeight = 750;
 
     void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const
     {
@@ -31,7 +26,7 @@ class EntityInspector
 
   public:
 
-    EntityInspector(EntityManager& entityManager, Vect2<uint16_t> windowSize) : m_entityManager(entityManager), m_windowSize(windowSize) { }
+    EntityInspectorWindow(EntityManager& entityManager) : m_entityManager(entityManager){ }
 
     void SetCurrentInspectorEntity(Entity entity)
     {
@@ -45,12 +40,8 @@ class EntityInspector
 
     const Entity GetCurrentInspectorEntity() const { return m_inspectorEntityData.entity; }
 
-    void DrawInspectorGuiWindow()
+    void DrawInspectorGui()
     {
-        ImGui::SetNextWindowSize(ImVec2(inspectorWidth, inspectorHeight), ImGuiCond_Once);
-        ImGui::SetNextWindowPos(ImVec2(m_windowSize.x - inspectorWidth, 2), ImGuiCond_Once);
-        ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-
         if (m_inspectorEntityData.entity.id != InvalidEntityID && m_entityManager.ValidateEntity(m_inspectorEntityData.entity))
         {
             ImGui::SeparatorText("Entity");
@@ -64,7 +55,5 @@ class EntityInspector
             m_inspectorEntityData.archetype->ForEachComponent(
                 m_inspectorEntityData.location, [&](ComponentID id, void* ptr) { DrawComponentDisplay(id, ptr); });
         }
-
-        ImGui::End();
     };
 };

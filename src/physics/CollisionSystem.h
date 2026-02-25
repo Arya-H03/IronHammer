@@ -57,7 +57,7 @@ class CollisionSystem
                         rigidBodyComp.velocity.y *= -1;
                     }
 
-                    else if (transformComp.position.x + colliderComp.offset.x - colliderComp.halfSize.x <= 0)
+                    if (transformComp.position.x + colliderComp.offset.x - colliderComp.halfSize.x <= 0)
                     {
                         transformComp.position.x = colliderComp.halfSize.x - colliderComp.offset.x;
                         rigidBodyComp.velocity.x *= -1;

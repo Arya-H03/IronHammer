@@ -8,7 +8,7 @@
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "core/utils/Colors.h"
-#include "gui/EntityInspector.hpp"
+#include "gui/EntityInspectorWindow.hpp"
 
 class ArchetypeDebugger
 {
@@ -17,7 +17,7 @@ class ArchetypeDebugger
     EntityManager& m_entityManager;
     ArchetypeRegistry& m_archetypeRegistry;
     CommandBuffer& m_commandBuffer;
-    EntityInspector& m_entityInspector;
+    EntityInspectorWindow& m_entityInspector;
 
     void DrawIndividualArchetypeGUI(Archetype& archetype, const std::function<void(Entity)>& deleteEntityCallBack) const
     {
@@ -87,7 +87,7 @@ class ArchetypeDebugger
   public:
 
     ArchetypeDebugger(
-        EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, EntityInspector& entityInspector)
+        EntityManager& entityManager, ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, EntityInspectorWindow& entityInspector)
         : m_entityManager(entityManager), m_archetypeRegistry(archetypeRegistry), m_commandBuffer(commandBuffer), m_entityInspector(entityInspector)
     {
     }
