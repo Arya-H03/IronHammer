@@ -3,16 +3,14 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <cstddef>
-
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/Components.hpp"
+#include "ecs/World.hpp"
 
 class RenderSystem
 {
   private:
 
     sf::RenderWindow& m_window;
-    ArchetypeRegistry& m_archetypeRegistry;
+    World& m_world;
 
     Query& shapeQuery;
     Query& textQuery;
@@ -36,6 +34,8 @@ class RenderSystem
 
   public:
 
+    RenderSystem(World& world,sf::RenderWindow& window);
+
     bool GetCanDrawText() const { return m_canDrawText; }
     bool GetCanDrawShapes() const { return m_canDrawShapes; }
     bool GetCanDrawColliders() const { return m_canDrawColliders; }
@@ -43,8 +43,6 @@ class RenderSystem
     void SetCanDrawTest(bool val) { m_canDrawText = val; }
     void SetCanDrawShapes(bool val) { m_canDrawShapes = val; }
     void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
-
-    RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry);
 
     void HandleRenderSystem();
 };

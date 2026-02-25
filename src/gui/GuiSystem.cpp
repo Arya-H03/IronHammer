@@ -3,20 +3,16 @@
 #include "core/utils/Colors.h"
 #include "imgui.h"
 
-GuiSystem::GuiSystem(EntityManager& entityManager,
-    CommandBuffer& commandBuffer,
+GuiSystem::GuiSystem(World& world,
     RenderSystem& renderSystem,
-    ArchetypeRegistry& archetypeRegistry,
     const CollisionDebugger& collisionDebugger,
     Vect2<uint16_t> windowSize)
-    : m_entityManager(entityManager)
-    , m_commandBuffer(commandBuffer)
+    : m_world(world)
     , m_renderSystem(renderSystem)
-    , m_archetypeRegistry(archetypeRegistry)
     , m_windowSize(windowSize)
-    , m_entityInspector(m_entityManager)
+    , m_entityInspector(m_world.GetEntityInspector())
     , m_collisionDebugger(collisionDebugger)
-    , m_archetypeDebugger(entityManager, archetypeRegistry, m_commandBuffer, m_entityInspector)
+    , m_archetypeDebugger(m_world.GetArchetypeDebugger())
 {
 }
 

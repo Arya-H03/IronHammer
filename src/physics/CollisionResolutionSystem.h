@@ -1,16 +1,16 @@
 #pragma once
 #include <vector>
-#include "ecs/entity/EntityManager.hpp"
+#include "ecs/World.hpp"
 #include "physics/NarrowPhaseCollisionSystem.h"
 class CollisionResolutionSystem
 {
   private:
 
-    EntityManager& m_entityManager;
+    World& m_world;
 
   public:
 
-    CollisionResolutionSystem(EntityManager& entityManager);
+    CollisionResolutionSystem(World& world);
 
     void ResolveCollisionOverlaps(std::vector<CollisionData>& collisionDataVector);
     void ResolveCollisionImpluse(std::vector<CollisionData>& collisionDataVector);

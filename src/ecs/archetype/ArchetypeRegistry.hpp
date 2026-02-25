@@ -29,8 +29,6 @@ class ArchetypeRegistry
     std::unordered_map<ComponentSignatureMask, ArchetypeId> m_signatureToArchetypeIdMap;
     std::unordered_map<QueryKey, std::unique_ptr<Query>, QueryKeyHash> m_queryCache;
 
-  private:
-
     std::string MakeArchetypeName(const ComponentSignatureMask& signature)
     {
         std::string name;
@@ -107,7 +105,7 @@ class ArchetypeRegistry
     }
 
     template <typename... QueryGroup>
-    Query& CreateQuery()
+    Query& GetOrCreateQuery()
     {
         QueryKey key;
         (ProcessArgumentsForQueryKey(QueryGroup {}, key), ...);

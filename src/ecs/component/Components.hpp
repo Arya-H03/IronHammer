@@ -4,7 +4,7 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <string>
-#include "gui/EntityInspectorHelper.h"
+#include "ecs/entity/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
 

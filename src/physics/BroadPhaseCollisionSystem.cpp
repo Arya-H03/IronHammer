@@ -2,15 +2,13 @@
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
 #include "ecs/component/Components.hpp"
-#include "ecs/entity/EntityCommands.hpp"
 #include <unordered_set>
 
 BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(
-    EntityManager& entityManager, CommandBuffer& commandBuffer, ArchetypeRegistry& archetypeRegistry, Vect2<uint16_t> windowSize)
-    : m_entityManger(entityManager)
-    , m_commandBuffer(commandBuffer)
+    World& world, Vect2<uint16_t> windowSize)
+    : m_world(world)
     , m_windowSize(windowSize)
-    , broadPhaseQuery(archetypeRegistry.CreateQuery<RequiredComponents<CCollider, CTransform>>())
+    , broadPhaseQuery(m_world.Query<RequiredComponents<CTransform, CCollider>>())
 {
     m_cellPerCol = m_windowSize.y / m_cellSize;
     m_cellPerRow = m_windowSize.x / m_cellSize;
@@ -34,7 +32,7 @@ void BroadPhaseCollisionSystem::PopulateGrid()
             m_grid[index] = Cell(coord, pos);
 
             Entity& entity = m_gridDisplayEntities[index];
-            m_commandBuffer.CreateEntity(entity,
+            m_world.CreateEntity(entity,
                 CTransform(pos, Vect2f(1, 1), 45),
                 CShape(4, Colors::DarkSteel_SFML, sf::Color::White, m_cellRadius, 2),
                 CText(std::to_string(coord.x) + ", " + std::to_string(coord.y), sf::Color::White, Vect2f(m_cellRadius / 3, m_cellRadius / 3), 18),
@@ -86,7 +84,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
         for (size_t i = 0; i < m_grid.size(); ++i)
         {
             size_t count = m_grid[i].overlapingEntities.size();
-            CShape* shape = m_entityManger.TryGetComponent<CShape>(m_gridDisplayEntities[i]);
+            CShape* shape = m_world.TryGetComponent<CShape>(m_gridDisplayEntities[i]);
             if (!shape) continue;
             if (count >= 2)
             {
@@ -142,7 +140,7 @@ void BroadPhaseCollisionSystem::SetCanDisplayGrid(bool val)
     {
         for (auto& entity : m_gridDisplayEntities)
         {
-            m_commandBuffer.RemoveFromEntity<CNotDrawable>(entity);
+            m_world.RemoveFromEntity<CNotDrawable>(entity);
         }
         SetCanHighlightGrid(true);
     }
@@ -150,7 +148,7 @@ void BroadPhaseCollisionSystem::SetCanDisplayGrid(bool val)
     {
         for (auto& entity : m_gridDisplayEntities)
         {
-            m_commandBuffer.AddToEntity(entity, CNotDrawable {});
+            m_world.AddToEntity(entity, CNotDrawable {});
         }
 
         SetCanHighlightGrid(false);
@@ -164,7 +162,7 @@ void BroadPhaseCollisionSystem::SetCanHighlightGrid(bool val)
     {
         for (size_t i = 0; i < m_grid.size(); ++i)
         {
-            m_entityManger.TryGetComponent<CShape>(m_gridDisplayEntities[i])->fillColor = Colors::DarkSteel_SFML;
+            m_world.TryGetComponent<CShape>(m_gridDisplayEntities[i])->fillColor = Colors::DarkSteel_SFML;
         }
     }
 }

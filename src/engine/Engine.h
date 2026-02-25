@@ -5,9 +5,7 @@
 #include <cstdint>
 #include <sys/types.h>
 #include "core/utils/Vect2.hpp"
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/entity/EntityCommands.hpp"
-#include "ecs/entity/EntityManager.hpp"
+#include "ecs/World.hpp"
 #include "input/InputManager.h"
 #include "physics/CollisionSystem.h"
 #include "gui/GuiSystem.h"
@@ -27,9 +25,7 @@ class Engine
     sf::RenderWindow m_window;
     sf::Clock m_clock;
 
-    ArchetypeRegistry m_archetypeRegistry;
-    EntityManager m_entityManager;
-    CommandBuffer m_commandBuffer;
+    World m_world;
 
     MovementSystem m_movementSystem;
     CollisionSystem m_collisionSystem;

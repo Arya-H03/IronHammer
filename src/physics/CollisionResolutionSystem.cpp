@@ -3,7 +3,7 @@
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
 
-CollisionResolutionSystem::CollisionResolutionSystem(EntityManager& entityManager) : m_entityManager(entityManager) { }
+CollisionResolutionSystem::CollisionResolutionSystem(World& world) : m_world(world) { }
 
 void CollisionResolutionSystem::ResolveCollisionOverlaps(std::vector<CollisionData>& collisionDataVector)
 {
@@ -12,10 +12,10 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(std::vector<CollisionDa
 
         for (auto& collisionData : collisionDataVector)
         {
-            CTransform* transform1 = m_entityManager.TryGetComponent<CTransform>(collisionData.e1);
-            CTransform* transform2 = m_entityManager.TryGetComponent<CTransform>(collisionData.e2);
-            CRigidBody* rb1 = m_entityManager.TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = m_entityManager.TryGetComponent<CRigidBody>(collisionData.e2);
+            CTransform* transform1 = m_world.TryGetComponent<CTransform>(collisionData.e1);
+            CTransform* transform2 = m_world.TryGetComponent<CTransform>(collisionData.e2);
+            CRigidBody* rb1 = m_world.TryGetComponent<CRigidBody>(collisionData.e1);
+            CRigidBody* rb2 = m_world.TryGetComponent<CRigidBody>(collisionData.e2);
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;
@@ -35,8 +35,8 @@ void CollisionResolutionSystem::ResolveCollisionImpluse(std::vector<CollisionDat
 
         for (auto& collisionData : collisionDataVector)
         {
-            CRigidBody* rb1 = m_entityManager.TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = m_entityManager.TryGetComponent<CRigidBody>(collisionData.e2);
+            CRigidBody* rb1 = m_world.TryGetComponent<CRigidBody>(collisionData.e1);
+            CRigidBody* rb2 = m_world.TryGetComponent<CRigidBody>(collisionData.e2);
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;

@@ -4,7 +4,6 @@
 #include "assets/FontManager.h"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
-#include "ecs/component/Components.hpp"
 #include <SFML/Graphics/Color.hpp>
 #include <cassert>
 #include "Tracy.hpp"
@@ -12,14 +11,12 @@
 #include "core/utils/Debug.h"
 
 Engine::Engine()
-    : m_entityManager(m_archetypeRegistry)
-    , m_commandBuffer(m_entityManager)
-    , m_renderSystem(m_window, m_archetypeRegistry)
-    , m_movementSystem(m_archetypeRegistry)
-    , m_collisionSystem(m_entityManager, m_archetypeRegistry, m_commandBuffer, m_windowSize)
+    : m_renderSystem(m_world, m_window)
+    , m_movementSystem(m_world)
+    , m_collisionSystem(m_world,m_windowSize)
     , m_inputSystem(m_window)
     , m_inputManager(m_inputSystem)
-    , m_guiSystem(m_entityManager, m_commandBuffer, m_renderSystem, m_archetypeRegistry, m_collisionSystem.GetCollsionDebugger(), m_windowSize)
+    , m_guiSystem(m_world,m_renderSystem, m_collisionSystem.GetCollsionDebugger(), m_windowSize)
 {
     Init();
 }
@@ -59,7 +56,7 @@ void Engine::SpawnTestEntity()
         int points = Random::Int(3, 20);
         sf::Color filColor = Random::Color();
 
-        m_commandBuffer.CreateEntity(CTransform(startPos, Vect2f(3, 3), 45),
+        m_world.CreateEntity(CTransform(startPos, Vect2f(3, 3), 45),
             CMovement(speed),
             CRigidBody(startVel, shapeRadius, 0.1f, false),
             CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
@@ -79,7 +76,7 @@ void Engine::Run()
 
         ImGui::SFML::Update(m_window, m_clock.restart());
 
-        m_commandBuffer.ExecuteAllCommands();
+        m_world.UpdateWorld();
 
         m_inputSystem.PollEvents();
         m_inputManager.Update();

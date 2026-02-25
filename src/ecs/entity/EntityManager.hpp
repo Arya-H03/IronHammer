@@ -12,7 +12,7 @@
 class EntityManager
 {
     friend class CommandBuffer;
-    friend class EntityInspectorWindow;
+    friend class EntityInspector;
 
     struct EntitySlot
     {

@@ -5,7 +5,7 @@
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityManager.hpp"
 
-class EntityInspectorWindow
+class EntityInspector
 {
     struct InspectorEntityData
     {
@@ -26,7 +26,7 @@ class EntityInspectorWindow
 
   public:
 
-    EntityInspectorWindow(EntityManager& entityManager) : m_entityManager(entityManager){ }
+    EntityInspector(EntityManager& entityManager) : m_entityManager(entityManager){ }
 
     void SetCurrentInspectorEntity(Entity entity)
     {
@@ -40,7 +40,7 @@ class EntityInspectorWindow
 
     const Entity GetCurrentInspectorEntity() const { return m_inspectorEntityData.entity; }
 
-    void DrawInspectorGui()
+    void DrawInspectorGui() const
     {
         if (m_inspectorEntityData.entity.id != InvalidEntityID && m_entityManager.ValidateEntity(m_inspectorEntityData.entity))
         {

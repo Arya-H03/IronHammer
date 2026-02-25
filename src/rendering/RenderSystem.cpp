@@ -8,19 +8,14 @@
 #include <cmath>
 #include "assets/FontManager.h"
 #include "Tracy.hpp"
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/Components.hpp"
 #include "core/utils/Colors.h"
 
-RenderSystem::RenderSystem(sf::RenderWindow& window, ArchetypeRegistry& archetypeRegistry)
+RenderSystem::RenderSystem(World& world, sf::RenderWindow& window)
     : m_window(window)
-    , m_archetypeRegistry(archetypeRegistry)
-    , shapeQuery(
-          m_archetypeRegistry.CreateQuery<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , textQuery(
-          m_archetypeRegistry.CreateQuery<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , colliderQuery(m_archetypeRegistry
-                        .CreateQuery<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , m_world(world)
+    , shapeQuery(world.Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , textQuery(world.Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , colliderQuery(world.Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
 }
 
@@ -109,7 +104,7 @@ void RenderSystem::RenderShapes()
     {
         for (auto& chunk : archetype->GetChunks())
         {
-           ZoneScopedN("Per Entity Render Shapes");
+            ZoneScopedN("Per Entity Render Shapes");
 
             auto shapeCompRow = chunk.GetComponentRow<CShape>();
             auto transformCompRow = chunk.GetComponentRow<CTransform>();
@@ -128,7 +123,7 @@ void RenderSystem::RenderShapes()
 
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
-                   ZoneScopedN("Draw Shape Batch");
+                    ZoneScopedN("Draw Shape Batch");
                     m_window.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
@@ -149,7 +144,7 @@ void RenderSystem::RenderColliders()
     {
         for (auto& chunk : archetype->GetChunks())
         {
-            //ZoneScopedN("Per Entity Render Colliders");
+            // ZoneScopedN("Per Entity Render Colliders");
 
             auto colliderCompRow = chunk.GetComponentRow<CCollider>();
             auto transformCompRow = chunk.GetComponentRow<CTransform>();
@@ -157,7 +152,7 @@ void RenderSystem::RenderColliders()
             for (size_t i = 0; i < chunk.size; ++i)
             {
                 {
-                    //ZoneScopedN("Add Collider To Batch");
+                    // ZoneScopedN("Add Collider To Batch");
 
                     CCollider& collider = colliderCompRow[i];
                     CTransform& transform = transformCompRow[i];
@@ -168,7 +163,7 @@ void RenderSystem::RenderColliders()
 
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
-                    //ZoneScopedN("Draw Collider Batch");
+                    // ZoneScopedN("Draw Collider Batch");
                     m_window.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
@@ -191,22 +186,21 @@ void RenderSystem::RenderText()
 
             for (size_t i = 0; i < chunk.size; ++i)
             {
-                //ZoneScopedN("Per Entity RenderText");
+                // ZoneScopedN("Per Entity RenderText");
 
                 CText& textComp = textCompRow[i];
                 CTransform& transformComp = transformCompRow[i];
                 {
-                    //ZoneScopedN("Construct Text");
+                    // ZoneScopedN("Construct Text");
 
                     sf::Text text(FontManager::GetFont());
                     text.setString(textComp.content);
                     text.setFillColor(textComp.textColor);
                     text.setCharacterSize(textComp.fontSize);
-                    text.setPosition(
-                        { transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y });
+                    text.setPosition({ transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y });
 
                     {
-                        //ZoneScopedN("Draw Text");
+                        // ZoneScopedN("Draw Text");
                         m_window.draw(text);
                     }
                 }

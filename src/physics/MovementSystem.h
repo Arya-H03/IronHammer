@@ -1,4 +1,5 @@
 #pragma once
+#include "ecs/World.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
@@ -7,16 +8,12 @@ class MovementSystem
 {
   private:
 
-    ArchetypeRegistry& m_archetypeRegistry;
+    World& m_world;
     Query& movementQuery;
 
   public:
 
-    MovementSystem(ArchetypeRegistry& archetypeRegistry)
-        : m_archetypeRegistry(archetypeRegistry)
-        , movementQuery(m_archetypeRegistry.CreateQuery<RequiredComponents<CTransform,CRigidBody, CMovement>>())
-    {
-    }
+    MovementSystem(World& world) : m_world(world), movementQuery(world.Query<RequiredComponents<CTransform, CRigidBody, CMovement>>()) { }
 
     void HandleMovementSystem()
     {

@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <vector>
 #include "core/utils/Vect2.hpp"
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
-#include "ecs/entity/EntityManager.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 
 struct CollisionData
@@ -19,7 +19,8 @@ class NarrowPhaseCollisionSystem
 
   private:
 
-    EntityManager& m_entityManager;
+    World& m_world;
+
     std::vector<CollisionData> m_collisionDataVector;
 
     // Axis Aligned Bounding Box
@@ -27,7 +28,7 @@ class NarrowPhaseCollisionSystem
 
   public:
 
-    NarrowPhaseCollisionSystem(EntityManager& entityManager);
+    NarrowPhaseCollisionSystem(World& world);
 
     std::vector<CollisionData>& ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs);
 };

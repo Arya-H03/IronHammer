@@ -5,10 +5,8 @@
 #include <unordered_set>
 #include <vector>
 #include "core/utils/Vect2.hpp"
-#include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
-#include "ecs/entity/EntityCommands.hpp"
-#include "ecs/entity/EntityManager.hpp"
 
 struct Cell
 {
@@ -52,8 +50,7 @@ class BroadPhaseCollisionSystem
     std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
     std::vector<PotentialCollisionPair> m_uniquePotentialPairsVector;
 
-    EntityManager& m_entityManger;
-    CommandBuffer& m_commandBuffer;
+    World& m_world;
     Query& broadPhaseQuery;
 
     // Flags
@@ -67,12 +64,9 @@ class BroadPhaseCollisionSystem
 
   public:
 
-    BroadPhaseCollisionSystem(EntityManager& entityManager,
-        CommandBuffer& commandBuffer,
-        ArchetypeRegistry& archetypeRegistry,
-        Vect2<uint16_t> windowSize);
+    BroadPhaseCollisionSystem(World& world, Vect2<uint16_t> windowSize);
 
-    std::vector<PotentialCollisionPair>&  HandleBroadPhaseCollisionSystem();
+    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem();
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;

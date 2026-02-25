@@ -4,7 +4,7 @@
 #include "Tracy.hpp"
 #include <cstdlib>
 
-NarrowPhaseCollisionSystem::NarrowPhaseCollisionSystem(EntityManager& entityManager) : m_entityManager(entityManager) { }
+NarrowPhaseCollisionSystem::NarrowPhaseCollisionSystem(World& world) : m_world(world) { }
 
 void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
 {
@@ -13,14 +13,14 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
 
         {
             //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.1");
-            CTransform* e1Transform = m_entityManager.TryGetComponent<CTransform>(e1);
-            CTransform* e2Transform = m_entityManager.TryGetComponent<CTransform>(e2);
+            CTransform* e1Transform = m_world.TryGetComponent<CTransform>(e1);
+            CTransform* e2Transform = m_world.TryGetComponent<CTransform>(e2);
 
-            CCollider* e1Collider = m_entityManager.TryGetComponent<CCollider>(e1);
-            CCollider* e2Collider = m_entityManager.TryGetComponent<CCollider>(e2);
+            CCollider* e1Collider = m_world.TryGetComponent<CCollider>(e1);
+            CCollider* e2Collider = m_world.TryGetComponent<CCollider>(e2);
 
-            CRigidBody* e1Rb = m_entityManager.TryGetComponent<CRigidBody>(e1);
-            CRigidBody* e2Rb = m_entityManager.TryGetComponent<CRigidBody>(e2);
+            CRigidBody* e1Rb = m_world.TryGetComponent<CRigidBody>(e1);
+            CRigidBody* e2Rb = m_world.TryGetComponent<CRigidBody>(e2);
 
             {
                 //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.2");
