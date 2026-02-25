@@ -10,7 +10,7 @@
 #include "ecs/entity/EntityManager.hpp"
 #include "input/InputManager.h"
 #include "physics/CollisionSystem.h"
-#include "gui/GUISystem.h"
+#include "gui/GuiSystem.h"
 #include "physics/MovementSystem.h"
 #include "rendering/RenderSystem.h"
 #include "input/InputSystem.h"
@@ -37,7 +37,7 @@ class Engine
     InputManager m_inputManager;
     RenderSystem m_renderSystem;
     //////Declare Last////
-    GUISystem m_guiSystem;
+    GuiSystem m_guiSystem;
     /////////////////////
     void Init();
 

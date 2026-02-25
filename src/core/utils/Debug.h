@@ -19,7 +19,8 @@ struct LogMessage
 {
     std::string message;
     std::string time;
-    std::string file;
+    std::string fullFilePath;
+    std::string shortFilePath;
     ImVec4 color;
     LogType logType;
     int lineNumber;
@@ -43,7 +44,7 @@ class Debug
         ImVec4 color = Colors::ConcreteGrey_ImGui,
         int line = 0)
     {
-        m_logMessages.push_back({ message, Time::GetLocalTimeStamp(), file.substr(file.find("src")), color, type, line });
+        m_logMessages.push_back({ message, Time::GetLocalTimeStamp(), file, file.substr(file.find("IronHammer")), color, type, line });
     }
 };
 

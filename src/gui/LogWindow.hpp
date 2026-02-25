@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include <string>
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
 
@@ -91,7 +92,18 @@ class LogWindow
                 ImGui::Text("%s", log.time.c_str());
                 ImGui::SameLine();
                 ImGui::TextColored(log.color, "%s", log.message.c_str());
-                ImGui::TextColored(Colors::ColdSteelBlue_ImGui, "%s at line %i", log.file.c_str(), log.lineNumber);
+
+                std::string label = log.shortFilePath + ": " + std::to_string(log.lineNumber) + "##" + std::to_string(m_visibleIndices[i]);
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::LinkBlue_ImGui);
+                if (ImGui::Selectable(label.c_str(), false))
+                {
+                }
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    std::string command = "zed " + log.fullFilePath + ":" + std::to_string(log.lineNumber);
+                    std::system(command.c_str());
+                }
+                ImGui::PopStyleColor();
                 ImGui::Separator();
             }
         }

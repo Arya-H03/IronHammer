@@ -39,16 +39,13 @@ void Engine::Init()
     m_guiSystem.AppleGUITheme();
 
     m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, []() { Log_Info("Info") });
-    m_inputManager.CreateInputAction("Warning",
-        sf::Keyboard::Key::W,
-        InputTrigger::Pressed,
-        []() { Log_Warning("Warningswwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"); });
+    m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, []() { Log_Warning("Warnings"); });
     m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, []() { Log_Error("Error"); });
 }
 
 void Engine::SpawnTestEntity()
 {
-     ZoneScoped;
+    ZoneScoped;
 
     size_t count = 1000;
 

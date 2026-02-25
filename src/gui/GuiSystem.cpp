@@ -1,9 +1,9 @@
-#include "GUISystem.h"
+#include "GuiSystem.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
 #include "imgui.h"
 
-GUISystem::GUISystem(EntityManager& entityManager,
+GuiSystem::GuiSystem(EntityManager& entityManager,
     CommandBuffer& commandBuffer,
     RenderSystem& renderSystem,
     ArchetypeRegistry& archetypeRegistry,
@@ -20,7 +20,7 @@ GUISystem::GUISystem(EntityManager& entityManager,
 {
 }
 
-void GUISystem::DrawDebugWindow()
+void GuiSystem::DrawDebugWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
@@ -68,16 +68,16 @@ void GUISystem::DrawDebugWindow()
     ImGui::End();
 }
 
-void GUISystem::DrawInspectorWindow()
+void GuiSystem::DrawInspectorWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_inspectorWindowWidth, m_inspectorWindowHeight), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(m_windowSize.x - m_inspectorWindowWidth - m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(m_windowSize.x - m_inspectorWindowWidth - m_offsetFromScreenEdge, m_offsetFromScreenEdge));
     m_entityInspector.DrawInspectorGui();
     ImGui::End();
 }
 
-void GUISystem::DrawLogWindow()
+void GuiSystem::DrawLogWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_logWindowWidth, m_logWindowHeight), ImGuiCond_Once);
     ImGui::Begin("Logs", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -87,7 +87,7 @@ void GUISystem::DrawLogWindow()
     ImGui::End();
 }
 
-void GUISystem::HandleGUISystem()
+void GuiSystem::HandleGUISystem()
 {
     ZoneScoped;
 
@@ -96,7 +96,7 @@ void GUISystem::HandleGUISystem()
     DrawLogWindow();
 }
 
-void GUISystem::AppleGUITheme()
+void GuiSystem::AppleGUITheme()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 

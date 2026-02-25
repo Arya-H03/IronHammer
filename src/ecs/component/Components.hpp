@@ -15,12 +15,13 @@ struct CTransform
     Vect2f position;
     Vect2f scale;
     float rotation;
+    static constexpr const char* name = "Transfrom";
 
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CTransform>("CTransform", ptr);
+        TypeHeader<CTransform>(name, ptr);
         if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Position");
@@ -37,12 +38,12 @@ struct CTransform
 struct CMovement
 {
     float speed;
-
+    static constexpr const char* name = "Movement";
     CMovement(float spd) : speed(spd) { }
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CMovement>("CMovement", ptr);
+        TypeHeader<CMovement>(name, ptr);
         if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Speed");
@@ -59,6 +60,7 @@ struct CShape
     sf::Color outlineColor;
     float radius;
     float outlineThickness;
+    static constexpr const char* name = "Shape";
 
     CShape(size_t pts, const sf::Color& fill, const sf::Color& outline, float rad, float thickness)
         : points(pts), fillColor(fill), outlineColor(outline), radius(rad), outlineThickness(thickness)
@@ -67,7 +69,7 @@ struct CShape
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CShape>("CShape", ptr);
+        TypeHeader<CShape>(name, ptr);
         if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Points");
@@ -91,6 +93,7 @@ struct CCollider
     Vect2f halfSize;
     Vect2f offset;
     bool isTrigger;
+    static constexpr const char* name = "Collider";
 
     CCollider(const Vect2f& sz, const Vect2f& off, bool trigger = false)
         : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), isTrigger(trigger)
@@ -99,7 +102,7 @@ struct CCollider
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CCollider>("CCollider", ptr);
+        TypeHeader<CCollider>(name, ptr);
 
         if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
@@ -125,6 +128,7 @@ struct CRigidBody
     float inverseMass;
     float bounciness; // [0,1]
     bool isStatic;
+    static constexpr const char* name = "RigidBody";
 
     CRigidBody(const Vect2f& vel, float m, float bounciness, bool stat) : velocity(vel), mass(m), bounciness(bounciness), isStatic(stat)
     {
@@ -141,7 +145,7 @@ struct CRigidBody
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CRigidBody>("CRigidBody", ptr);
+        TypeHeader<CRigidBody>(name, ptr);
 
         if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
@@ -166,6 +170,7 @@ struct CText
     sf::Color textColor;
     Vect2f offset;
     float fontSize;
+    static constexpr const char* name = "Text";
 
     CText(const std::string& txt, const sf::Color& color, const Vect2f& off, float size) : content(txt), textColor(color), offset(off), fontSize(size)
     {
@@ -173,7 +178,7 @@ struct CText
 
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CText>("CText", ptr);
+        TypeHeader<CText>(name, ptr);
 
         if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
@@ -193,9 +198,10 @@ struct CText
 
 struct CNotDrawable
 {
+    static constexpr const char* name = "NotDrawable";
     void GuiInspectorDisplay(void* ptr)
     {
-        TypeHeader<CNotDrawable>("CNotDrawable", ptr);
+        TypeHeader<CNotDrawable>(name, ptr);
 
         if (ImGui::BeginTable("CNotDrawableTable", 2, ImGuiTableFlags_SizingFixedFit))
         {

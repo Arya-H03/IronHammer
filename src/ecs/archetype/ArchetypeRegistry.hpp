@@ -40,7 +40,7 @@ class ArchetypeRegistry
             if (signature.test(id))
             {
                 name += ComponentRegistry::GetComponentNameById(id);
-                name += " ";
+                name += "  ";
             }
         }
         return name;

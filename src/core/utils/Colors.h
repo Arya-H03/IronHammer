@@ -50,6 +50,10 @@ namespace Colors
     inline constexpr sf::Color ConcreteGrey_SFML { 181, 184, 186, 255 };
     inline constexpr ImVec4 ConcreteGrey_ImGui { 0.710f, 0.722f, 0.729f, 1.0f };
 
+    // Blue
+    inline constexpr sf::Color LinkBlue_SFML { 70, 130, 200, 255 };
+    inline constexpr ImVec4 LinkBlue_ImGui { 0.274f, 0.509f, 0.784f, 1.0f };
+
     inline constexpr ImVec4 ButtonHover_ImGui { 0.650f, 0.520f, 0.130f, 1.0f };
     inline constexpr ImVec4 HeaderHover_ImGui { 0.600f, 0.690f, 0.760f, 1.0f };
 

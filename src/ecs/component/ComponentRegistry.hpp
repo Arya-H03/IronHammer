@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <cstring>
 #include <cassert>
-#include <string>
-#include <typeinfo>
 #include <vector>
 #include "ecs/common/ECSCommon.h"
 
@@ -46,17 +44,15 @@ class ComponentRegistry
         static ComponentID id = []()
         {
             ComponentInfo newComponentInfo;
-
             newComponentInfo.id = MakeComponentID();
             assert(newComponentInfo.id < MaxComponents);
-            newComponentInfo.name = typeid(T).name();
+            newComponentInfo.name = T::name;
             newComponentInfo.size = sizeof(T);
             newComponentInfo.DisplayComponent = [](void* ptr)
-                {
-                    T* component = reinterpret_cast<T*>(ptr);
-                    component->GuiInspectorDisplay(ptr);
-                    //DrawDebugGUI<T>(ptr);
-                };
+            {
+                T* component = reinterpret_cast<T*>(ptr);
+                component->GuiInspectorDisplay(ptr);
+            };
             newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
             {
                 T* srcArray = reinterpret_cast<T*>(src);
@@ -71,7 +67,7 @@ class ComponentRegistry
                 {
                     // For non-trivial types, use move constructor
                     new (&dstArray[dstIndex]) T(std::move(srcArray[srcIndex]));
-                    //srcArray[srcIndex].~T();
+                    // srcArray[srcIndex].~T();
                 }
             };
 
@@ -95,23 +91,19 @@ class ComponentRegistry
 
     static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
 
+    // Deprecated
     template <typename TComponent>
     static const char* GetComponentNameByType(const TComponent& component)
     {
         ComponentID id = GetComponentID<TComponent>();
         return componentInfos[id].name;
     }
+    // Deprecated
     template <typename TComponent>
     static const char* GetComponentNameByType()
     {
         ComponentID id = GetComponentID<TComponent>();
         return componentInfos[id].name;
-    }
-
-    template <typename TComponent>
-    static std::string GetComponentDescription(const TComponent& component)
-    {
-        return component.GetDescription();
     }
 
     static const ComponentInfo& GetComponentInfoById(ComponentID id) { return componentInfos[id]; }

@@ -66,8 +66,7 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
     static void DrawComponentDebugGUI(const TComponent& component)
     {
         ImGui::Text("%s: %s",
-            ComponentRegistry::GetComponentNameByType(component).c_str(),
-            ComponentRegistry::GetComponentDescription(component).c_str());
+            ComponentRegistry::GetComponentNameByType(component).c_str());
     }
 
   public:

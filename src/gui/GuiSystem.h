@@ -12,7 +12,7 @@
 #include "rendering/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
 
-class GUISystem
+class GuiSystem
 {
   private:
 
@@ -41,7 +41,7 @@ class GUISystem
 
   public:
 
-    GUISystem(EntityManager& entityManager,
+    GuiSystem(EntityManager& entityManager,
         CommandBuffer& commandBuffer,
         RenderSystem& renderSystem,
         ArchetypeRegistry& archetypeRegistry,
