@@ -4,14 +4,28 @@
   "configurePresets": [
     {
       "name": "debug",
-      "displayName": "Debug",
+      "displayName": "Debug (No Profiling)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ENABLE_TRACY": "FALSE"
+      }
+    },
+    {
+      "name": "debug-prof",
+      "displayName": "Debug (Profiling)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug-prof",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ENABLE_TRACY": "TRUE"
       }
     },
     {

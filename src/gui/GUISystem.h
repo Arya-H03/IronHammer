@@ -32,7 +32,7 @@ class GUISystem
     const uint16_t m_inspectorWindowHeight = 750;
     const uint16_t m_debugWindowWidth = 450;
     const uint16_t m_debugWindowHeight = 400;
-    const uint16_t m_logWindowWidth = 650;
+    const uint16_t m_logWindowWidth = 700;
     const uint16_t m_logWindowHeight = 300;
 
     void DrawDebugWindow();

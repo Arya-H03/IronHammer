@@ -23,7 +23,7 @@ class RenderSystem
     bool m_canDrawColliders = false;
     bool m_canDrawShapes = true;
 
-    const size_t maxVerticesPerBatch = 1000;
+    const size_t maxVerticesPerBatch = 10000;
 
   private:
 

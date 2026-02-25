@@ -9,10 +9,10 @@ NarrowPhaseCollisionSystem::NarrowPhaseCollisionSystem(EntityManager& entityMana
 void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
 {
     {
-        ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1");
+        //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1");
 
         {
-            ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.1");
+            //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.1");
             CTransform* e1Transform = m_entityManager.TryGetComponent<CTransform>(e1);
             CTransform* e2Transform = m_entityManager.TryGetComponent<CTransform>(e2);
 
@@ -23,7 +23,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
             CRigidBody* e2Rb = m_entityManager.TryGetComponent<CRigidBody>(e2);
 
             {
-                ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.2");
+                //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.2");
 
                 // AABB check
                 Vect2f e1Center = e1Transform->position + e1Collider->offset;
@@ -35,7 +35,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
                 bool yCollide = distanceAbs.y <= (e1Collider->halfSize.y + e2Collider->halfSize.y);
 
                 {
-                    ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone2");
+                    //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone2");
                     // Entites will collide
                     if (xCollide && yCollide)
                     {
@@ -85,7 +85,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
 std::vector<CollisionData>& NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs)
 {
     {
-        ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs");
+        //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs");
         m_collisionDataVector.clear();
 
         for (auto& potentialPair : potentialPairs)
@@ -94,7 +94,7 @@ std::vector<CollisionData>& NarrowPhaseCollisionSystem::ProccessPotentialColliso
             Entity e2 = potentialPair.e2;
 
             {
-                ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/AABBCheck");
+                //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/AABBCheck");
                 AABBCheck(e1, e2);
             }
         }

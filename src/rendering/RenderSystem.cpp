@@ -99,7 +99,9 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
 
 void RenderSystem::RenderShapes()
 {
-    sf::VertexArray batch(sf::PrimitiveType::Triangles);
+    static sf::VertexArray batch(sf::PrimitiveType::Triangles);
+    batch.clear();
+    batch.resize(0);
 
     size_t verticesInBatch = 0;
 
@@ -107,7 +109,7 @@ void RenderSystem::RenderShapes()
     {
         for (auto& chunk : archetype->GetChunks())
         {
-            ZoneScopedN("Per Entity Render Shapes");
+           ZoneScopedN("Per Entity Render Shapes");
 
             auto shapeCompRow = chunk.GetComponentRow<CShape>();
             auto transformCompRow = chunk.GetComponentRow<CTransform>();
@@ -126,7 +128,7 @@ void RenderSystem::RenderShapes()
 
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
-                    ZoneScopedN("Draw Shape Batch");
+                   ZoneScopedN("Draw Shape Batch");
                     m_window.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
@@ -134,7 +136,6 @@ void RenderSystem::RenderShapes()
             }
         }
     }
-
     if (verticesInBatch > 0) m_window.draw(batch);
 }
 
@@ -148,7 +149,7 @@ void RenderSystem::RenderColliders()
     {
         for (auto& chunk : archetype->GetChunks())
         {
-            ZoneScopedN("Per Entity Render Colliders");
+            //ZoneScopedN("Per Entity Render Colliders");
 
             auto colliderCompRow = chunk.GetComponentRow<CCollider>();
             auto transformCompRow = chunk.GetComponentRow<CTransform>();
@@ -156,7 +157,7 @@ void RenderSystem::RenderColliders()
             for (size_t i = 0; i < chunk.size; ++i)
             {
                 {
-                    ZoneScopedN("Add Collider To Batch");
+                    //ZoneScopedN("Add Collider To Batch");
 
                     CCollider& collider = colliderCompRow[i];
                     CTransform& transform = transformCompRow[i];
@@ -167,7 +168,7 @@ void RenderSystem::RenderColliders()
 
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
-                    ZoneScopedN("Draw Collider Batch");
+                    //ZoneScopedN("Draw Collider Batch");
                     m_window.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
@@ -190,12 +191,12 @@ void RenderSystem::RenderText()
 
             for (size_t i = 0; i < chunk.size; ++i)
             {
-                ZoneScopedN("Per Entity RenderText");
+                //ZoneScopedN("Per Entity RenderText");
 
                 CText& textComp = textCompRow[i];
                 CTransform& transformComp = transformCompRow[i];
                 {
-                    ZoneScopedN("Construct Text");
+                    //ZoneScopedN("Construct Text");
 
                     sf::Text text(FontManager::GetFont());
                     text.setString(textComp.content);
@@ -205,7 +206,7 @@ void RenderSystem::RenderText()
                         { transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y });
 
                     {
-                        ZoneScopedN("Draw Text");
+                        //ZoneScopedN("Draw Text");
                         m_window.draw(text);
                     }
                 }
@@ -216,11 +217,7 @@ void RenderSystem::RenderText()
 
 void RenderSystem::HandleRenderSystem()
 {
-    ZoneScoped;
-    {
-        ZoneScopedN("Clear");
-        m_window.clear();
-    }
+    m_window.clear();
 
     if (m_canDrawShapes) RenderShapes();
     if (m_canDrawColliders) RenderColliders();

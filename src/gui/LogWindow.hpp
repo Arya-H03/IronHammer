@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
 
 class LogWindow
@@ -9,6 +10,7 @@ class LogWindow
     bool showLogs = true;
     bool showWarnings = true;
     bool showErrors = true;
+    size_t m_selectedIndex;
 
     std::vector<int> m_visibleIndices;
 
@@ -70,30 +72,26 @@ class LogWindow
 
         const auto& logs = Debug::GetLogMessages();
         m_visibleIndices.clear();
-
         for (int i = 0; i < logs.size(); ++i)
         {
             const auto& log = logs[i];
-
             if (log.logType == LogType::Info && !showLogs) continue;
             if (log.logType == LogType::Warning && !showWarnings) continue;
             if (log.logType == LogType::Error && !showErrors) continue;
-
             m_visibleIndices.push_back(i);
         }
 
         ImGuiListClipper clipper;
         clipper.Begin((int) m_visibleIndices.size());
-
         while (clipper.Step())
         {
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
             {
                 const LogMessage& log = logs[m_visibleIndices[i]];
-
-                ImGui::Text("%s | ", log.time.c_str());
+                ImGui::Text("%s", log.time.c_str());
                 ImGui::SameLine();
                 ImGui::TextColored(log.color, "%s", log.message.c_str());
+                ImGui::TextColored(Colors::ColdSteelBlue_ImGui, "%s at line %i", log.file.c_str(), log.lineNumber);
                 ImGui::Separator();
             }
         }

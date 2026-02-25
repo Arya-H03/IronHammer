@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# ---------------- Tracy Profiler ----------------
+option(ENABLE_TRACY "Enable Tracy profiler" OFF)
 
 # ---------------- Build Type ----------------
 if(NOT CMAKE_BUILD_TYPE)
@@ -55,8 +57,8 @@ file(GLOB_RECURSE IRONHAMMER_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-# Add TracyClient only in Debug
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+# Append TracyClient.cpp only if profiling enabled
+if(ENABLE_TRACY)
     list(APPEND IRONHAMMER_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/external/tracy/public/TracyClient.cpp"
     )
@@ -64,6 +66,12 @@ endif()
 
 # ---------------- Executable ----------------
 add_executable(IronHammer ${IRONHAMMER_SOURCES})
+
+# ---------------- Compile Definitions ----------------
+# Define TRACY_ENABLE macro only if profiling enabled
+if(ENABLE_TRACY)
+    target_compile_definitions(IronHammer PRIVATE TRACY_ENABLE)
+endif()
 
 # ---------------- Include Directories ----------------
 target_include_directories(IronHammer PRIVATE
@@ -79,8 +87,3 @@ target_link_libraries(IronHammer PRIVATE
     SFML::Audio
     ImGui-SFML::ImGui-SFML
 )
-
-# ---------------- Tracy Integration ----------------
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(IronHammer PRIVATE TRACY_ENABLE)
-endif()

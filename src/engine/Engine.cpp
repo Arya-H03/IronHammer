@@ -38,15 +38,17 @@ void Engine::Init()
 
     m_guiSystem.AppleGUITheme();
 
-    m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, [](){Debug::Log("Log");});
-    m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [](){Debug::Warning("Warning");});
-    m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, [](){Debug::Error("Error");});
-
+    m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, []() { Log_Info("Info") });
+    m_inputManager.CreateInputAction("Warning",
+        sf::Keyboard::Key::W,
+        InputTrigger::Pressed,
+        []() { Log_Warning("Warningswwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"); });
+    m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, []() { Log_Error("Error"); });
 }
 
 void Engine::SpawnTestEntity()
 {
-    ZoneScoped;
+     ZoneScoped;
 
     size_t count = 1000;
 
@@ -60,9 +62,7 @@ void Engine::SpawnTestEntity()
         int points = Random::Int(3, 20);
         sf::Color filColor = Random::Color();
 
-        Entity e;
-        m_commandBuffer.CreateEntity(e,
-            CTransform(startPos, Vect2f(3, 3), 45),
+        m_commandBuffer.CreateEntity(CTransform(startPos, Vect2f(3, 3), 45),
             CMovement(speed),
             CRigidBody(startVel, shapeRadius, 0.1f, false),
             CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
@@ -80,9 +80,10 @@ void Engine::Run()
     {
         FrameMark;
 
+        ImGui::SFML::Update(m_window, m_clock.restart());
+
         m_commandBuffer.ExecuteAllCommands();
 
-        ImGui::SFML::Update(m_window, m_clock.restart());
         m_inputSystem.PollEvents();
         m_inputManager.Update();
 
