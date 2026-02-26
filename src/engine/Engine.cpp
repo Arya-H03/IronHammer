@@ -1,96 +1,53 @@
 #include "Engine.h"
-#include <SFML/Window/Keyboard.hpp>
+#include "scene/GameScene.h"
 #include <imgui-SFML.h>
-#include "assets/FontManager.h"
-#include "core/utils/Random.hpp"
-#include "core/utils/Vect2.hpp"
-#include <SFML/Graphics/Color.hpp>
 #include <cassert>
-#include "Tracy.hpp"
-#include "input/InputManager.h"
-#include "core/utils/Debug.h"
+#include <memory>
 
-Engine::Engine()
-    : m_renderSystem(m_world, m_window)
-    , m_movementSystem(m_world)
-    , m_collisionSystem(m_world,m_windowSize)
-    , m_inputSystem(m_window)
-    , m_inputManager(m_inputSystem)
-    , m_guiSystem(m_world,m_renderSystem, m_collisionSystem.GetCollsionDebugger(), m_windowSize)
-{
-    Init();
-}
+Engine::Engine() : m_inputSystem(m_window) { Init(); }
 
 void Engine::Init()
 {
-    Random::Init();
-    FontManager::InitializeFont();
-
     m_window.create(sf::VideoMode({ m_windowSize.x, m_windowSize.y }), "IronHammer");
+
     m_window.setFramerateLimit(m_frameLimit);
     m_window.setKeyRepeatEnabled(false);
 
-    const bool isWindowInitialized = ImGui::SFML::Init(m_window);
-    assert(isWindowInitialized && "Window wasn't initialized");
+    bool ok = ImGui::SFML::Init(m_window);
+    assert(ok && "ImGui failed to initialize");
 
-    m_guiSystem.AppleGUITheme();
-
-    m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, []() { Log_Info("Info") });
-    m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, []() { Log_Warning("Warnings"); });
-    m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, []() { Log_Error("Error"); });
+    RegisterScene("GameScene", std::make_unique<GameScene>(m_window,m_inputSystem,m_windowSize));
+    ChangeScene("GameScene");
 }
 
-void Engine::SpawnTestEntity()
+void Engine::RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene) { m_scenes[name] = std::move(scene); }
+
+void Engine::ChangeScene(const std::string& name)
 {
-    ZoneScoped;
+    auto it = m_scenes.find(name);
+    if (it == m_scenes.end()) return;
 
-    size_t count = 1000;
+    if (m_currentScene) m_currentScene->OnExit();
 
-    for (size_t i = 0; i < count; ++i)
-    {
-        Vect2f startPos = Vect2f(Random::Float(50, m_windowSize.x - 50), Random::Float(50, m_windowSize.y - 50));
-        Vect2f startVel = Vect2f(Random::Float(-90, 90), Random::Float(-90, 90));
-        float speed = Random::Float(1, 5);
+    m_currentScene = it->second.get();
+    m_currentScene->OnEnter();
+}
 
-        float shapeRadius = Random::Float(1, 5);
-        int points = Random::Int(3, 20);
-        sf::Color filColor = Random::Color();
+void Engine::Update()
+{
+    ImGui::SFML::Update(m_window, m_clock.restart());
+    m_inputSystem.PollEvents();
 
-        m_world.CreateEntity(CTransform(startPos, Vect2f(3, 3), 45),
-            CMovement(speed),
-            CRigidBody(startVel, shapeRadius, 0.1f, false),
-            CCollider(Vect2f(shapeRadius * 2, shapeRadius * 2), Vect2f(0, 0), false),
-            CShape(points, filColor, sf::Color::White, shapeRadius, 0));
-    }
+    if (m_currentScene) m_currentScene->Update();
+
+    m_inputSystem.ClearEvents();
+    ++m_currentFrame;
 }
 
 void Engine::Run()
 {
-    ZoneScoped;
-
-    SpawnTestEntity();
-
     while (m_window.isOpen())
     {
-        FrameMark;
-
-        ImGui::SFML::Update(m_window, m_clock.restart());
-
-        m_world.UpdateWorld();
-
-        m_inputSystem.PollEvents();
-        m_inputManager.Update();
-
-        m_collisionSystem.HandleCollisionSystem();
-        m_movementSystem.HandleMovementSystem();
-
-        m_guiSystem.HandleGUISystem();
-
-        ///////////Always call LAST/////////
-        m_renderSystem.HandleRenderSystem();
-        ////////////////////////////////////
-
-        m_inputSystem.ClearEvents();
-        ++m_currentFrame;
+        Update();
     }
 }
