@@ -1,30 +1,31 @@
 #include "EditorGui.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
+#include "imgui.h"
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <imgui-SFML.h>
 
-EditorGui::EditorGui(World* world,
-    RenderSystem& renderSystem,
-    sf::RenderTexture& renderTexture,
-
-    Vect2<uint16_t> windowSize)
+EditorGui::EditorGui(
+    World* world, EditorConfig::Layout& editorLayout, RenderSystem& renderSystem, sf::RenderTexture& renderTexture, Vect2<uint16_t> windowSize)
     : m_worldPtr(world)
     , m_renderSystem(renderSystem)
     , m_renderTexture(renderTexture)
-    , m_windowSize(windowSize)
     , m_entityInspector(m_worldPtr->GetEntityInspector())
-
+    , m_editorLayout(editorLayout)
     , m_archetypeDebugger(m_worldPtr->GetArchetypeDebugger())
 {
 }
 
 void EditorGui::DrawDebugWindow()
 {
-    ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight), ImGuiCond_Once);
-    ImGui::SetNextWindowPos(ImVec2(m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
-    ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoMove);
+    ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Debug_X, (float) m_editorLayout.Debug_Y));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Debug_Width, (float) m_editorLayout.Debug_Height));
+    ImGui::Begin("Debugger",
+        nullptr,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar
+            | ImGuiWindowFlags_NoTitleBar);
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+
     if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
     {
         if (ImGui::BeginTabItem("ECS"))
@@ -32,35 +33,30 @@ void EditorGui::DrawDebugWindow()
             m_archetypeDebugger.DrawArchetypeGuiTab();
             ImGui::EndTabItem();
         }
+
         if (ImGui::BeginTabItem("Rendering"))
         {
             bool canDrawText = m_renderSystem.GetCanDrawText();
-            if (ImGui::Checkbox("Draw Text", &canDrawText))
-            {
-                m_renderSystem.SetCanDrawTest(canDrawText);
-            }
+            if (ImGui::Checkbox("Draw Text", &canDrawText)) m_renderSystem.SetCanDrawTest(canDrawText);
+
             ImGui::Separator();
 
             bool canDrawShapes = m_renderSystem.GetCanDrawShapes();
-            if (ImGui::Checkbox("Draw Shapes", &canDrawShapes))
-            {
-                m_renderSystem.SetCanDrawShapes(canDrawShapes);
-            }
+            if (ImGui::Checkbox("Draw Shapes", &canDrawShapes)) m_renderSystem.SetCanDrawShapes(canDrawShapes);
+
             ImGui::Separator();
 
             bool canDrawColliders = m_renderSystem.GetCanDrawColliders();
-            if (ImGui::Checkbox("Draw Colliders", &canDrawColliders))
-            {
-                m_renderSystem.SetCanDrawColliders(canDrawColliders);
-            }
+            if (ImGui::Checkbox("Draw Colliders", &canDrawColliders)) m_renderSystem.SetCanDrawColliders(canDrawColliders);
 
             ImGui::EndTabItem();
         }
+
         if (ImGui::BeginTabItem("Physics"))
         {
-            // m_collisionDebugger.CollisionSystemGui();
             ImGui::EndTabItem();
         }
+
         ImGui::EndTabBar();
     }
     ImGui::End();
@@ -68,64 +64,47 @@ void EditorGui::DrawDebugWindow()
 
 void EditorGui::DrawInspectorWindow()
 {
-    ImGui::SetNextWindowSize(ImVec2(m_inspectorWindowWidth, m_inspectorWindowHeight), ImGuiCond_Once);
-    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(m_windowSize.x - m_inspectorWindowWidth - m_offsetFromScreenEdge, m_offsetFromScreenEdge));
+    ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Inspector_X, (float) m_editorLayout.Inspector_Y));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Inspector_Width, (float) m_editorLayout.Inspector_Height));
+    ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     m_entityInspector.DrawInspectorGui();
     ImGui::End();
 }
 
 void EditorGui::DrawLogWindow()
 {
-    ImGui::SetNextWindowSize(ImVec2(m_logWindowWidth, m_logWindowHeight), ImGuiCond_Once);
-    ImGui::Begin("Logs", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImVec2 actualSize = ImGui::GetWindowSize();
-    ImGui::SetWindowPos(ImVec2(m_offsetFromScreenEdge, m_windowSize.y - actualSize.y - 70));
+    ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Log_X, (float) m_editorLayout.Log_Y));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Log_Width, (float) m_editorLayout.Log_Height));
+    ImGui::Begin("Logs", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     m_logWindow.DrawLogsGui();
     ImGui::End();
 }
 
 void EditorGui::DrawViewport()
 {
-    ImGui::Begin("Viewport");
-
-    DrawMenuBar();
-
+    ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Viewport_X, (float) m_editorLayout.Viewport_Y));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Viewport_Width , (float) m_editorLayout.Viewport_Height));
+    ImGui::Begin(
+        "Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
     sf::Vector2u texSize = m_renderTexture.getSize();
-    ImGui::Image(m_renderTexture.getTexture(), ImVec2((float) texSize.x, (float) texSize.y));
-
+    ImGui::Image(m_renderTexture.getTexture(), ImVec2((float) texSize.x -20, (float) texSize.y - 20));
     ImGui::End();
 }
 
 void EditorGui::DrawMenuBar()
 {
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Exit"))
-            {
-            }
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Edit"))
-        {
-            ImGui::MenuItem("Undo");
-            ImGui::MenuItem("Redo");
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMenuBar();
-    }
+    ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Menu_X, (float) m_editorLayout.Menu_Y));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Menu_Width, (float) m_editorLayout.Menu_Height));
+    ImGui::Begin("MenuBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    ImGui::End();
 }
 
 void EditorGui::HandleGUISystem()
 {
-    ZoneScoped;
 
-    DrawDebugWindow();
+    DrawMenuBar();
     DrawInspectorWindow();
+    DrawDebugWindow();
     DrawLogWindow();
     DrawViewport();
 }

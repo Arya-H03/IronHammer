@@ -24,7 +24,7 @@ void GameScene::Update()
 
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 1000;
+    size_t count = 10000;
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -38,7 +38,7 @@ void GameScene::SpawnTestEntities()
 
         m_worldPtr->CreateEntity(CTransform(startPos, { 3, 3 }, 45),
             CMovement(speed),
-            CRigidBody(startVel, radius, 0.1f, false),
+            CRigidBody(startVel, radius, 0.1f, true),
             CCollider({ radius * 2, radius * 2 }, { 0, 0 }, false),
             CShape(points, Random::Color(), sf::Color::White, radius, 0));
     }

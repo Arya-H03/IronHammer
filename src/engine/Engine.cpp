@@ -3,7 +3,7 @@
 #include "ecs/World.hpp"
 #include "scene/GameScene.h"
 #include <SFML/Graphics/RenderTexture.hpp>
-#include <cstdint>
+#include <SFML/Window/WindowEnums.hpp>
 #include <imgui-SFML.h>
 #include <cassert>
 #include <memory>
@@ -13,14 +13,14 @@ Engine::Engine()
     , m_currentWorld(m_editorWorld.get())
     , m_renderSystem(m_currentWorld)
     , m_inputSystem(m_window)
-    , m_editor(m_currentWorld, m_inputSystem, m_renderSystem, m_windowSize, m_gameWindowSize)
+    , m_editor(m_currentWorld,m_sceneManager,m_window, m_inputSystem, m_renderSystem, m_windowSize)
 {
     Init();
 }
 
 void Engine::Init()
 {
-    m_window.create(sf::VideoMode({ m_windowSize.x, m_windowSize.y }), "IronHammer");
+    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer",sf::Style::None);
 
     m_window.setFramerateLimit(m_frameLimit);
     m_window.setKeyRepeatEnabled(false);
@@ -28,22 +28,7 @@ void Engine::Init()
     bool ok = ImGui::SFML::Init(m_window);
     assert(ok && "ImGui failed to initialize");
 
-    RegisterScene("GameScene", std::make_unique<GameScene>(m_currentWorld, m_inputSystem, m_gameWindowSize));
-    ChangeScene("GameScene");
     m_editor.OnEnter();
-}
-
-void Engine::RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene) { m_scenes[name] = std::move(scene); }
-
-void Engine::ChangeScene(const std::string& name)
-{
-    auto it = m_scenes.find(name);
-    if (it == m_scenes.end()) return;
-
-    if (m_currentScene) m_currentScene->OnExit();
-
-    m_currentScene = it->second.get();
-    m_currentScene->OnEnter();
 }
 
 void Engine::Update()
@@ -56,7 +41,7 @@ void Engine::Update()
     m_inputSystem.PollEvents();
 
     m_editor.Update(m_renderSystem);
-    m_currentScene->Update();
+    if(m_sceneManager.GetCurrentScenePtr())m_sceneManager.GetCurrentScenePtr()->Update();
 
     // Main Window
     m_window.clear();
