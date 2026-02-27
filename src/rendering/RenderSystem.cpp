@@ -1,4 +1,5 @@
 #include "RenderSystem.h"
+#include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -9,13 +10,13 @@
 #include "assets/FontManager.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
+#include "core/utils/Debug.h"
 
-RenderSystem::RenderSystem(World& world, sf::RenderWindow& window)
-    : m_window(window)
-    , m_world(world)
-    , shapeQuery(world.Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , textQuery(world.Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , colliderQuery(world.Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
+RenderSystem::RenderSystem(World* world)
+    : m_worldPtr(world)
+    , shapeQuery(m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , textQuery(m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , colliderQuery(m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
 }
 
@@ -92,7 +93,7 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
     return 8;
 }
 
-void RenderSystem::RenderShapes()
+void RenderSystem::RenderShapes(sf::RenderTarget& renderTarget)
 {
     static sf::VertexArray batch(sf::PrimitiveType::Triangles);
     batch.clear();
@@ -124,17 +125,17 @@ void RenderSystem::RenderShapes()
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
                     ZoneScopedN("Draw Shape Batch");
-                    m_window.draw(batch);
+                    renderTarget.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
                 }
             }
         }
     }
-    if (verticesInBatch > 0) m_window.draw(batch);
+    if (verticesInBatch > 0) renderTarget.draw(batch);
 }
 
-void RenderSystem::RenderColliders()
+void RenderSystem::RenderColliders(sf::RenderTarget& renderTarget)
 {
     sf::VertexArray batch(sf::PrimitiveType::Lines);
 
@@ -164,7 +165,7 @@ void RenderSystem::RenderColliders()
                 if (verticesInBatch >= maxVerticesPerBatch)
                 {
                     // ZoneScopedN("Draw Collider Batch");
-                    m_window.draw(batch);
+                    renderTarget.draw(batch);
                     batch.clear();
                     verticesInBatch = 0;
                 }
@@ -172,10 +173,10 @@ void RenderSystem::RenderColliders()
         }
     }
 
-    if (verticesInBatch > 0) m_window.draw(batch);
+    if (verticesInBatch > 0) renderTarget.draw(batch);
 }
 
-void RenderSystem::RenderText()
+void RenderSystem::RenderText(sf::RenderTarget& renderTarget)
 {
     for (auto& archetype : textQuery.GetMatchingArchetypes())
     {
@@ -201,7 +202,7 @@ void RenderSystem::RenderText()
 
                     {
                         // ZoneScopedN("Draw Text");
-                        m_window.draw(text);
+                        renderTarget.draw(text);
                     }
                 }
             }
@@ -209,14 +210,14 @@ void RenderSystem::RenderText()
     }
 }
 
-void RenderSystem::HandleRenderSystem()
+void RenderSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
 {
-    m_window.clear();
+    // m_window.clear();
 
-    if (m_canDrawShapes) RenderShapes();
-    if (m_canDrawColliders) RenderColliders();
-    if (m_canDrawText) RenderText();
+    if (m_canDrawShapes) RenderShapes(renderTarget);
+    if (m_canDrawColliders) RenderColliders(renderTarget);
+    if (m_canDrawText) RenderText(renderTarget);
 
-    ImGui::SFML::Render(m_window);
-    m_window.display();
+    // ImGui::SFML::Render(m_window);
+    // m_window.display();
 }

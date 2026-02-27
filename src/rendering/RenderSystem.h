@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <cstddef>
@@ -9,8 +10,7 @@ class RenderSystem
 {
   private:
 
-    sf::RenderWindow& m_window;
-    World& m_world;
+    World* m_worldPtr;
 
     Query& shapeQuery;
     Query& textQuery;
@@ -28,13 +28,13 @@ class RenderSystem
     size_t AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch);
     size_t AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch);
 
-    void RenderShapes();
-    void RenderColliders();
-    void RenderText();
+    void RenderShapes(sf::RenderTarget& renderTarget);
+    void RenderColliders(sf::RenderTarget& renderTarget);
+    void RenderText(sf::RenderTarget& renderTarget);
 
   public:
 
-    RenderSystem(World& world,sf::RenderWindow& window);
+    RenderSystem(World* m_world);
 
     bool GetCanDrawText() const { return m_canDrawText; }
     bool GetCanDrawShapes() const { return m_canDrawShapes; }
@@ -44,5 +44,5 @@ class RenderSystem
     void SetCanDrawShapes(bool val) { m_canDrawShapes = val; }
     void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
 
-    void HandleRenderSystem();
+    void HandleRenderSystem(sf::RenderTarget& renderTarget);
 };

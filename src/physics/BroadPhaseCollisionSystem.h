@@ -50,7 +50,7 @@ class BroadPhaseCollisionSystem
     std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
     std::vector<PotentialCollisionPair> m_uniquePotentialPairsVector;
 
-    World& m_world;
+    World* m_worldPtr;
     Query& broadPhaseQuery;
 
     // Flags
@@ -64,7 +64,7 @@ class BroadPhaseCollisionSystem
 
   public:
 
-    BroadPhaseCollisionSystem(World& world, Vect2<uint16_t> windowSize);
+    BroadPhaseCollisionSystem(World* world, Vect2<uint16_t> windowSize);
 
     std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem();
 

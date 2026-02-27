@@ -19,7 +19,7 @@ class NarrowPhaseCollisionSystem
 
   private:
 
-    World& m_world;
+    World* m_world;
 
     std::vector<CollisionData> m_collisionDataVector;
 
@@ -28,7 +28,7 @@ class NarrowPhaseCollisionSystem
 
   public:
 
-    NarrowPhaseCollisionSystem(World& world);
+    NarrowPhaseCollisionSystem(World* world);
 
     std::vector<CollisionData>& ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs);
 };

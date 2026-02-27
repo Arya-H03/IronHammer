@@ -4,6 +4,7 @@
 #include <vector>
 #include <format>
 #include <iostream>
+#include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
@@ -94,7 +95,6 @@ class EntityManager
 
         // Update Entity Storage Location
         m_entityStorageLocations[newEntityArchetypeStorageIndex] = newEntityArchetypeStorage;
-
         return newEntity;
     }
 

@@ -1,27 +1,29 @@
-#include "GuiSystem.h"
+#include "EditorGui.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
-#include "imgui.h"
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <imgui-SFML.h>
 
-GuiSystem::GuiSystem(World* world,
+EditorGui::EditorGui(World* world,
     RenderSystem& renderSystem,
+    sf::RenderTexture& renderTexture,
 
     Vect2<uint16_t> windowSize)
-    : m_world(world)
+    : m_worldPtr(world)
     , m_renderSystem(renderSystem)
+    , m_renderTexture(renderTexture)
     , m_windowSize(windowSize)
-    , m_entityInspector(m_world->GetEntityInspector())
+    , m_entityInspector(m_worldPtr->GetEntityInspector())
 
-    , m_archetypeDebugger(m_world->GetArchetypeDebugger())
+    , m_archetypeDebugger(m_worldPtr->GetArchetypeDebugger())
 {
 }
 
-void GuiSystem::DrawDebugWindow()
+void EditorGui::DrawDebugWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight), ImGuiCond_Once);
     ImGui::SetNextWindowPos(ImVec2(m_offsetFromScreenEdge, m_offsetFromScreenEdge), ImGuiCond_Once);
     ImGui::Begin("Debugger", nullptr, ImGuiWindowFlags_NoMove);
-
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
     {
@@ -56,7 +58,7 @@ void GuiSystem::DrawDebugWindow()
         }
         if (ImGui::BeginTabItem("Physics"))
         {
-           // m_collisionDebugger.CollisionSystemGui();
+            // m_collisionDebugger.CollisionSystemGui();
             ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -64,7 +66,7 @@ void GuiSystem::DrawDebugWindow()
     ImGui::End();
 }
 
-void GuiSystem::DrawInspectorWindow()
+void EditorGui::DrawInspectorWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_inspectorWindowWidth, m_inspectorWindowHeight), ImGuiCond_Once);
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -73,7 +75,7 @@ void GuiSystem::DrawInspectorWindow()
     ImGui::End();
 }
 
-void GuiSystem::DrawLogWindow()
+void EditorGui::DrawLogWindow()
 {
     ImGui::SetNextWindowSize(ImVec2(m_logWindowWidth, m_logWindowHeight), ImGuiCond_Once);
     ImGui::Begin("Logs", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
@@ -83,16 +85,52 @@ void GuiSystem::DrawLogWindow()
     ImGui::End();
 }
 
-void GuiSystem::HandleGUISystem()
+void EditorGui::DrawViewport()
+{
+    ImGui::Begin("Viewport");
+
+    DrawMenuBar();
+
+    sf::Vector2u texSize = m_renderTexture.getSize();
+    ImGui::Image(m_renderTexture.getTexture(), ImVec2((float) texSize.x, (float) texSize.y));
+
+    ImGui::End();
+}
+
+void EditorGui::DrawMenuBar()
+{
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Exit"))
+            {
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Edit"))
+        {
+            ImGui::MenuItem("Undo");
+            ImGui::MenuItem("Redo");
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+}
+
+void EditorGui::HandleGUISystem()
 {
     ZoneScoped;
 
     DrawDebugWindow();
     DrawInspectorWindow();
     DrawLogWindow();
+    DrawViewport();
 }
 
-void GuiSystem::AppleGUITheme()
+void EditorGui::ApplyGuiTheme()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 

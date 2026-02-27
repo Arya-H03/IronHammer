@@ -9,6 +9,8 @@
 
 class World
 {
+    friend class Engine;
+
   private:
 
     ArchetypeRegistry m_archetypeRegistry;
@@ -17,6 +19,8 @@ class World
 
     EntityInspector m_entityInspector;
     const ArchetypeDebugger m_archetypeDebugger;
+
+    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(); }
 
   public:
 
@@ -36,8 +40,6 @@ class World
     {
         return m_archetypeRegistry.GetOrCreateQuery<QueryGroup...>();
     }
-
-    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(); }
 
     template <typename... Components>
     void CreateEntity(Entity& entity, Components&&... components)

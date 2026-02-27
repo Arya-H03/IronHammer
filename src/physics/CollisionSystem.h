@@ -18,7 +18,7 @@ class CollisionSystem
   private:
 
     Vect2<uint16_t> m_windowSize;
-    World& m_world;
+    World* m_worldPtr;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
     NarrowPhaseCollisionSystem m_narrowPhaseCollisionSystem;
     CollisionResolutionSystem m_collisionResolutionSystem;
@@ -73,14 +73,14 @@ class CollisionSystem
 
     const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
 
-    CollisionSystem(World& world, Vect2<uint16_t> windowSize)
-        : m_world(world)
+    CollisionSystem(World* world, Vect2<uint16_t> windowSize)
+        : m_worldPtr(world)
         , m_windowSize(windowSize)
-        , m_broadPhaseCollisionSystem(m_world, m_windowSize)
-        , m_narrowPhaseCollisionSystem(m_world)
-        , m_collisionResolutionSystem(m_world)
+        , m_broadPhaseCollisionSystem(m_worldPtr, m_windowSize)
+        , m_narrowPhaseCollisionSystem(m_worldPtr)
+        , m_collisionResolutionSystem(m_worldPtr)
         , m_collisionDebugger(m_broadPhaseCollisionSystem, m_narrowPhaseCollisionSystem)
-        , collisionQuery(m_world.Query<RequiredComponents<CTransform, CCollider, CRigidBody>>())
+        , collisionQuery(m_worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>())
     {
     }
 

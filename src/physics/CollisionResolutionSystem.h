@@ -6,11 +6,11 @@ class CollisionResolutionSystem
 {
   private:
 
-    World& m_world;
+    World* m_worldPtr;
 
   public:
 
-    CollisionResolutionSystem(World& world);
+    CollisionResolutionSystem(World* world);
 
     void ResolveCollisionOverlaps(std::vector<CollisionData>& collisionDataVector);
     void ResolveCollisionImpluse(std::vector<CollisionData>& collisionDataVector);

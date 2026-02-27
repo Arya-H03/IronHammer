@@ -8,12 +8,12 @@ class MovementSystem
 {
   private:
 
-    World& m_world;
+    World* m_worldPtr;
     Query& movementQuery;
 
   public:
 
-    MovementSystem(World& world) : m_world(world), movementQuery(world.Query<RequiredComponents<CTransform, CRigidBody, CMovement>>()) { }
+    MovementSystem(World* world) : m_worldPtr(world), movementQuery(world->Query<RequiredComponents<CTransform, CRigidBody, CMovement>>()) { }
 
     void HandleMovementSystem()
     {

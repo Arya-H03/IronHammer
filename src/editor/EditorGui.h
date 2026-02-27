@@ -9,14 +9,15 @@
 #include "rendering/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
 
-class GuiSystem
+class EditorGui
 {
   private:
 
     RenderSystem& m_renderSystem;
+     sf::RenderTexture& m_renderTexture;
     Vect2<uint16_t> m_windowSize;
 
-    World* m_world;
+    World* m_worldPtr;
     LogWindow m_logWindow;
 
     const EntityInspector& m_entityInspector;
@@ -31,16 +32,18 @@ class GuiSystem
     const uint16_t m_logWindowWidth = 700;
     const uint16_t m_logWindowHeight = 300;
 
+    void DrawMenuBar();
     void DrawDebugWindow();
     void DrawInspectorWindow();
     void DrawLogWindow();
+    void DrawViewport();
 
   public:
 
-    GuiSystem(World* world, RenderSystem& renderSystem, Vect2<uint16_t> windowSize);
+    EditorGui(World* world, RenderSystem& renderSystem, sf::RenderTexture& renderTexture, Vect2<uint16_t> windowSize);
     //GuiSystem(World& world, RenderSystem& renderSystem, const CollisionDebugger& collisionDebugger, Vect2<uint16_t> windowSize);
 
     void SetCurrentInspectorEntity(Entity entity);
     void HandleGUISystem();
-    void AppleGUITheme();
+    void ApplyGuiTheme();
 };
