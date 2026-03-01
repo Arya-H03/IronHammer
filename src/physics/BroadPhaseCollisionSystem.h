@@ -7,6 +7,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "ecs/system/ISystem.h"
 
 struct Cell
 {
@@ -33,7 +34,7 @@ struct PotentialPairHash
     }
 };
 
-class BroadPhaseCollisionSystem
+class BroadPhaseCollisionSystem : public ISetupSystem
 {
     friend class CollisionDebugger;
 
@@ -50,26 +51,26 @@ class BroadPhaseCollisionSystem
     std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
     std::vector<PotentialCollisionPair> m_uniquePotentialPairsVector;
 
-    World* m_worldPtr;
-    Query& broadPhaseQuery;
+    Query* m_broadPhaseQuery;
 
     // Flags
     bool m_canDisplayGrid = false;
     bool m_canHighlightGrid = false;
 
-    void PopulateGrid();
+    void PopulateGrid(World* worldPtr);
     void ClearAllCells();
-    void FillCellsWithOverlappingEntities();
+    void FillCellsWithOverlappingEntities(World* worldPtr);
     void FindUniqueCollisionPairs();
 
   public:
 
-    BroadPhaseCollisionSystem(World* world, Vect2<uint16_t> windowSize);
+    BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
+    void SetupSystem(World* worldPtr) override;
 
-    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem();
+    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;
-    void SetCanDisplayGrid(bool val);
-    void SetCanHighlightGrid(bool val);
+    void SetCanDisplayGrid(World* worldPtr, bool val);
+    void SetCanHighlightGrid(World* worldPtr, bool val);
 };

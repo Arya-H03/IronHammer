@@ -32,11 +32,11 @@ class World
     {
     }
 
-    const EntityInspector& GetEntityInspector() const { return m_entityInspector; }
+    EntityInspector& GetEntityInspector() { return m_entityInspector; }
     const ArchetypeDebugger& GetArchetypeDebugger() const { return m_archetypeDebugger; }
 
     template <typename... QueryGroup>
-    Query& Query()
+    Query* Query()
     {
         return m_archetypeRegistry.GetOrCreateQuery<QueryGroup...>();
     }

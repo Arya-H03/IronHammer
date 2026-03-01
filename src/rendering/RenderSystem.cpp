@@ -11,6 +11,7 @@
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
+#include "ecs/World.hpp"
 
 RenderSystem::RenderSystem(World* world)
     : m_worldPtr(world)
@@ -18,6 +19,14 @@ RenderSystem::RenderSystem(World* world)
     , textQuery(m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
     , colliderQuery(m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
+}
+
+void RenderSystem::ResetWorld(World* newWorldPtr)
+{
+    m_worldPtr = newWorldPtr;
+    shapeQuery = m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
+    textQuery = m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
+    colliderQuery = m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
@@ -101,7 +110,7 @@ void RenderSystem::RenderShapes(sf::RenderTarget& renderTarget)
 
     size_t verticesInBatch = 0;
 
-    for (auto& archetype : shapeQuery.GetMatchingArchetypes())
+    for (auto& archetype : shapeQuery->GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {
@@ -141,7 +150,7 @@ void RenderSystem::RenderColliders(sf::RenderTarget& renderTarget)
 
     size_t verticesInBatch = 0;
 
-    for (auto& archetype : colliderQuery.GetMatchingArchetypes())
+    for (auto& archetype : colliderQuery->GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {
@@ -178,7 +187,7 @@ void RenderSystem::RenderColliders(sf::RenderTarget& renderTarget)
 
 void RenderSystem::RenderText(sf::RenderTarget& renderTarget)
 {
-    for (auto& archetype : textQuery.GetMatchingArchetypes())
+    for (auto& archetype : textQuery->GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {

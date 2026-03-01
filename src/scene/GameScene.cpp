@@ -1,25 +1,40 @@
 #include "GameScene.h"
 #include "core/utils/Random.hpp"
 #include "ecs/World.hpp"
+#include "input/InputSystem.h"
 
-GameScene::GameScene(World* world,InputSystem& inputSystem, Vect2<uint16_t> windowSize)
-    : BaseScene(world,inputSystem, windowSize), m_movementSystem(m_worldPtr), m_collisionSystem(m_worldPtr, m_windowSize)
-{
-}
+GameScene::GameScene(Vect2<uint16_t> windowSize) : BaseScene(windowSize), m_collisionSystem(m_windowSize) { }
 
-void GameScene::OnEnter()
+void GameScene::OnStartPlay(World* worldPtr)
 {
+    m_isPlaying = true;
+    m_isPaused = false;
+    m_worldPtr = worldPtr;
+
+    m_movementSystem.SetupSystem(worldPtr);
+    m_collisionSystem.SetupSystem(worldPtr);
+
     SpawnTestEntities();
 }
 
-void GameScene::OnExit() { }
-
-void GameScene::Update()
+void GameScene::OnExitPlay(World* worldPtr)
 {
-    m_inputManager.Update();
-    m_collisionSystem.HandleCollisionSystem();
-    m_movementSystem.HandleMovementSystem();
+    m_isPlaying = false;
+    m_worldPtr = nullptr;
+    m_isPaused = false;
+}
 
+void GameScene::OnChangeTo(World* worldPtr) { }
+
+void GameScene::OnChangeFrom(World* worldPtr) { m_isPlaying = false; }
+
+void GameScene::Update(World* worldPtr, InputSystem& inputSystem)
+{
+    if (m_isPaused) return;
+
+    m_inputManager.Update(inputSystem);
+    m_movementSystem.HandleMovementSystem();
+    m_collisionSystem.HandleCollisionSystem(worldPtr);
 }
 
 void GameScene::SpawnTestEntities()

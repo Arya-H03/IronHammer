@@ -39,7 +39,7 @@ class InputSystem
 
     InputSystem(sf::RenderWindow& window) : m_window(window)
     {
-        //Initialize for map for all keys
+        // Initialize for map for all keys
         for (int i = 0; i < sf::Keyboard::KeyCount; ++i)
         {
             m_keyStateMap[(sf::Keyboard::Key) i] = KeyState {};

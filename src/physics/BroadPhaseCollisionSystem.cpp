@@ -4,19 +4,19 @@
 #include "ecs/component/Components.hpp"
 #include <unordered_set>
 
-BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(
-    World* world, Vect2<uint16_t> windowSize)
-    : m_worldPtr(world)
-    , m_windowSize(windowSize)
-    , broadPhaseQuery(m_worldPtr->Query<RequiredComponents<CTransform, CCollider>>())
+BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize) : m_windowSize(windowSize)
 {
     m_cellPerCol = m_windowSize.y / m_cellSize;
     m_cellPerRow = m_windowSize.x / m_cellSize;
-
-    PopulateGrid();
 }
 
-void BroadPhaseCollisionSystem::PopulateGrid()
+void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
+{
+    m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider>>();
+    PopulateGrid(worldPtr);
+}
+
+void BroadPhaseCollisionSystem::PopulateGrid(World* worldPtr)
 {
     m_grid.resize(m_cellPerCol * m_cellPerRow);
     m_gridDisplayEntities.resize(m_cellPerCol * m_cellPerRow);
@@ -32,7 +32,7 @@ void BroadPhaseCollisionSystem::PopulateGrid()
             m_grid[index] = Cell(coord, pos);
 
             Entity& entity = m_gridDisplayEntities[index];
-            m_worldPtr->CreateEntity(entity,
+            worldPtr->CreateEntity(entity,
                 CTransform(pos, Vect2f(1, 1), 45),
                 CShape(4, Colors::DarkSteel_SFML, sf::Color::White, m_cellRadius, 2),
                 CText(std::to_string(coord.x) + ", " + std::to_string(coord.y), sf::Color::White, Vect2f(m_cellRadius / 3, m_cellRadius / 3), 18),
@@ -49,9 +49,9 @@ void BroadPhaseCollisionSystem::ClearAllCells()
     }
 }
 
-void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
+void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr)
 {
-    for (auto& archetype : broadPhaseQuery.GetMatchingArchetypes())
+    for (auto& archetype : m_broadPhaseQuery->GetMatchingArchetypes())
     {
         for (auto& chunk : archetype->GetChunks())
         {
@@ -84,7 +84,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities()
         for (size_t i = 0; i < m_grid.size(); ++i)
         {
             size_t count = m_grid[i].overlapingEntities.size();
-            CShape* shape = m_worldPtr->TryGetComponent<CShape>(m_gridDisplayEntities[i]);
+            CShape* shape = worldPtr->TryGetComponent<CShape>(m_gridDisplayEntities[i]);
             if (!shape) continue;
             if (count >= 2)
             {
@@ -132,7 +132,7 @@ void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
 bool BroadPhaseCollisionSystem::GetCanDisplayGrid() const { return m_canDisplayGrid; }
 bool BroadPhaseCollisionSystem::GetCanHighlightGrid() const { return m_canHighlightGrid; }
 
-void BroadPhaseCollisionSystem::SetCanDisplayGrid(bool val)
+void BroadPhaseCollisionSystem::SetCanDisplayGrid(World* worldPtr, bool val)
 {
     m_canDisplayGrid = val;
 
@@ -140,39 +140,39 @@ void BroadPhaseCollisionSystem::SetCanDisplayGrid(bool val)
     {
         for (auto& entity : m_gridDisplayEntities)
         {
-            m_worldPtr->RemoveFromEntity<CNotDrawable>(entity);
+            worldPtr->RemoveFromEntity<CNotDrawable>(entity);
         }
-        SetCanHighlightGrid(true);
+        SetCanHighlightGrid(worldPtr, true);
     }
     else
     {
         for (auto& entity : m_gridDisplayEntities)
         {
-            m_worldPtr->AddToEntity(entity, CNotDrawable {});
+            worldPtr->AddToEntity(entity, CNotDrawable {});
         }
 
-        SetCanHighlightGrid(false);
+        SetCanHighlightGrid(worldPtr, false);
     }
 }
 
-void BroadPhaseCollisionSystem::SetCanHighlightGrid(bool val)
+void BroadPhaseCollisionSystem::SetCanHighlightGrid(World* worldPtr, bool val)
 {
     m_canHighlightGrid = val;
     if (!m_canHighlightGrid)
     {
         for (size_t i = 0; i < m_grid.size(); ++i)
         {
-            m_worldPtr->TryGetComponent<CShape>(m_gridDisplayEntities[i])->fillColor = Colors::DarkSteel_SFML;
+            worldPtr->TryGetComponent<CShape>(m_gridDisplayEntities[i])->fillColor = Colors::DarkSteel_SFML;
         }
     }
 }
 
-std::vector<PotentialCollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem()
+std::vector<PotentialCollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
 {
     ClearAllCells();
     {
         ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
-        FillCellsWithOverlappingEntities();
+        FillCellsWithOverlappingEntities(worldPtr);
     }
     {
         ZoneScopedN("BroadPhaseSystem/FindUniqueCollisionPairs");

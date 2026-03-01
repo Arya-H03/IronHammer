@@ -3,23 +3,27 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
+#include "ecs/system/ISystem.h"
 
-class MovementSystem
+class MovementSystem : public ISetupSystem
 {
   private:
 
-    World* m_worldPtr;
-    Query& movementQuery;
+    Query* m_movementQuery;
 
   public:
 
-    MovementSystem(World* world) : m_worldPtr(world), movementQuery(world->Query<RequiredComponents<CTransform, CRigidBody, CMovement>>()) { }
+    MovementSystem() = default;
 
+    void SetupSystem(World* worldPtr) override
+    {
+        m_movementQuery = worldPtr->Query<RequiredComponents<CTransform, CRigidBody, CMovement>>();
+    }
     void HandleMovementSystem()
     {
         ZoneScoped;
 
-        for (auto& archetype : movementQuery.GetMatchingArchetypes())
+        for (auto& archetype : m_movementQuery->GetMatchingArchetypes())
         {
             for (auto& chunk : archetype->GetChunks())
             {

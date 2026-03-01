@@ -105,7 +105,7 @@ class ArchetypeRegistry
     }
 
     template <typename... QueryGroup>
-    Query& GetOrCreateQuery()
+    Query* GetOrCreateQuery()
     {
         QueryKey key;
         (ProcessArgumentsForQueryKey(QueryGroup {}, key), ...);
@@ -113,7 +113,7 @@ class ArchetypeRegistry
         auto it = m_queryCache.find(key);
         if (it != m_queryCache.end())
         {
-            return *it->second;
+            return it->second.get();
         }
 
         std::unique_ptr<Query> query = std::make_unique<Query>(key);
@@ -124,9 +124,9 @@ class ArchetypeRegistry
             query->TryAddArchetype(*archetype);
         }
 
-        Query& ref = *query;
+        Query* ptr = query.get();
         m_queryCache.emplace(key, std::move(query));
 
-        return ref;
+        return ptr;
     }
 };

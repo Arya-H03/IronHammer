@@ -93,6 +93,7 @@ class ArchetypeDebugger
 
     void DrawArchetypeGuiTab() const
     {
+        Log_Error("w");
         for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
         {
             std::string nodeTitle = "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();

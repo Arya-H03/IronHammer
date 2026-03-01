@@ -1,49 +1,67 @@
 #pragma once
-#include <cstdint>
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/System/String.hpp>
+
 #include <imgui.h>
-#include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "editor/EditorConfig.h"
+#include "engine/Engine.h"
 #include "gui/LogWindow.hpp"
 #include "rendering/RenderSystem.h"
 #include "physics/CollisionDebugger.h"
+struct EditorGuiCallbacks
+{
+    std::function<void()> PlayCurrentScene;
+    std::function<void()> PauseCurrentScene;
+    std::function<void()> ExitEngine;
+
+    EditorGuiCallbacks(const std::function<void()>& play, const std::function<void()>& pause, const std::function<void()>& exit)
+        : PlayCurrentScene(play), PauseCurrentScene(pause), ExitEngine(exit)
+    {
+    }
+};
 
 class EditorGui
 {
   private:
 
-    RenderSystem& m_renderSystem;
-    sf::RenderTexture& m_renderTexture;
     EditorConfig::Layout& m_editorLayout;
 
-    World* m_worldPtr;
     LogWindow m_logWindow;
 
-    const EntityInspector& m_entityInspector;
-    const ArchetypeDebugger& m_archetypeDebugger;
     // const CollisionDebugger& m_collisionDebugger;
+    EditorGuiCallbacks& m_editorGuiCallbacks;
 
-    const uint16_t m_menuBarHeight = 25;
-    const uint16_t m_offsetFromScreenEdge = 2;
-    const uint16_t m_inspectorWindowWidth = 350;
-    const uint16_t m_debugWindowWidth = 450;
-    const uint16_t m_logWindowHeight = 200;
+    const std::string playButtonPath = "assets/play-button.png";
+    sf::Texture playButtonTexture;
+    ImTextureID playButtonTexID;
 
-    void DrawMenuBar();
-    void DrawDebugWindow();
-    void DrawInspectorWindow();
+    const std::string pauseButtonPath = "assets/pause-button.png";
+    sf::Texture pauseButtonTexture;
+    ImTextureID pauseButtonTexID = (ImTextureID) pauseButtonTexture.getNativeHandle();
+
+    const std::string exitButtonPath = "assets/cross-button.png";
+    sf::Texture exitButtonTexture;
+    ImTextureID exitButtonTexID = (ImTextureID) exitButtonTexture.getNativeHandle();
+
+    void DrawMenuBar(EngineMode engineMode, bool isPlayModePaused);
+    void DrawDebugWindow(const ArchetypeDebugger& archetypeDebugger, RenderSystem& renderSystem);
+    void DrawInspectorWindow(const EntityInspector& entityInspector);
     void DrawLogWindow();
-    void DrawViewport();
+    void DrawViewport(sf::RenderTexture& renderTexture);
 
   public:
 
-    EditorGui(
-        World* world, EditorConfig::Layout& editorLayout, RenderSystem& renderSystem, sf::RenderTexture& renderTexture, Vect2<uint16_t> windowSize);
+    EditorGui(EditorConfig::Layout& editorLayout, EditorGuiCallbacks& callBacks);
     // GuiSystem(World& world, RenderSystem& renderSystem, const CollisionDebugger& collisionDebugger, Vect2<uint16_t> windowSize);
 
     void SetCurrentInspectorEntity(Entity entity);
-    void HandleGUISystem();
+    void HandleGUISystem(RenderSystem& renderSystem,
+        const ArchetypeDebugger& archetypeDebugger,
+        const EntityInspector& entityInspector,
+        sf::RenderTexture& renderTexture,
+        EngineMode engineMode,
+        bool isPlayModePaused);
     void ApplyGuiTheme();
 };

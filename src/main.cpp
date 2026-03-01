@@ -4,13 +4,9 @@
 // Blessed be the gears, in perfect sync they turn, blessed be the sparks, in holy fire they burn.
 // Through rites arcane, your wisdom we discern,in your hallowed core the sacred mysteries yearn.
 
-#include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <imgui.h>
-#include <imgui-SFML.h>
-#include "engine/Engine.h"
+#include "app/IronHammer.h"
 int main()
 {
-    Engine engine;
-    engine.Run();
+    IronHammer app;
+    app.Run();
 }

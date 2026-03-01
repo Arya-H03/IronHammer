@@ -26,7 +26,6 @@ class InputManager
         std::unordered_map<InputTrigger, std::vector<InputActionCallBack>> callbacks;
     };
 
-    InputSystem& m_inputSystem;
     std::unordered_map<std::string, InputAction> m_inputActionMap;
 
     void RegisterAction(const std::string& actionName, sf::Keyboard::Key actionKey) { m_inputActionMap[actionName] = InputAction { actionKey }; }
@@ -45,8 +44,6 @@ class InputManager
 
   public:
 
-    InputManager(InputSystem& inputSystem) : m_inputSystem(inputSystem) { }
-
     void BindToAction(const std::string& actionName, InputTrigger inputTrigger, InputActionCallBack callBack)
     {
         auto it = m_inputActionMap.find(actionName);
@@ -60,19 +57,19 @@ class InputManager
         BindToAction(name, inputTrigger, callback);
     }
 
-    void Update()
+    void Update(InputSystem& inputSytem)
     {
         for (auto& [name, inputAction] : m_inputActionMap)
         {
-            if (m_inputSystem.IsPressed(inputAction.key))
+            if (inputSytem.IsPressed(inputAction.key))
             {
                 Invoke(inputAction, InputTrigger::Pressed);
             }
-            if (m_inputSystem.IsReleased(inputAction.key))
+            if (inputSytem.IsReleased(inputAction.key))
             {
                 Invoke(inputAction, InputTrigger::Released);
             }
-            if (m_inputSystem.IsHeld(inputAction.key))
+            if (inputSytem.IsHeld(inputAction.key))
             {
                 Invoke(inputAction, InputTrigger::Held);
             }

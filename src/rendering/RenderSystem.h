@@ -12,9 +12,9 @@ class RenderSystem
 
     World* m_worldPtr;
 
-    Query& shapeQuery;
-    Query& textQuery;
-    Query& colliderQuery;
+    Query* shapeQuery;
+    Query* textQuery;
+    Query* colliderQuery;
 
     // Flags
     bool m_canDrawText = false;
@@ -43,6 +43,8 @@ class RenderSystem
     void SetCanDrawTest(bool val) { m_canDrawText = val; }
     void SetCanDrawShapes(bool val) { m_canDrawShapes = val; }
     void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
+
+    void ResetWorld(World* newWorldPtr);
 
     void HandleRenderSystem(sf::RenderTarget& renderTarget);
 };

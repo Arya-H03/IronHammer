@@ -4,26 +4,23 @@
 #include "Tracy.hpp"
 #include <cstdlib>
 
-NarrowPhaseCollisionSystem::NarrowPhaseCollisionSystem(World* world) : m_world(world) { }
-
-void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
+void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2)
 {
     {
-        //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1");
-
+        // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1");
         {
-            //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.1");
-            CTransform* e1Transform = m_world->TryGetComponent<CTransform>(e1);
-            CTransform* e2Transform = m_world->TryGetComponent<CTransform>(e2);
+            // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.1");
+            CTransform* e1Transform = worldPtr->TryGetComponent<CTransform>(e1);
+            CTransform* e2Transform = worldPtr->TryGetComponent<CTransform>(e2);
 
-            CCollider* e1Collider = m_world->TryGetComponent<CCollider>(e1);
-            CCollider* e2Collider = m_world->TryGetComponent<CCollider>(e2);
+            CCollider* e1Collider = worldPtr->TryGetComponent<CCollider>(e1);
+            CCollider* e2Collider = worldPtr->TryGetComponent<CCollider>(e2);
 
-            CRigidBody* e1Rb = m_world->TryGetComponent<CRigidBody>(e1);
-            CRigidBody* e2Rb = m_world->TryGetComponent<CRigidBody>(e2);
+            CRigidBody* e1Rb = worldPtr->TryGetComponent<CRigidBody>(e1);
+            CRigidBody* e2Rb = worldPtr->TryGetComponent<CRigidBody>(e2);
 
             {
-                //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.2");
+                // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone1.2");
 
                 // AABB check
                 Vect2f e1Center = e1Transform->position + e1Collider->offset;
@@ -35,8 +32,8 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
                 bool yCollide = distanceAbs.y <= (e1Collider->halfSize.y + e2Collider->halfSize.y);
 
                 {
-                    //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone2");
-                    // Entites will collide
+                    // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/Zone2");
+                    //  Entites will collide
                     if (xCollide && yCollide)
                     {
                         Vect2f overlap = (e1Collider->halfSize + e2Collider->halfSize) - distanceAbs;
@@ -82,10 +79,11 @@ void NarrowPhaseCollisionSystem::AABBCheck(Entity e1, Entity e2)
     }
 }
 
-std::vector<CollisionData>& NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs)
+std::vector<CollisionData>& NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(
+    World* worldPtr, const std::vector<PotentialCollisionPair>& potentialPairs)
 {
     {
-        //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs");
+        // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs");
         m_collisionDataVector.clear();
 
         for (auto& potentialPair : potentialPairs)
@@ -94,8 +92,8 @@ std::vector<CollisionData>& NarrowPhaseCollisionSystem::ProccessPotentialColliso
             Entity e2 = potentialPair.e2;
 
             {
-                //ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/AABBCheck");
-                AABBCheck(e1, e2);
+                // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs/AABBCheck");
+                AABBCheck(worldPtr, e1, e2);
             }
         }
 

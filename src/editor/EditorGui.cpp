@@ -1,22 +1,48 @@
 #include "EditorGui.h"
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
+#include "core/utils/Debug.h"
+#include "ecs/archetype/ArchetypeDebugger.hpp"
+#include "ecs/entity/EntityInspector.hpp"
+#include "engine/Engine.h"
 #include "imgui.h"
+#include "rendering/RenderSystem.h"
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <imgui-SFML.h>
 
-EditorGui::EditorGui(
-    World* world, EditorConfig::Layout& editorLayout, RenderSystem& renderSystem, sf::RenderTexture& renderTexture, Vect2<uint16_t> windowSize)
-    : m_worldPtr(world)
-    , m_renderSystem(renderSystem)
-    , m_renderTexture(renderTexture)
-    , m_entityInspector(m_worldPtr->GetEntityInspector())
-    , m_editorLayout(editorLayout)
-    , m_archetypeDebugger(m_worldPtr->GetArchetypeDebugger())
+EditorGui::EditorGui(EditorConfig::Layout& editorLayout, EditorGuiCallbacks& callBacks)
+    : m_editorLayout(editorLayout), m_editorGuiCallbacks(callBacks)
 {
+    if (!playButtonTexture.loadFromFile(playButtonPath))
+    {
+        Log_Warning("Play Button texture didn't load from file. " + playButtonPath);
+    }
+    else
+    {
+        playButtonTexID = (ImTextureID) playButtonTexture.getNativeHandle();
+    }
+
+    if (!pauseButtonTexture.loadFromFile(pauseButtonPath))
+    {
+        Log_Warning("Pause Button texture didn't load from file. " + pauseButtonPath);
+    }
+    else
+    {
+        pauseButtonTexID = (ImTextureID) pauseButtonTexture.getNativeHandle();
+    }
+
+    if (!exitButtonTexture.loadFromFile(exitButtonPath))
+    {
+        Log_Warning("Exit Button texture didn't load from file. " + exitButtonPath);
+    }
+    else
+    {
+        exitButtonTexID = (ImTextureID) exitButtonTexture.getNativeHandle();
+    }
 }
 
-void EditorGui::DrawDebugWindow()
+void EditorGui::DrawDebugWindow(const ArchetypeDebugger& archetypeDebugger, RenderSystem& renderSystem)
 {
     ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Debug_X, (float) m_editorLayout.Debug_Y));
     ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Debug_Width, (float) m_editorLayout.Debug_Height));
@@ -30,24 +56,24 @@ void EditorGui::DrawDebugWindow()
     {
         if (ImGui::BeginTabItem("ECS"))
         {
-            m_archetypeDebugger.DrawArchetypeGuiTab();
+            archetypeDebugger.DrawArchetypeGuiTab();
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Rendering"))
         {
-            bool canDrawText = m_renderSystem.GetCanDrawText();
-            if (ImGui::Checkbox("Draw Text", &canDrawText)) m_renderSystem.SetCanDrawTest(canDrawText);
+            bool canDrawText = renderSystem.GetCanDrawText();
+            if (ImGui::Checkbox("Draw Text", &canDrawText)) renderSystem.SetCanDrawTest(canDrawText);
 
             ImGui::Separator();
 
-            bool canDrawShapes = m_renderSystem.GetCanDrawShapes();
-            if (ImGui::Checkbox("Draw Shapes", &canDrawShapes)) m_renderSystem.SetCanDrawShapes(canDrawShapes);
+            bool canDrawShapes = renderSystem.GetCanDrawShapes();
+            if (ImGui::Checkbox("Draw Shapes", &canDrawShapes)) renderSystem.SetCanDrawShapes(canDrawShapes);
 
             ImGui::Separator();
 
-            bool canDrawColliders = m_renderSystem.GetCanDrawColliders();
-            if (ImGui::Checkbox("Draw Colliders", &canDrawColliders)) m_renderSystem.SetCanDrawColliders(canDrawColliders);
+            bool canDrawColliders = renderSystem.GetCanDrawColliders();
+            if (ImGui::Checkbox("Draw Colliders", &canDrawColliders)) renderSystem.SetCanDrawColliders(canDrawColliders);
 
             ImGui::EndTabItem();
         }
@@ -62,12 +88,12 @@ void EditorGui::DrawDebugWindow()
     ImGui::End();
 }
 
-void EditorGui::DrawInspectorWindow()
+void EditorGui::DrawInspectorWindow(const EntityInspector& entityInspector)
 {
     ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Inspector_X, (float) m_editorLayout.Inspector_Y));
     ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Inspector_Width, (float) m_editorLayout.Inspector_Height));
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-    m_entityInspector.DrawInspectorGui();
+    entityInspector.DrawInspectorGui();
     ImGui::End();
 }
 
@@ -80,33 +106,109 @@ void EditorGui::DrawLogWindow()
     ImGui::End();
 }
 
-void EditorGui::DrawViewport()
+void EditorGui::DrawViewport(sf::RenderTexture& renderTexture)
 {
+
     ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Viewport_X, (float) m_editorLayout.Viewport_Y));
-    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Viewport_Width , (float) m_editorLayout.Viewport_Height));
-    ImGui::Begin(
-        "Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-    sf::Vector2u texSize = m_renderTexture.getSize();
-    ImGui::Image(m_renderTexture.getTexture(), ImVec2((float) texSize.x -20, (float) texSize.y - 20));
+    ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Viewport_Width, (float) m_editorLayout.Viewport_Height));
+    ImGui::Begin("Viewport",
+        nullptr,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
+            | ImGuiWindowFlags_NoScrollbar);
+
+    sf::Vector2u texSize = renderTexture.getSize();
+    ImGui::Image(renderTexture.getTexture(), ImVec2((float) texSize.x - 20, (float) texSize.y - 20));
     ImGui::End();
 }
 
-void EditorGui::DrawMenuBar()
+void EditorGui::DrawMenuBar(EngineMode engineMode, bool isPlayModePaused)
 {
     ImGui::SetNextWindowPos(ImVec2((float) m_editorLayout.Menu_X, (float) m_editorLayout.Menu_Y));
     ImGui::SetNextWindowSize(ImVec2((float) m_editorLayout.Menu_Width, (float) m_editorLayout.Menu_Height));
-    ImGui::Begin("MenuBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    ImGui::Begin("MenuBar",
+        nullptr,
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
+            | ImGuiWindowFlags_NoScrollbar);
+
+    const float buttonSize = 15.0f;
+    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+    // Center Play & Pause
+
+    float totalWidth = buttonSize * 2.0f + spacing;
+    float availWidth = ImGui::GetContentRegionAvail().x;
+
+    ImGui::SetCursorPos(ImVec2((availWidth - totalWidth) * 0.5f, (m_editorLayout.Menu_Height - buttonSize) * 0.5f));
+
+    // Play Button
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+    if (engineMode == EngineMode::Play)
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
+    else
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+    if (ImGui::ImageButton("PlayBtn", playButtonTexID, ImVec2(buttonSize, buttonSize)))
+    {
+        m_editorGuiCallbacks.PlayCurrentScene();
+    }
+
+    ImGui::PopStyleColor(); // Button
+    ImGui::PopStyleColor(); // Border
+
+    ImGui::SameLine();
+
+    // Pause Button
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+    if (engineMode == EngineMode::Play && isPlayModePaused)
+        ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
+    else
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+    if (ImGui::ImageButton("PauseBtn", pauseButtonTexID, ImVec2(buttonSize, buttonSize)))
+    {
+        m_editorGuiCallbacks.PauseCurrentScene();
+    }
+
+    ImGui::PopStyleColor(); // Button
+    ImGui::PopStyleColor(); // Border
+
+    // Right aligned Exit
+
+    float contentWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+
+    float exitX = contentWidth - ImGui::GetStyle().WindowPadding.x;
+
+    ImGui::SetCursorPos(ImVec2(exitX, (m_editorLayout.Menu_Height - buttonSize) * 0.5f));
+
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+    if (ImGui::ImageButton("ExitBtn", exitButtonTexID, ImVec2(buttonSize, buttonSize)))
+    {
+        m_editorGuiCallbacks.ExitEngine();
+    }
+
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+
     ImGui::End();
 }
 
-void EditorGui::HandleGUISystem()
+void EditorGui::HandleGUISystem(RenderSystem& renderSystem,
+    const ArchetypeDebugger& archetypeDebugger,
+    const EntityInspector& entityInspector,
+    sf::RenderTexture& renderTexture,
+    EngineMode engineMode,
+    bool isPlayModePaused)
 {
-
-    DrawMenuBar();
-    DrawInspectorWindow();
-    DrawDebugWindow();
+    DrawMenuBar(engineMode, isPlayModePaused);
+    DrawInspectorWindow(entityInspector);
+    DrawDebugWindow(archetypeDebugger, renderSystem);
     DrawLogWindow();
-    DrawViewport();
+    DrawViewport(renderTexture);
 }
 
 void EditorGui::ApplyGuiTheme()

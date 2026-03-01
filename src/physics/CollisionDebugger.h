@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include <utility>
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "core/utils/Colors.h"
@@ -15,19 +16,19 @@ class CollisionDebugger
     ImVec4 yellowTextColor;
     ImVec4 rustTextColor;
 
-    void BroadPhaseGui() const
+    void BroadPhaseGui(World* worldPtr) const
     {
         bool canDisplayGrid = m_broadPhaseCollision.GetCanDisplayGrid();
         if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
         {
-            m_broadPhaseCollision.SetCanDisplayGrid(canDisplayGrid);
+            m_broadPhaseCollision.SetCanDisplayGrid(worldPtr, canDisplayGrid);
         }
         ImGui::SameLine(0, 50);
 
         bool canHighlightgrid = m_broadPhaseCollision.GetCanHighlightGrid();
         if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid))
         {
-            m_broadPhaseCollision.SetCanHighlightGrid(canHighlightgrid);
+            m_broadPhaseCollision.SetCanHighlightGrid(worldPtr, canHighlightgrid);
         }
         ImGui::Separator();
 
@@ -137,11 +138,11 @@ class CollisionDebugger
     {
     }
 
-    void CollisionSystemGui() const
+    void CollisionSystemGui(World* worldPtr) const
     {
         if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
         {
-            BroadPhaseGui();
+            BroadPhaseGui(worldPtr);
         }
         if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
         {

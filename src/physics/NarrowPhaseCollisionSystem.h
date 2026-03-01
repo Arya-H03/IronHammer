@@ -19,16 +19,13 @@ class NarrowPhaseCollisionSystem
 
   private:
 
-    World* m_world;
-
     std::vector<CollisionData> m_collisionDataVector;
 
     // Axis Aligned Bounding Box
-    void AABBCheck(Entity e1, Entity e2);
+    void AABBCheck(World* worldPtr, Entity e1, Entity e2);
 
   public:
 
-    NarrowPhaseCollisionSystem(World* world);
-
-    std::vector<CollisionData>& ProccessPotentialCollisonPairs(const std::vector<PotentialCollisionPair>& potentialPairs);
+    NarrowPhaseCollisionSystem() = default;
+    std::vector<CollisionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<PotentialCollisionPair>& potentialPairs);
 };

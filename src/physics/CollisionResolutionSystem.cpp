@@ -3,19 +3,17 @@
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
 
-CollisionResolutionSystem::CollisionResolutionSystem(World* world) : m_worldPtr(world) { }
-
-void CollisionResolutionSystem::ResolveCollisionOverlaps(std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
 {
     {
         ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
         for (auto& collisionData : collisionDataVector)
         {
-            CTransform* transform1 = m_worldPtr->TryGetComponent<CTransform>(collisionData.e1);
-            CTransform* transform2 = m_worldPtr->TryGetComponent<CTransform>(collisionData.e2);
-            CRigidBody* rb1 = m_worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = m_worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
+            CTransform* transform1 = worldPtr->TryGetComponent<CTransform>(collisionData.e1);
+            CTransform* transform2 = worldPtr->TryGetComponent<CTransform>(collisionData.e2);
+            CRigidBody* rb1 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
+            CRigidBody* rb2 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;
@@ -28,15 +26,15 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(std::vector<CollisionDa
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisionImpluse(std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
 {
     {
         ZoneScopedN("CollisionResolutionSystem/ResolveCollisionImpluse");
 
         for (auto& collisionData : collisionDataVector)
         {
-            CRigidBody* rb1 = m_worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = m_worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
+            CRigidBody* rb1 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
+            CRigidBody* rb2 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;
@@ -59,8 +57,8 @@ void CollisionResolutionSystem::ResolveCollisionImpluse(std::vector<CollisionDat
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisions(std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
 {
-    ResolveCollisionOverlaps(collisionDataVector);
-    ResolveCollisionImpluse(collisionDataVector);
+    ResolveCollisionOverlaps(worldPtr, collisionDataVector);
+    ResolveCollisionImpluse(worldPtr, collisionDataVector);
 }

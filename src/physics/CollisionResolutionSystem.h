@@ -4,17 +4,11 @@
 #include "physics/NarrowPhaseCollisionSystem.h"
 class CollisionResolutionSystem
 {
-  private:
-
-    World* m_worldPtr;
-
   public:
 
-    CollisionResolutionSystem(World* world);
+    CollisionResolutionSystem() = default;
 
-    void ResolveCollisionOverlaps(std::vector<CollisionData>& collisionDataVector);
-    void ResolveCollisionImpluse(std::vector<CollisionData>& collisionDataVector);
-    void ResolveCollisions(std::vector<CollisionData>& collisionDataVector);
-
-
+    void ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
+    void ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
+    void ResolveCollisions(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
 };
