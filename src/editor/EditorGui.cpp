@@ -197,16 +197,12 @@ void EditorGui::DrawMenuBar(EngineMode engineMode, bool isPlayModePaused)
     ImGui::End();
 }
 
-void EditorGui::HandleGUISystem(RenderSystem& renderSystem,
-    const ArchetypeDebugger& archetypeDebugger,
-    const EntityInspector& entityInspector,
-    sf::RenderTexture& renderTexture,
-    EngineMode engineMode,
-    bool isPlayModePaused)
+void EditorGui::HandleGUISystem(
+    RenderSystem& renderSystem, World* worldPtr, sf::RenderTexture& renderTexture, EngineMode engineMode, bool isPlayModePaused)
 {
     DrawMenuBar(engineMode, isPlayModePaused);
-    DrawInspectorWindow(entityInspector);
-    DrawDebugWindow(archetypeDebugger, renderSystem);
+    DrawInspectorWindow(worldPtr->GetEntityInspector());
+    DrawDebugWindow(worldPtr->GetArchetypeDebugger(), renderSystem);
     DrawLogWindow();
     DrawViewport(renderTexture);
 }

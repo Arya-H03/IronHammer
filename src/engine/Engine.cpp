@@ -62,6 +62,7 @@ void Engine::PausePlayMode()
 
 void Engine::EnterPlayMode()
 {
+    m_tempWorld.reset();
     m_tempWorld = std::make_unique<World>();
     m_currentWorld = m_tempWorld.get();
 
@@ -76,7 +77,6 @@ void Engine::ExitPlayMode()
 {
     m_currentWorld = m_editorWorld.get();
 
-    m_tempWorld.reset();
     m_renderSystem.ResetWorld(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);
 

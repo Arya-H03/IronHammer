@@ -62,12 +62,8 @@ class Editor
     {
         m_inputManager.Update(frameContext.inputSystem);
 
-        m_editorGui.HandleGUISystem(frameContext.renderSystem,
-            frameContext.world->GetArchetypeDebugger(),
-            frameContext.world->GetEntityInspector(),
-            m_renderTexture,
-            m_engine.GetEngineMode(),
-            m_engine.GetIsPlayModePaused());
+        m_editorGui.HandleGUISystem(
+            frameContext.renderSystem, frameContext.world, m_renderTexture, m_engine.GetEngineMode(), m_engine.GetIsPlayModePaused());
 
         RenderViewport(frameContext.renderSystem);
     }

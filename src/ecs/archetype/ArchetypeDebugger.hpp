@@ -2,6 +2,7 @@
 #include <functional>
 #include <imgui.h>
 #include <string>
+#include "core/utils/Debug.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/archetype/Archetype.h"
@@ -85,17 +86,16 @@ class ArchetypeDebugger
 
   public:
 
-    ArchetypeDebugger(
-        ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, EntityInspector& entityInspector)
-        :  m_archetypeRegistry(archetypeRegistry), m_commandBuffer(commandBuffer), m_entityInspector(entityInspector)
+    ArchetypeDebugger(ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, EntityInspector& entityInspector)
+        : m_archetypeRegistry(archetypeRegistry), m_commandBuffer(commandBuffer), m_entityInspector(entityInspector)
     {
     }
 
     void DrawArchetypeGuiTab() const
     {
-        Log_Error("w");
         for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
         {
+            int i = m_archetypeRegistry.GetAllArchetypes().size();
             std::string nodeTitle = "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();
 
             if (ImGui::CollapsingHeader(nodeTitle.c_str()))

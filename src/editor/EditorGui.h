@@ -3,6 +3,7 @@
 #include <SFML/System/String.hpp>
 
 #include <imgui.h>
+#include "ecs/World.hpp"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "editor/EditorConfig.h"
@@ -57,11 +58,6 @@ class EditorGui
     // GuiSystem(World& world, RenderSystem& renderSystem, const CollisionDebugger& collisionDebugger, Vect2<uint16_t> windowSize);
 
     void SetCurrentInspectorEntity(Entity entity);
-    void HandleGUISystem(RenderSystem& renderSystem,
-        const ArchetypeDebugger& archetypeDebugger,
-        const EntityInspector& entityInspector,
-        sf::RenderTexture& renderTexture,
-        EngineMode engineMode,
-        bool isPlayModePaused);
+    void HandleGUISystem(RenderSystem& renderSystem, World* worldPtr, sf::RenderTexture& renderTexture, EngineMode engineMode, bool isPlayModePaused);
     void ApplyGuiTheme();
 };
