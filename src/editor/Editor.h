@@ -4,6 +4,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <cerrno>
 #include <functional>
+#include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "engine/Engine.h"
 #include "input/InputManager.h"
@@ -54,6 +55,9 @@ class Editor
         m_editorGui.ApplyGuiTheme();
 
         m_inputManager.CreateInputAction("Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_window.close(); });
+        m_inputManager.CreateInputAction("Log", sf::Keyboard::Key::L, InputTrigger::Pressed, [&]() { Log_Info("Log"); });
+        m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [&]() { Log_Warning("Warning"); });
+        m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, [&]() { Log_Error("Error"); });
     }
 
     void OnEnter() { }

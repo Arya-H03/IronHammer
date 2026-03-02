@@ -33,10 +33,25 @@ class Debug
     inline static std::deque<LogMessage> m_logMessages;
     inline static constexpr size_t m_logLimit = 1000;
 
+    inline static size_t m_infoLogCount = 0;
+    inline static size_t m_warningLogCount = 0;
+    inline static size_t m_errorLogCount = 0;
+
   public:
 
     inline static const std::deque<LogMessage>& GetLogMessages() { return m_logMessages; }
-    inline static void Clear() { m_logMessages.clear(); }
+    inline static void Clear()
+    {
+        m_infoLogCount = 0;
+        m_warningLogCount = 0;
+        m_errorLogCount = 0;
+
+        m_logMessages.clear();
+    }
+
+    inline static size_t GetInfoLogCount() { return m_infoLogCount; }
+    inline static size_t GetWarningLogCount() { return m_warningLogCount; }
+    inline static size_t GetErrorLogCount() { return m_errorLogCount; }
 
     inline static void Log(const std::string& message,
         const std::string& file = "",
@@ -45,6 +60,20 @@ class Debug
         int line = 0)
     {
         m_logMessages.push_back({ message, Time::GetLocalTimeStamp(), file, file.substr(file.find("IronHammer")), color, type, line });
+        switch (type)
+        {
+            case LogType::Info:
+                ++m_infoLogCount;
+                break;
+            case LogType::Warning:
+                ++m_warningLogCount;
+                break;
+            case LogType::Error:
+                ++m_errorLogCount;
+                break;
+            case LogType::Unknown:;
+                break;
+        }
     }
 };
 

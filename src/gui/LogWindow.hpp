@@ -19,7 +19,6 @@ class LogWindow
     {
         if (ImGui::BeginTable("HeaderBar", 2, ImGuiTableFlags_SizingStretchProp))
         {
-            // ===== Left Column =====
             ImGui::TableNextColumn();
 
             if (ImGui::Button("Clear"))
@@ -28,39 +27,46 @@ class LogWindow
                 m_visibleIndices.clear();
             }
 
-            // ===== Right Column =====
             ImGui::TableNextColumn();
 
-            // Calculate total width of right-side controls
             float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-            float logsWidth = ImGui::CalcTextSize("Logs").x + ImGui::GetFrameHeight();
-            float warningsWidth = ImGui::CalcTextSize("Warnings").x + ImGui::GetFrameHeight();
-            float errorsWidth = ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight();
+            float logsWidth = ImGui::CalcTextSize("Logs").x + ImGui::GetFrameHeight()
+                              + ImGui::CalcTextSize(std::to_string(Debug::GetInfoLogCount()).c_str()).x + spacing;
 
-            float totalWidth = logsWidth + warningsWidth + errorsWidth + spacing * 4;
+            float warningsWidth = ImGui::CalcTextSize("Warnings").x + ImGui::GetFrameHeight()
+                                  + ImGui::CalcTextSize(std::to_string(Debug::GetWarningLogCount()).c_str()).x + spacing;
 
-            // Move cursor so controls are right-aligned
-            float columnWidth = ImGui::GetColumnWidth();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + columnWidth - totalWidth);
+            float errorsWidth =
+                ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight() + ImGui::CalcTextSize(std::to_string(Debug::GetErrorLogCount()).c_str()).x;
 
-            // Logs Toggle
+            float totalWidth = logsWidth + warningsWidth + errorsWidth + spacing * 10;
+
+            // Move cursor BEFORE drawing
+
+            float avail = ImGui::GetContentRegionAvail().x;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + avail - totalWidth);
+
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::ConcreteGrey_ImGui);
             ImGui::Checkbox("Logs", &showLogs);
+            ImGui::SameLine();
+            ImGui::Text("(%zu)", Debug::GetInfoLogCount());
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
 
-            // Warnings Toggle
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::HazardYellow_ImGui);
             ImGui::Checkbox("Warnings", &showWarnings);
+            ImGui::SameLine();
+            ImGui::Text("(%zu)", Debug::GetWarningLogCount());
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
 
-            // Errors Toggle
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::RustRed_ImGui);
             ImGui::Checkbox("Errors", &showErrors);
+            ImGui::SameLine();
+            ImGui::Text("(%zu)", Debug::GetErrorLogCount());
             ImGui::PopStyleColor();
 
             ImGui::EndTable();
