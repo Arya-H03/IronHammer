@@ -32,6 +32,7 @@ class EntityManager
     // EntityLocation     0   1   2   3  ...
     std::vector<EntitySlot> m_entitySlots;
     std::vector<EntityStorageLocation> m_entityStorageLocations;
+
     ArchetypeRegistry& m_archetypeRegistry;
 
     bool ValidateEntity(Entity entity) const

@@ -5,9 +5,10 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
+#include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
 
-using DisplatComponentFn = void (*)(void*);
+using DisplayComponentFn = void (*)(void*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 
 struct ComponentInfo
@@ -15,7 +16,7 @@ struct ComponentInfo
     ComponentID id;
     size_t size;
     const char* name;
-    DisplatComponentFn DisplayComponent;
+    DisplayComponentFn DisplayComponent;
     MoveComponentFn MoveComponent;
 };
 
@@ -31,80 +32,89 @@ class ComponentRegistry
         return counter++;
     }
 
-    template <typename TComponent>
-    static void DrawDebugGUI(void* ptr)
+    template <typename ComponentType>
+    static ComponentID GetOrMakeComponentId()
     {
-        TComponent& component = *reinterpret_cast<TComponent*>(ptr);
-        component.GuiInspectorDisplay();
+        static ComponentID id = MakeComponentID();
+        return id;
     }
 
-    template <typename T>
-    static ComponentID RegisterComponent()
+    template <typename ComponentType>
+    static void DrawDebugGUI(void* ptr)
     {
-        static ComponentID id = []()
-        {
-            ComponentInfo newComponentInfo;
-            newComponentInfo.id = MakeComponentID();
-            assert(newComponentInfo.id < MaxComponents);
-            newComponentInfo.name = T::name;
-            newComponentInfo.size = sizeof(T);
-            newComponentInfo.DisplayComponent = [](void* ptr)
-            {
-                T* component = reinterpret_cast<T*>(ptr);
-                component->GuiInspectorDisplay(ptr);
-            };
-            newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
-            {
-                T* srcArray = reinterpret_cast<T*>(src);
-                T* dstArray = reinterpret_cast<T*>(dst);
-
-                if constexpr (std::is_trivially_copyable_v<T>)
-                {
-                    // For trivial types, memcpy is safe and faster
-                    std::memcpy(&dstArray[dstIndex], &srcArray[srcIndex], sizeof(T));
-                }
-                else
-                {
-                    // For non-trivial types, use move constructor
-                    new (&dstArray[dstIndex]) T(std::move(srcArray[srcIndex]));
-                    // srcArray[srcIndex].~T();
-                }
-            };
-
-            if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
-            componentInfos[newComponentInfo.id] = newComponentInfo;
-
-            return newComponentInfo.id;
-        }();
-
-        return id;
+        ComponentType& component = *reinterpret_cast<ComponentType*>(ptr);
+        component.GuiInspectorDisplay();
     }
 
   public:
 
-    template <typename T>
+    template <typename ComponentType>
+    static void RegisterComponent()
+    {
+        ComponentInfo newComponentInfo;
+
+        newComponentInfo.id = GetOrMakeComponentId<ComponentType>();
+        assert(newComponentInfo.id < MaxComponents);
+        newComponentInfo.name = ComponentType::name;
+        newComponentInfo.size = sizeof(ComponentType);
+        newComponentInfo.DisplayComponent = [](void* ptr)
+        {
+            ComponentType* component = reinterpret_cast<ComponentType*>(ptr);
+            component->GuiInspectorDisplay(ptr);
+        };
+        newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
+        {
+            ComponentType* srcArray = reinterpret_cast<ComponentType*>(src);
+            ComponentType* dstArray = reinterpret_cast<ComponentType*>(dst);
+
+            if constexpr (std::is_trivially_copyable_v<ComponentType>)
+            {
+                // For trivial types, memcpy is safe and faster
+                std::memcpy(&dstArray[dstIndex], &srcArray[srcIndex], sizeof(ComponentType));
+            }
+            else
+            {
+                // For non-trivial types, use move constructor
+                new (&dstArray[dstIndex]) ComponentType(std::move(srcArray[srcIndex]));
+                // srcArray[srcIndex].~T();
+            }
+        };
+
+        if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
+        componentInfos[newComponentInfo.id] = newComponentInfo;
+    }
+
+    template <typename ComponentType>
     static ComponentID GetComponentID()
     {
-        static ComponentID id = RegisterComponent<T>();
+        static ComponentID id = GetOrMakeComponentId<ComponentType>();
         return id;
     }
 
     static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
 
     // Deprecated
-    template <typename TComponent>
-    static const char* GetComponentNameByType(const TComponent& component)
+    template <typename ComponentType>
+    static const char* GetComponentNameByType(const ComponentType& component)
     {
-        ComponentID id = GetComponentID<TComponent>();
+        ComponentID id = GetComponentID<ComponentType>();
         return componentInfos[id].name;
     }
     // Deprecated
-    template <typename TComponent>
+    template <typename ComponentType>
     static const char* GetComponentNameByType()
     {
-        ComponentID id = GetComponentID<TComponent>();
+        ComponentID id = GetComponentID<ComponentType>();
         return componentInfos[id].name;
     }
 
     static const ComponentInfo& GetComponentInfoById(ComponentID id) { return componentInfos[id]; }
 };
+
+template <typename ComponentType>
+struct ComponentAutoRegister
+{
+    ComponentAutoRegister() { ComponentRegistry::RegisterComponent<ComponentType>(); }
+};
+
+#define REGISTER_COMPONENT(TYPE) inline static ComponentAutoRegister<TYPE> autoRegister_##TYPE;

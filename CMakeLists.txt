@@ -51,6 +51,15 @@ set(IMGUI_SFML_FIND_SFML OFF)
 set(IMGUI_DIR ${imgui_SOURCE_DIR})
 FetchContent_MakeAvailable(imgui_sfml)
 
+
+# -------- Nlohmann-JSON --------
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.12.0
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 # ---------------- Source Files ----------------
 file(GLOB_RECURSE IRONHAMMER_SOURCES
     CONFIGURE_DEPENDS
@@ -86,4 +95,5 @@ target_link_libraries(IronHammer PRIVATE
     SFML::System
     SFML::Audio
     ImGui-SFML::ImGui-SFML
+    nlohmann_json::nlohmann_json
 )

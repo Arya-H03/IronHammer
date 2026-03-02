@@ -4,20 +4,24 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <string>
+#include <nlohmann/json.hpp>
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
+#include "ecs/component/ComponentRegistry.hpp"
 
 using namespace EntityInspectorHelpers;
+using Json = nlohmann::json;
 
 struct CTransform
 {
     Vect2f position;
     Vect2f scale;
     float rotation;
-    static constexpr const char* name = "Transfrom";
+    static constexpr const char* name = "Transform";
 
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
+    REGISTER_COMPONENT(CTransform);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -35,11 +39,28 @@ struct CTransform
     }
 };
 
+inline void to_json(Json& json, const CTransform& transform)
+{
+    json = { { "position", { { "x", transform.position.x }, { "y", transform.position.y } } },
+        { "scale", { { "x", transform.scale.x }, { "y", transform.scale.y } } },
+        { "rotation", transform.rotation } };
+}
+
+inline void from_json(const Json& json, CTransform& transform)
+{
+    transform.position.x = json["position"].value("x", 0.f);
+    transform.position.y = json["position"].value("y", 0.f);
+    transform.scale.x = json["scale"]["x"].value("x", 0.f);
+    transform.scale.y = json["scale"]["y"].value("y", 0.f);
+    transform.rotation = json["rotation"];
+}
+
 struct CMovement
 {
     float speed;
     static constexpr const char* name = "Movement";
     CMovement(float spd) : speed(spd) { }
+    REGISTER_COMPONENT(CMovement);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -52,6 +73,10 @@ struct CMovement
         }
     }
 };
+
+inline void to_json(Json& j, const CMovement& c) { j = { { "speed", c.speed } }; }
+
+inline void from_json(const Json& j, CMovement& c) { c.speed = j.value("speed", 0.f); }
 
 struct CShape
 {
@@ -66,6 +91,7 @@ struct CShape
         : points(pts), fillColor(fill), outlineColor(outline), radius(rad), outlineThickness(thickness)
     {
     }
+    REGISTER_COMPONENT(CShape);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -87,6 +113,28 @@ struct CShape
     }
 };
 
+inline void to_json(Json& j, const CShape& c)
+{
+    j = { { "points", c.points },
+        { "radius", c.radius },
+        { "outlineThickness", c.outlineThickness },
+        { "fillColor", { c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a } },
+        { "outlineColor", { c.outlineColor.r, c.outlineColor.g, c.outlineColor.b, c.outlineColor.a } } };
+}
+
+inline void from_json(const Json& j, CShape& c)
+{
+    c.points = j.value("points", 3);
+    c.radius = j.value("radius", 10.f);
+    c.outlineThickness = j.value("outlineThickness", 1.f);
+
+    auto fill = j.value("fillColor", std::vector<uint8_t> { 255, 255, 255, 255 });
+    c.fillColor = sf::Color(fill[0], fill[1], fill[2], fill[3]);
+
+    auto outline = j.value("outlineColor", std::vector<uint8_t> { 0, 0, 0, 255 });
+    c.outlineColor = sf::Color(outline[0], outline[1], outline[2], outline[3]);
+}
+
 struct CCollider
 {
     Vect2f size;
@@ -99,6 +147,7 @@ struct CCollider
         : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), isTrigger(trigger)
     {
     }
+    REGISTER_COMPONENT(CCollider);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -119,6 +168,26 @@ struct CCollider
         }
     }
 };
+
+inline void to_json(Json& j, const CCollider& c)
+{
+    j = {
+        { "size", { { "x", c.size.x }, { "y", c.size.y } } }, { "offset", { { "x", c.offset.x }, { "y", c.offset.y } } }, { "isTrigger", c.isTrigger }
+    };
+}
+
+inline void from_json(const Json& j, CCollider& c)
+{
+    c.size.x = j["size"].value("x", 1.f);
+    c.size.y = j["size"].value("y", 1.f);
+
+    c.offset.x = j["offset"].value("x", 0.f);
+    c.offset.y = j["offset"].value("y", 0.f);
+
+    c.isTrigger = j.value("isTrigger", false);
+
+    c.halfSize = { c.size.x * 0.5f, c.size.y * 0.5f };
+}
 
 struct CRigidBody
 {
@@ -142,6 +211,7 @@ struct CRigidBody
             inverseMass = 1.0f / mass;
         }
     }
+    REGISTER_COMPONENT(CRigidBody);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -164,6 +234,28 @@ struct CRigidBody
     }
 };
 
+inline void to_json(Json& j, const CRigidBody& c) { j = { { "mass", c.mass }, { "bounciness", c.bounciness }, { "isStatic", c.isStatic } }; }
+
+inline void from_json(const Json& j, CRigidBody& c)
+{
+    c.mass = j.value("mass", 1.f);
+    c.bounciness = j.value("bounciness", 0.5f);
+    c.isStatic = j.value("isStatic", false);
+
+    if (c.isStatic)
+    {
+        c.inverseMass = 0.f;
+    }
+    else
+    {
+        c.inverseMass = 1.f / c.mass;
+    }
+
+    // reset runtime data
+    c.velocity = { 0, 0 };
+    c.previousPosition = { 0, 0 };
+}
+
 struct CText
 {
     std::string content;
@@ -175,6 +267,7 @@ struct CText
     CText(const std::string& txt, const sf::Color& color, const Vect2f& off, float size) : content(txt), textColor(color), offset(off), fontSize(size)
     {
     }
+    REGISTER_COMPONENT(CText);
 
     void GuiInspectorDisplay(void* ptr)
     {
@@ -196,9 +289,30 @@ struct CText
     }
 };
 
+inline void to_json(Json& j, const CText& c)
+{
+    j = { { "content", c.content },
+        { "fontSize", c.fontSize },
+        { "offset", { { "x", c.offset.x }, { "y", c.offset.y } } },
+        { "textColor", { c.textColor.r, c.textColor.g, c.textColor.b, c.textColor.a } } };
+}
+
+inline void from_json(const Json& j, CText& c)
+{
+    c.content = j.value("content", std::string { "" });
+    c.fontSize = j.value("fontSize", 12.f);
+
+    c.offset.x = j["offset"].value("x", 0.f);
+    c.offset.y = j["offset"].value("y", 0.f);
+
+    auto col = j.value("textColor", std::vector<uint8_t> { 255, 255, 255, 255 });
+    c.textColor = sf::Color(col[0], col[1], col[2], col[3]);
+}
+
 struct CNotDrawable
 {
     static constexpr const char* name = "NotDrawable";
+    REGISTER_COMPONENT(CNotDrawable);
     void GuiInspectorDisplay(void* ptr)
     {
         TypeHeader<CNotDrawable>(name, ptr);
@@ -211,3 +325,13 @@ struct CNotDrawable
         }
     }
 };
+
+inline void to_json(Json& j, const CNotDrawable& c)
+{
+    j = Json::object(); // nothing to store
+}
+
+inline void from_json(const Json& j, CNotDrawable& c)
+{
+    // nothing to load
+}
