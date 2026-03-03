@@ -4,11 +4,14 @@
 #include <vector>
 #include <format>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
+
+using Json = nlohmann::json;
 
 class EntityManager
 {
@@ -144,7 +147,36 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
 
         // Add new Component
-        dstArchetype.ConstructComponentAt(std::forward<Component>(component), componentId, newEntityLocation);
+        dstArchetype.ConstructComponentByType(std::forward<Component>(component), componentId, newEntityLocation);
+    }
+
+    void AddToEntityById(Entity entity, ComponentID componentId, void* componentPtr)
+    {
+        if (!ValidateEntity(entity)) return;
+        // if (HasComponent<Component>(entity)) return;
+
+        const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
+
+        // Find source and destination Archetypes
+        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocations[entity.id].archetypeId);
+        ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().set(componentId);
+        Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
+
+        // Migrate components from src to dst
+        EntityStorageLocation& currentEntityLocation = m_entityStorageLocations[entity.id];
+        EntityStorageLocation newEntityLocation = dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
+
+        std::pair<Entity, EntityStorageLocation> deletionResult = srcArchetype.RemoveEntity(entity, currentEntityLocation);
+
+        // Have to update the EntityStorageLocation of BOTH Entities.
+        m_entityStorageLocations[deletionResult.first.id] = deletionResult.second; // Swaped Entity
+        m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
+
+        // Add new Component
+        dstArchetype.ConstructComponentById(componentPtr, componentInfo, componentId, newEntityLocation);
+
+        //Destroy pointer
+        componentInfo.DestroyComponent(componentPtr);
     }
 
     // Note: currently you can have an Entity with no Components.
@@ -173,6 +205,47 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
     }
 
+    Json SerializeEntity(EntityStorageLocation entityLocation)
+    {
+        Json entityJson;
+
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        archetype.ForEachComponent(entityLocation,
+            [&](ComponentID id, void* ptr)
+            {
+                const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
+                componentInfo.SerializeComponent(entityJson, ptr);
+            });
+
+        return entityJson;
+    }
+
+    void DeserializeEntity(Json entityJson)
+    {
+        Entity entity = CreateEntity();
+
+        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
+        {
+            const std::string componentName = it.key();
+            const ComponentInfo* componentInfo = ComponentRegistry::GetComponentInfoPtrByName(componentName);
+            if (!componentInfo)
+            {
+                Log_Warning("Unknown component during deserialization: " + componentName);
+                continue;
+            }
+
+            void* componentPtr = componentInfo->DeSerializeComponent(entityJson);
+            if (!componentPtr)
+            {
+                Log_Warning("Failed to deserialize component: " + componentName);
+                continue;
+            }
+
+            // Add to ECS
+            AddToEntityById(entity, componentInfo->id, componentPtr);
+        }
+    }
+
   public:
 
     EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
@@ -180,6 +253,8 @@ class EntityManager
         m_entitySlots.reserve(initialEntitySize);
         m_entityStorageLocations.reserve(initialEntitySize);
     }
+
+    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
 
     template <typename Component>
     bool HasComponent(Entity entity)
@@ -198,4 +273,27 @@ class EntityManager
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
     }
+
+    Json SerializeAllEntites()
+    {
+        Json allEntitiesJson;
+
+        for (auto& entityLocation : m_entityStorageLocations)
+        {
+            Json entityJson = SerializeEntity(entityLocation);
+            allEntitiesJson["entities"].push_back(entityJson);
+        }
+
+        return allEntitiesJson;
+    }
+
+    void DeserializeWorld(Json worldJson)
+    {
+        for (const auto& entityJson : worldJson["entities"])
+        {
+            DeserializeEntity(entityJson);
+        }
+    }
+
+
 };

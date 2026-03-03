@@ -1,11 +1,14 @@
 #pragma once
 
+#include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/component/Components.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "ecs/entity/EntityInspector.hpp"
+#include <vector>
 
 class World
 {
@@ -34,6 +37,13 @@ class World
 
     EntityInspector& GetEntityInspector() { return m_entityInspector; }
     const ArchetypeDebugger& GetArchetypeDebugger() const { return m_archetypeDebugger; }
+
+    template <typename Func>
+    void ForEachComponentOfEntity(const EntityStorageLocation& entityLocation, Func&& func)
+    {
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        archetype.ForEachComponent(entityLocation, func);
+    }
 
     template <typename... QueryGroup>
     Query* Query()
@@ -77,5 +87,12 @@ class World
     Component* TryGetComponent(Entity entity)
     {
         return m_entityManager.TryGetComponent<Component>(entity);
+    }
+
+    Json SerializeWorld() { return m_entityManager.SerializeAllEntites(); }
+
+    void DeserializeWorld(Json worldJson)
+    {
+        m_entityManager.DeserializeWorld(worldJson);
     }
 };

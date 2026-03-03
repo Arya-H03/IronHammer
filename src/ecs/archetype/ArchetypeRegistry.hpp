@@ -83,7 +83,7 @@ class ArchetypeRegistry
   public:
 
     const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return m_archetypes; }
-    Archetype& GetArchetypeById(ArchetypeId id) { return *m_archetypes[id]; }
+    Archetype& GetArchetypeById(ArchetypeId id) const { return *m_archetypes[id]; }
 
     Archetype& GetArchetype(const ComponentSignatureMask& signature)
     {

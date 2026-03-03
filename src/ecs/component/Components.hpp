@@ -20,6 +20,7 @@ struct CTransform
     float rotation;
     static constexpr const char* name = "Transform";
 
+    CTransform() = default;
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
     REGISTER_COMPONENT(CTransform);
 
@@ -50,8 +51,8 @@ inline void from_json(const Json& json, CTransform& transform)
 {
     transform.position.x = json["position"].value("x", 0.f);
     transform.position.y = json["position"].value("y", 0.f);
-    transform.scale.x = json["scale"]["x"].value("x", 0.f);
-    transform.scale.y = json["scale"]["y"].value("y", 0.f);
+    transform.scale.x = json["scale"].value("x", 0.f);
+    transform.scale.y = json["scale"].value("y", 0.f);
     transform.rotation = json["rotation"];
 }
 
@@ -59,6 +60,8 @@ struct CMovement
 {
     float speed;
     static constexpr const char* name = "Movement";
+
+    CMovement() = default;
     CMovement(float spd) : speed(spd) { }
     REGISTER_COMPONENT(CMovement);
 
@@ -87,6 +90,7 @@ struct CShape
     float outlineThickness;
     static constexpr const char* name = "Shape";
 
+    CShape() = default;
     CShape(size_t pts, const sf::Color& fill, const sf::Color& outline, float rad, float thickness)
         : points(pts), fillColor(fill), outlineColor(outline), radius(rad), outlineThickness(thickness)
     {
@@ -143,6 +147,7 @@ struct CCollider
     bool isTrigger;
     static constexpr const char* name = "Collider";
 
+    CCollider() = default;
     CCollider(const Vect2f& sz, const Vect2f& off, bool trigger = false)
         : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), isTrigger(trigger)
     {
@@ -199,6 +204,7 @@ struct CRigidBody
     bool isStatic;
     static constexpr const char* name = "RigidBody";
 
+    CRigidBody() = default;
     CRigidBody(const Vect2f& vel, float m, float bounciness, bool stat) : velocity(vel), mass(m), bounciness(bounciness), isStatic(stat)
     {
         if (isStatic)
@@ -234,10 +240,18 @@ struct CRigidBody
     }
 };
 
-inline void to_json(Json& j, const CRigidBody& c) { j = { { "mass", c.mass }, { "bounciness", c.bounciness }, { "isStatic", c.isStatic } }; }
+inline void to_json(Json& j, const CRigidBody& c)
+{
+    j = { { "velocity", { { "x", c.velocity.x }, { "y", c.velocity.y } } },
+        { "mass", c.mass },
+        { "bounciness", c.bounciness },
+        { "isStatic", c.isStatic } };
+}
 
 inline void from_json(const Json& j, CRigidBody& c)
 {
+    c.velocity.x = j["velocity"].value("x", 0.f);
+    c.velocity.y = j["velocity"].value("y", 0.f);
     c.mass = j.value("mass", 1.f);
     c.bounciness = j.value("bounciness", 0.5f);
     c.isStatic = j.value("isStatic", false);
@@ -250,10 +264,6 @@ inline void from_json(const Json& j, CRigidBody& c)
     {
         c.inverseMass = 1.f / c.mass;
     }
-
-    // reset runtime data
-    c.velocity = { 0, 0 };
-    c.previousPosition = { 0, 0 };
 }
 
 struct CText
@@ -264,6 +274,7 @@ struct CText
     float fontSize;
     static constexpr const char* name = "Text";
 
+    CText() = default;
     CText(const std::string& txt, const sf::Color& color, const Vect2f& off, float size) : content(txt), textColor(color), offset(off), fontSize(size)
     {
     }
@@ -312,7 +323,10 @@ inline void from_json(const Json& j, CText& c)
 struct CNotDrawable
 {
     static constexpr const char* name = "NotDrawable";
+
+    CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
+
     void GuiInspectorDisplay(void* ptr)
     {
         TypeHeader<CNotDrawable>(name, ptr);

@@ -1,4 +1,6 @@
 #pragma once
+#include <fstream>
+#include <istream>
 #include <unordered_map>
 #include <string>
 #include <memory>
@@ -15,7 +17,7 @@ class SceneManager
 
   public:
 
-    BaseScene* GetCurrentScenePtr()const {return m_currentScene;}
+    BaseScene* GetCurrentScenePtr() const { return m_currentScene; }
 
     void RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene)
     {
@@ -23,10 +25,10 @@ class SceneManager
         Log_Info(name + " Scene was registered");
     }
 
-    void ChangeScene(const std::string& name,World* worldPtr)
+    void ChangeScene(const std::string& name, World* worldPtr)
     {
         auto it = m_scenes.find(name);
-        //Return if scene not found or already playing
+        // Return if scene not found or already playing
         if (it == m_scenes.end()) return;
 
         if (m_currentScene) m_currentScene->OnChangeFrom(worldPtr);
@@ -35,5 +37,37 @@ class SceneManager
         m_currentScene->OnChangeTo(worldPtr);
 
         Log_Info("Changed to Scene " + name);
+    }
+
+    void SaveSceneToFile(World& world, const std::string& filePath)
+    {
+        Json sceneJson = world.SerializeWorld();
+
+        std::ofstream file(filePath);
+        if (!file.is_open())
+        {
+            Log_Warning("Failed to open file for saving scene: " + filePath);
+            return;
+        }
+
+        file << sceneJson.dump(2);
+        file.close();
+    }
+
+    void LoadSceneFromFile(World& world, const std::string& filePath)
+    {
+        std::ifstream file(filePath);
+        if (!file.is_open())
+        {
+            Log_Warning("Failed to open scene file: " + filePath);
+            return;
+        }
+
+        Json sceneJson;
+        file >> sceneJson;
+
+        // Maybe clear old scene
+
+        world.DeserializeWorld(sceneJson);
     }
 };

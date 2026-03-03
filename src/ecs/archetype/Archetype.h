@@ -130,8 +130,8 @@ class Archetype
         return componentPtr;
     }
 
-    template<typename Func>
-    void ForEachComponent(const EntityStorageLocation& entityLocation ,Func&& func)
+    template <typename Func>
+    void ForEachComponent(const EntityStorageLocation& entityLocation, Func&& func)
     {
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
@@ -140,18 +140,25 @@ class Archetype
             void* rawBlock = m_chunks[entityLocation.chunkIndex].components[m_sparse[componentId]];
             char* byteBase = static_cast<char*>(rawBlock);
             void* componentPtr = byteBase + (entityLocation.indexInChunk * componentInfo.size);
-            func(componentId,componentPtr);
+            func(componentId, componentPtr);
         }
     }
 
     template <typename Component>
-    void ConstructComponentAt(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
+    void ConstructComponentByType(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
     {
         size_t allocatorIndex = m_sparse[id];
         void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
         Component* componentArray = reinterpret_cast<Component*>(rawBlock);
 
         new (&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
+    }
+
+    void ConstructComponentById(void* componentPtr, const ComponentInfo& componentInfo, ComponentID id, const EntityStorageLocation& entityLocation)
+    {
+        size_t allocatorIndex = m_sparse[id];
+        void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
+        componentInfo.EmplaceComponent(rawBlock, componentPtr, entityLocation.indexInChunk);
     }
 
     // Do later: If archetypes are stable, you can precompute a component map allowing

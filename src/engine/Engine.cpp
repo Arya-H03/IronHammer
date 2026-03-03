@@ -8,6 +8,7 @@
 #include "scene/BaseScene.h"
 #include "scene/GameScene.h"
 #include "scene/SceneManager.h"
+#include "core/utils/Random.hpp"
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/WindowEnums.hpp>
@@ -49,8 +50,12 @@ void Engine::Init()
     bool ok = ImGui::SFML::Init(m_window);
     assert(ok && "ImGui failed to initialize");
 
+    LoadEditorSceneData();
+
     m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize));
     m_sceneManager.ChangeScene("Game", m_currentWorld);
+
+
 }
 
 void Engine::PausePlayMode()
@@ -64,6 +69,8 @@ void Engine::EnterPlayMode()
 {
     m_tempWorld.reset();
     m_tempWorld = std::make_unique<World>();
+    LoadTempSceneData();
+
     m_currentWorld = m_tempWorld.get();
 
     m_renderSystem.ResetWorld(m_currentWorld);
@@ -94,6 +101,22 @@ void Engine::TogglePlayMode()
     {
         ExitPlayMode();
     }
+}
+
+void Engine::SaveEditWorldData()
+{
+    if (m_engineMode == EngineMode::Play) return;
+    m_sceneManager.SaveSceneToFile(*m_editorWorld, "src/sceneData/test.Json");
+}
+void Engine::LoadEditorSceneData()
+{
+    if (m_engineMode == EngineMode::Play) return;
+    m_sceneManager.LoadSceneFromFile(*m_editorWorld, "src/sceneData/test.Json");
+}
+
+void Engine::LoadTempSceneData()
+{
+     m_sceneManager.LoadSceneFromFile(*m_tempWorld, "src/sceneData/test.Json");
 }
 
 float Engine::BeginFrame()

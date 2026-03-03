@@ -11,7 +11,7 @@ namespace EditorConfig
     inline constexpr uint16_t PanelSpacing = 6;
 
     inline constexpr uint16_t InspectorWidth = 400;
-    inline constexpr uint16_t DebugWidth = 450;
+    inline constexpr uint16_t DebugWidth = 485;
     inline constexpr uint16_t LogHeight = 250;
 
     struct Layout

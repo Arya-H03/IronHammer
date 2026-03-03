@@ -14,7 +14,7 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_movementSystem.SetupSystem(worldPtr);
     m_collisionSystem.SetupSystem(worldPtr);
 
-    SpawnTestEntities();
+    //SpawnTestEntities();
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -39,7 +39,7 @@ void GameScene::Update(World* worldPtr, InputSystem& inputSystem)
 
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 10000;
+    size_t count = 100;
 
     for (size_t i = 0; i < count; ++i)
     {

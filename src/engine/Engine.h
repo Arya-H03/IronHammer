@@ -4,6 +4,7 @@
 #include <SFML/System/Clock.hpp>
 #include <cstdint>
 #include <memory>
+
 #include "ecs/World.hpp"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
@@ -65,4 +66,8 @@ class Engine
     void UpdateRuntime();
     void RenderFrame();
     void EndFrame();
+
+    void SaveEditWorldData();
+    void LoadEditorSceneData();
+    void LoadTempSceneData();
 };

@@ -4,12 +4,20 @@
 #include <cstddef>
 #include <cstring>
 #include <cassert>
+#include <iterator>
+#include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
+#include "nlohmann/json_fwd.hpp"
 
 using DisplayComponentFn = void (*)(void*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
+using SerializeComponentFn = void (*)(nlohmann::json&, void*);
+using DeSerializeComponentFn = void* (*) (nlohmann::json&);
+using EmplaceComponentFn = void (*)(void*, void*, size_t);
+using DestroyComponentFn = void (*)(void*);
 
 struct ComponentInfo
 {
@@ -18,6 +26,10 @@ struct ComponentInfo
     const char* name;
     DisplayComponentFn DisplayComponent;
     MoveComponentFn MoveComponent;
+    SerializeComponentFn SerializeComponent;
+    DeSerializeComponentFn DeSerializeComponent;
+    EmplaceComponentFn EmplaceComponent;
+    DestroyComponentFn DestroyComponent;
 };
 
 class ComponentRegistry
@@ -79,6 +91,40 @@ class ComponentRegistry
                 // srcArray[srcIndex].~T();
             }
         };
+        newComponentInfo.SerializeComponent = [](nlohmann::json& json, void* ptr)
+        {
+            ComponentType* componentPtr = reinterpret_cast<ComponentType*>(ptr);
+            json[ComponentType::name] = *componentPtr;
+        };
+        newComponentInfo.DeSerializeComponent = [](nlohmann::json& json) -> void*
+        {
+            if (!json.contains(ComponentType::name))
+            {
+                Log_Warning("Tried to deserialize json that doesn't contain required component");
+                return nullptr;
+            }
+
+            ComponentType component {};
+            from_json(json[ComponentType::name], component);
+
+            // It will be funny to forget to delete this later
+            return new ComponentType(std::move(component));
+        };
+
+        newComponentInfo.EmplaceComponent = [](void* arrayPtr, void* componentPtr, size_t index)
+        {
+            ComponentType* array = reinterpret_cast<ComponentType*>(arrayPtr);
+            ComponentType* source = reinterpret_cast<ComponentType*>(componentPtr);
+
+            new (&array[index]) ComponentType(std::move(*source));
+        };
+
+        newComponentInfo.DestroyComponent = [](void* componentPtr)
+        {
+            ComponentType* component = reinterpret_cast<ComponentType*>(componentPtr);
+            component->~ComponentType();
+            operator delete(component);
+        };
 
         if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
         componentInfos[newComponentInfo.id] = newComponentInfo;
@@ -89,6 +135,15 @@ class ComponentRegistry
     {
         static ComponentID id = GetOrMakeComponentId<ComponentType>();
         return id;
+    }
+
+    static const ComponentInfo* GetComponentInfoPtrByName(const std::string name)
+    {
+        for (const auto& componentInfo : componentInfos)
+        {
+            if (componentInfo.name && name == componentInfo.name) return &componentInfo;
+        }
+        return nullptr;
     }
 
     static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
