@@ -123,15 +123,15 @@ void Engine::TogglePlayMode()
 void Engine::SaveEditWorldData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.SaveSceneToFile(*m_editorWorld, "src/assets/sceneData/test.Json");
+    m_sceneManager.SaveScene(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 void Engine::LoadEditorSceneData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.LoadSceneFromFile(*m_editorWorld, "src/assets/sceneData/test.Json");
+    m_sceneManager.LoadScene(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 
-void Engine::LoadTempSceneData() { m_sceneManager.LoadSceneFromFile(*m_tempWorld, "src/assets/sceneData/test.Json"); }
+void Engine::LoadTempSceneData() { m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json"); }
 
 float Engine::BeginFrame()
 {

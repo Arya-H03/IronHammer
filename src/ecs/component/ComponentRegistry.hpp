@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstring>
 #include <cassert>
-#include <iterator>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -12,7 +11,7 @@
 #include "ecs/common/ECSCommon.h"
 #include "nlohmann/json_fwd.hpp"
 
-using DisplayComponentFn = void (*)(void*);
+using DisplayComponentFn = void (*)(void*, bool*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 using SerializeComponentFn = void (*)(nlohmann::json&, void*);
 using DeSerializeComponentFn = void* (*) (nlohmann::json&);
@@ -69,10 +68,10 @@ class ComponentRegistry
         assert(newComponentInfo.id < MaxComponents);
         newComponentInfo.name = ComponentType::name;
         newComponentInfo.size = sizeof(ComponentType);
-        newComponentInfo.DisplayComponent = [](void* ptr)
+        newComponentInfo.DisplayComponent = [](void* ptr, bool* isDirty = nullptr)
         {
             ComponentType* component = reinterpret_cast<ComponentType*>(ptr);
-            component->GuiInspectorDisplay(ptr);
+            component->GuiInspectorDisplay(ptr, isDirty);
         };
         newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
         {

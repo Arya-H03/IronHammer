@@ -3,7 +3,6 @@
 #include <utility>
 #include <vector>
 #include <format>
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
@@ -16,7 +15,6 @@ using Json = nlohmann::json;
 class EntityManager
 {
     friend class CommandBuffer;
-    friend class EntityInspector;
 
     struct EntitySlot
     {
@@ -37,30 +35,6 @@ class EntityManager
     std::vector<EntityStorageLocation> m_entityStorageLocations;
 
     ArchetypeRegistry& m_archetypeRegistry;
-
-    bool ValidateEntity(Entity entity) const
-    {
-        bool isIdValid = entity.id < m_entitySlots.size();
-        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
-        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
-
-#ifndef NDEBUG
-        if (!isIdValid)
-        {
-            std::cerr << std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation) << "\n";
-        }
-        if (!isEntityOccupied)
-        {
-            std::cerr << std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation) << "\n";
-        }
-        if (!isGenValid)
-        {
-            std::cerr << std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation) << "\n";
-        }
-#endif
-
-        return isIdValid && isEntityOccupied && isGenValid;
-    }
 
     template <typename... Components>
     Entity CreateEntity(Components&&... components)
@@ -215,6 +189,31 @@ class EntityManager
 
     const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
 
+    EntityStorageLocation GetEntityLocation(Entity entity) const
+    {
+        if (!ValidateEntity(entity)) return EntityStorageLocation {};
+        return m_entityStorageLocations[entity.id];
+    }
+
+    Archetype* GetEntityArchetypePtr(Entity entity) const
+    {
+        if (!ValidateEntity(entity)) return nullptr;
+        return &m_archetypeRegistry.GetArchetypeById(GetEntityLocation(entity).archetypeId);
+    }
+
+    bool ValidateEntity(Entity entity) const
+    {
+        bool isIdValid = entity.id < m_entitySlots.size();
+        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
+        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
+#ifndef NDEBUG
+        if (!isIdValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+        if (!isEntityOccupied) Log_Warning(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+        if (!isGenValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+#endif
+        return isIdValid && isEntityOccupied && isGenValid;
+    }
+
     template <typename Component>
     bool HasComponent(Entity entity)
     {
@@ -280,7 +279,7 @@ class EntityManager
 
         for (auto& entityLocation : m_entityStorageLocations)
         {
-            if(entityLocation.archetypeId == InvalidArchetypeID) continue;
+            if (entityLocation.archetypeId == InvalidArchetypeID) continue;
             Json entityJson = SerializeEntity(entityLocation);
             allEntitiesJson["entities"].push_back(entityJson);
         }

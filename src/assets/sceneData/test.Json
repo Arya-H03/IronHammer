@@ -1,0 +1,216 @@
+{
+  "entities": [
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 196.88677978515625,
+          "y": 196.88677978515625
+        }
+      },
+      "Movement": {
+        "speed": 1.5079472064971924
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 73.04254150390625,
+          "y": 60.301544189453125
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          56,
+          161,
+          78,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 19,
+        "radius": 98.44338989257813
+      },
+      "Transform": {
+        "position": {
+          "x": 777.7249755859375,
+          "y": 219.21975708007813
+        },
+        "rotation": 45.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 199.2881317138672,
+          "y": 199.2881317138672
+        }
+      },
+      "Movement": {
+        "speed": 3.187525987625122
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": -39.87031936645508,
+          "y": -56.091243743896484
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          255,
+          247,
+          247,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 20,
+        "radius": 99.6440658569336
+      },
+      "Transform": {
+        "position": {
+          "x": 267.76947021484375,
+          "y": 581.5540771484375
+        },
+        "rotation": 45.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 110.98617553710938,
+          "y": 110.98617553710938
+        }
+      },
+      "Movement": {
+        "speed": 4.828667640686035
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 84.70671081542969,
+          "y": 86.59974670410156
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          204,
+          204,
+          76,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 11,
+        "radius": 55.49308776855469
+      },
+      "Transform": {
+        "position": {
+          "x": 371.0945129394531,
+          "y": 738.73828125
+        },
+        "rotation": 45.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 163.97633361816406,
+          "y": 163.97633361816406
+        }
+      },
+      "Movement": {
+        "speed": 4.662941932678223
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": -14.082969665527344,
+          "y": -69.75638580322266
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          224,
+          245,
+          128,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 17,
+        "radius": 81.98816680908203
+      },
+      "Transform": {
+        "position": {
+          "x": 344.04449462890625,
+          "y": 104.20946502685547
+        },
+        "rotation": 45.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
+    }
+  ]
+}

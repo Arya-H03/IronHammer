@@ -29,7 +29,7 @@ class Editor
         // One time sync into context
         m_editorContext.renderSystem = &m_editorContext.engine.GetRenderSystem();
         m_editorContext.inputSystem = &m_editorContext.engine.GetInputSystem();
-        m_editorContext.entityTemplates = &m_editorContext.engine.GetEntityTemplateManager();
+        m_editorContext.entityTemplateManager = &m_editorContext.engine.GetEntityTemplateManager();
 
         m_inputManager.CreateInputAction(
             "Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_editorContext.engine.GetRenderWindow().close(); });

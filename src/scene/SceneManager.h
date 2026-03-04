@@ -6,6 +6,7 @@
 
 #include "ecs/World.hpp"
 #include "scene/BaseScene.h"
+#include "core/saving/JsonUtility.h"
 
 class SceneManager
 {
@@ -38,22 +39,13 @@ class SceneManager
         Log_Info("Changed to Scene " + name);
     }
 
-    void SaveSceneToFile(World& world, const std::string& filePath)
+    void SaveScene(World& world, const std::string& filePath)
     {
         Json sceneJson = world.SerializeWorld();
-
-        std::ofstream file(filePath);
-        if (!file.is_open())
-        {
-            Log_Warning("Failed to open file for saving scene: " + filePath);
-            return;
-        }
-
-        file << sceneJson.dump(2);
-        file.close();
+        JsonUtility::SaveJsonObjectToFile(sceneJson, filePath);
     }
 
-    void LoadSceneFromFile(World& world, const std::string& filePath)
+    void LoadScene(World& world, const std::string& filePath)
     {
         std::ifstream file(filePath);
         if (!file.is_open())
@@ -62,11 +54,7 @@ class SceneManager
             return;
         }
 
-        Json sceneJson;
-        file >> sceneJson;
-
-        // Maybe clear old scene
-
+        Json sceneJson = JsonUtility::LoadJsonObjectFromFile(filePath);
         world.DeserializeWorld(sceneJson);
     }
 };

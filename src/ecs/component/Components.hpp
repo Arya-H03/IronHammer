@@ -24,17 +24,17 @@ struct CTransform
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
     REGISTER_COMPONENT(CTransform);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CTransform>(name, ptr);
         if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Position");
-            DragFloat2("##PosX", &position.x, "##PosY", &position.y);
+            EntityInspectorHelpers::DragFloat2("##PosX", &position.x, "##PosY", &position.y, 0.1, isDirty);
             TableNextField("Scale");
-            DragFloat2("##ScaleX", &scale.x, "##ScaleY", &scale.y);
+            EntityInspectorHelpers::DragFloat2("##ScaleX", &scale.x, "##ScaleY", &scale.y, 0.1, isDirty);
             TableNextField("Rotation");
-            DragFloatWithLimits("##Rotation", &rotation, 0.5f, -360.f, 360.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##Rotation", &rotation, 0.5f, -360.f, 360.f, isDirty);
             ImGui::EndTable();
         }
     }
@@ -65,13 +65,13 @@ struct CMovement
     CMovement(float spd) : speed(spd) { }
     REGISTER_COMPONENT(CMovement);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CMovement>(name, ptr);
         if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Speed");
-            DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f, isDirty);
             ImGui::EndTable();
         }
     }
@@ -97,21 +97,21 @@ struct CShape
     }
     REGISTER_COMPONENT(CShape);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CShape>(name, ptr);
         if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Points");
-            DragScalar("##Points", &points);
+            EntityInspectorHelpers::DragScalar("##Points", &points, isDirty);
             TableNextField("Radius");
-            DragFloatWithLimits("##ShapeRadius", &radius, 0.1f);
+            EntityInspectorHelpers::DragFloatWithLimits("##ShapeRadius", &radius, 0.1f, 0.f, 100.f, isDirty);
             TableNextField("Outline Thickness");
-            DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f, isDirty);
             TableNextField("Fill Color");
-            ColorEdit4("##ShapeFill", fillColor);
+            EntityInspectorHelpers::ColorEdit4("##ShapeFill", fillColor, isDirty);
             TableNextField("Outline Color");
-            ColorEdit4("##ShapeOutline", outlineColor);
+            EntityInspectorHelpers::ColorEdit4("##ShapeOutline", outlineColor, isDirty);
             ImGui::EndTable();
         }
     }
@@ -154,20 +154,20 @@ struct CCollider
     }
     REGISTER_COMPONENT(CCollider);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CCollider>(name, ptr);
 
         if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Size");
-            DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y);
+            EntityInspectorHelpers::DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1, isDirty);
             halfSize = { size.x * 0.5f, size.y * 0.5f };
 
             TableNextField("Offset");
-            DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y);
+            EntityInspectorHelpers::DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y, 0.1, isDirty);
             TableNextField("Is Trigger");
-            Checkbox("##ColliderTrigger", &isTrigger);
+            EntityInspectorHelpers::Checkbox("##ColliderTrigger", &isTrigger, isDirty);
 
             ImGui::EndTable();
         }
@@ -219,22 +219,22 @@ struct CRigidBody
     }
     REGISTER_COMPONENT(CRigidBody);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CRigidBody>(name, ptr);
 
         if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Velocity");
-            DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y);
+            EntityInspectorHelpers::DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y, 0.1, isDirty);
             TableNextField("Previous Position");
-            DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y);
+            EntityInspectorHelpers::DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y, 0.1, isDirty);
             TableNextField("Mass");
-            DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f, isDirty);
             TableNextField("Bounciness");
-            DragFloatWithLimits("##RBBounciness", &bounciness, 0.1f, 0.f, 1.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##RBBounciness", &bounciness, 0.1f, 0.f, 1.f, isDirty);
             TableNextField("Is Static");
-            Checkbox("##RBStatic", &isStatic);
+            EntityInspectorHelpers::Checkbox("##RBStatic", &isStatic, isDirty);
             ImGui::EndTable();
         }
     }
@@ -280,20 +280,20 @@ struct CText
     }
     REGISTER_COMPONENT(CText);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CText>(name, ptr);
 
         if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
             TableNextField("Content");
-            InputText("##TextContent", content);
+            EntityInspectorHelpers::InputText("##TextContent", content, isDirty);
             TableNextField("Font Size");
-            DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f);
+            EntityInspectorHelpers::DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f, isDirty);
             TableNextField("Offset");
-            DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y);
+            EntityInspectorHelpers::DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y, 0.1, isDirty);
             TableNextField("Text Color");
-            ColorEdit4("##TextColor", textColor);
+            EntityInspectorHelpers::ColorEdit4("##TextColor", textColor, isDirty);
 
             ImGui::EndTable();
         }
@@ -327,7 +327,7 @@ struct CNotDrawable
     CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
 
-    void GuiInspectorDisplay(void* ptr)
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
     {
         TypeHeader<CNotDrawable>(name, ptr);
 

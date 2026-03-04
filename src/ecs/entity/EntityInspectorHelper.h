@@ -32,38 +32,52 @@ namespace EntityInspectorHelpers
         ImGui::TableSetColumnIndex(1);
     }
 
-    inline void DragScalar(const char* label, size_t* value)
+    inline void DragScalar(const char* label, size_t* value, bool* isDirty = nullptr)
     {
         ImGui::Text(" ");
         ImGui::SameLine();
         ImGui::PushItemWidth(inputFieldWidth);
-        ImGui::DragScalar(label, ImGuiDataType_U64, value);
+        if (ImGui::DragScalar(label, ImGuiDataType_U64, value))
+        {
+            if (isDirty != nullptr) *isDirty = true;
+        }
         ImGui::PopItemWidth();
     }
 
-    inline void DragFloat2(const char* labelX, float* x, const char* labelY, float* y, float speed = 0.1f)
+    inline void DragFloat2(const char* labelX, float* x, const char* labelY, float* y, float speed = 0.1f, bool* isDirty = nullptr)
     {
         ImGui::PushItemWidth(inputFieldWidth);
         ImGui::Text("x");
         ImGui::SameLine();
-        ImGui::DragFloat(labelX, x, speed);
+        if (ImGui::DragFloat(labelX, x, speed))
+        {
+            if (isDirty != nullptr) *isDirty = true;
+        }
+
         ImGui::SameLine();
         ImGui::Text("y");
         ImGui::SameLine();
-        ImGui::DragFloat(labelY, y, speed);
+        if (ImGui::DragFloat(labelY, y, speed))
+        {
+            if (isDirty != nullptr) *isDirty = true;
+        }
+
         ImGui::PopItemWidth();
     }
 
-    inline void DragFloatWithLimits(const char* label, float* value, float speed, float min = 0.0f, float max = 10000.0f)
+    inline void DragFloatWithLimits(const char* label, float* value, float speed, float min = 0.0f, float max = 10000.0f, bool* isDirty = nullptr)
     {
         ImGui::PushItemWidth(inputFieldWidth);
         ImGui::Text(" ");
         ImGui::SameLine();
-        ImGui::DragFloat(label, value, speed, min, max);
+        if (ImGui::DragFloat(label, value, speed, min, max))
+        {
+            if (isDirty != nullptr) *isDirty = true;
+        }
         ImGui::PopItemWidth();
     }
 
-    inline void ColorEdit4(const char* label, sf::Color& color)
+    inline void ColorEdit4(const char* label, sf::Color& color, bool* isDirty = nullptr)
     {
         float col[4] = { color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f };
         ImGui::Text(" ");
@@ -75,18 +89,23 @@ namespace EntityInspectorHelpers
                 static_cast<uint8_t>(col[1] * 255),
                 static_cast<uint8_t>(col[2] * 255),
                 static_cast<uint8_t>(col[3] * 255));
+
+            if (isDirty != nullptr) *isDirty = true;
         }
         ImGui::PopItemWidth();
     }
 
-    inline void Checkbox(const char* label, bool* value)
+    inline void Checkbox(const char* label, bool* value, bool* isDirty = nullptr)
     {
         ImGui::Text(" ");
         ImGui::SameLine();
-        ImGui::Checkbox(label, value);
+        if (ImGui::Checkbox(label, value))
+        {
+            if (isDirty != nullptr) *isDirty = true;
+        }
     }
 
-    inline void InputText(const char* label, std::string& str)
+    inline void InputText(const char* label, std::string& str, bool* isDirty = nullptr)
     {
         char buffer[256] {};
         strncpy(buffer, str.c_str(), sizeof(buffer) - 1);
@@ -96,20 +115,22 @@ namespace EntityInspectorHelpers
         if (ImGui::InputText(label, buffer, sizeof(buffer)))
         {
             str = buffer;
+            if (isDirty != nullptr) *isDirty = true;
         }
         ImGui::PopItemWidth();
     }
 
-    inline void InputTextWithHint(const char* label,const char* hint, std::string& str)
+    inline void InputTextWithHint(const char* label, const char* hint, std::string& str, bool* isDirty = nullptr)
     {
         char buffer[256] {};
         strncpy(buffer, str.c_str(), sizeof(buffer) - 1);
         ImGui::Text(" ");
         ImGui::SameLine();
         ImGui::PushItemWidth(inputFieldWidth);
-        if (ImGui::InputTextWithHint(label,hint, buffer, sizeof(buffer)))
+        if (ImGui::InputTextWithHint(label, hint, buffer, sizeof(buffer)))
         {
             str = buffer;
+            if (isDirty != nullptr) *isDirty = true;
         }
         ImGui::PopItemWidth();
     }

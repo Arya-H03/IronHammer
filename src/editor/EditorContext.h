@@ -4,7 +4,7 @@
 #include "engine/Engine.h"
 #include "ecs/World.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
-#include "ecs/entity/EntityInspector.hpp"
+#include "ecs/entity/EntityInspector.h"
 #include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "editor/EditorConfig.h"
 
@@ -20,7 +20,7 @@ struct EditorContext
     // Sync once
     RenderSystem* renderSystem = nullptr;
     InputSystem* inputSystem = nullptr;
-    EntityTemplateManager* entityTemplates = nullptr;
+    EntityTemplateManager* entityTemplateManager = nullptr;
 
     EntityInspector inspector;
     ArchetypeDebugger archetypeDebugger;

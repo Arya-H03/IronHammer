@@ -1,0 +1,55 @@
+#pragma once
+
+#include <imgui.h>
+#include "ecs/World.hpp"
+#include "ecs/archetype/Archetype.h"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/entity/EntityManager.hpp"
+#include "ecs/entity/EntityTemplateManager.h"
+#include "ecs/entity/EntityTemplateInstance.h"
+
+using namespace EntityInspectorHelpers;
+
+class EntityInspector
+{
+    struct InspectorLiveEntityData
+    {
+        Entity entity {};
+        Archetype* archetypePtr = nullptr;
+        EntityStorageLocation location {};
+
+        void Clear()
+        {
+            entity = {};
+            archetypePtr = nullptr;
+            location = {};
+        }
+    };
+
+    enum class InspectorMode
+    {
+        None,
+        LiveEntity,
+        EntityTemplate
+    };
+
+  private:
+
+    InspectorLiveEntityData m_currentLiveEntityData;
+    std::unique_ptr<EntityTemplateInstance> m_currentEntityTemplateInstance;
+    InspectorMode m_inspectorMode = InspectorMode::None;
+
+    void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const;
+    void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld) const;
+    void DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager);
+
+  public:
+
+    EntityInspector() = default;
+
+    const Entity GetCurrentInspectorEntity() const;
+
+    void InspectLiveEntity(Entity entity, EntityManager& entityManager);
+    void InspectEntityTemplate(EntityTemplate& entityTemplate);
+    void DrawInspectorGui(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
+};

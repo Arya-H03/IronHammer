@@ -21,22 +21,22 @@ class BottomPanel
 
     void DrawEntityTemplateTab()
     {
-        if (!m_editorContext.entityTemplates) return;
+        if (!m_editorContext.entityTemplateManager) return;
 
         if (ImGui::BeginTabItem("Entity Templates"))
         {
-            for (auto& tpl : m_editorContext.entityTemplates->GetEntityTemplates())
+            for (auto& [name, entityTemplate] : m_editorContext.entityTemplateManager->GetEntityTemplates())
             {
-                if (ImGui::Selectable(tpl.name.c_str()))
+                if (ImGui::Selectable(name.c_str()))
                 {
-                    // Future
+                    m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
                 }
 
                 if (ImGui::BeginDragDropSource())
                 {
-                    ImGui::SetDragDropPayload("PREFAB", tpl.name.c_str(), tpl.name.size() + 1);
+                    ImGui::SetDragDropPayload("EntityTemplate", name.c_str(), name.size() + 1);
 
-                    ImGui::Text("%s", tpl.name.c_str());
+                    ImGui::Text("%s", name.c_str());
                     ImGui::EndDragDropSource();
                 }
             }

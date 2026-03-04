@@ -9,7 +9,7 @@
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "core/utils/Colors.h"
-#include "ecs/entity/EntityInspector.hpp"
+#include "ecs/entity/EntityInspector.h"
 
 class ArchetypeDebugger
 {
@@ -72,7 +72,7 @@ class ArchetypeDebugger
                 bool isSelected = (entityInspector.GetCurrentInspectorEntity() == currentEntity);
                 if (ImGui::Selectable("Entity", isSelected))
                 {
-                    entityInspector.SetCurrentInspectorEntity(currentEntity, entityManager);
+                    entityInspector.InspectLiveEntity(currentEntity, entityManager);
                 }
                 ImGui::SameLine();
                 ImGui::Text("%u", currentEntity.id);
