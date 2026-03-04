@@ -30,6 +30,11 @@ struct ComponentInfo
     EmplaceComponentFn EmplaceComponent;
     DestroyComponentFn DestroyComponent;
 };
+struct PendingComponent
+{
+    const ComponentInfo* componentInfoPtr;
+    void* componentDataPtr;
+};
 
 class ComponentRegistry
 {

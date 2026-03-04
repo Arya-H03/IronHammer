@@ -3,14 +3,12 @@
 #include <utility>
 #include <vector>
 #include <format>
-#include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
-
-using Json = nlohmann::json;
+#include "core/saving/JsonUtility.h"
 
 class EntityManager
 {
@@ -52,7 +50,6 @@ class EntityManager
             newEntity.generation = m_entitySlots[id].generation;
             newEntityArchetypeStorageIndex = m_entityStorageLocations.size() - 1;
         }
-
         // Reuse an Entity Slot
         else
         {
@@ -76,6 +73,43 @@ class EntityManager
         return newEntity;
     }
 
+    Entity CreateEntity(std::vector<PendingComponent>& pendingComponents)
+    {
+        Entity newEntity;
+        size_t newEntityArchetypeStorageIndex;
+
+        // No free Entity Slots
+        if (m_freeListHeadIndex == UINT32_MAX)
+        {
+            m_entitySlots.emplace_back(1, true, UINT32_MAX);
+            m_entityStorageLocations.emplace_back();
+            uint32_t id = (unsigned int) m_entitySlots.size() - 1;
+            newEntity.id = id;
+            newEntity.generation = m_entitySlots[id].generation;
+            newEntityArchetypeStorageIndex = m_entityStorageLocations.size() - 1;
+        }
+        // Reuse an Entity Slot
+        else
+        {
+            uint32_t id = m_freeListHeadIndex;
+            EntitySlot& slot = m_entitySlots[id];
+            m_freeListHeadIndex = slot.nextFreeEntityIndex;
+            slot.isOccupied = true;
+            ++slot.generation;
+            newEntity.id = id;
+            newEntity.generation = slot.generation;
+            newEntityArchetypeStorageIndex = id;
+        }
+
+        // Find Archetype
+        ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask(pendingComponents);
+        Archetype& archetype = m_archetypeRegistry.GetArchetype(signature);
+        EntityStorageLocation newEntityArchetypeStorage = archetype.AddEntity(newEntity, pendingComponents);
+
+        // Update Entity Storage Location
+        m_entityStorageLocations[newEntityArchetypeStorageIndex] = newEntityArchetypeStorage;
+        return newEntity;
+    }
     void DestroyEntity(Entity entity)
     {
         if (!ValidateEntity(entity)) return;
@@ -147,7 +181,7 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
 
         // Add new Component
-        dstArchetype.ConstructComponentById(componentPtr, componentInfo, componentId, newEntityLocation);
+        dstArchetype.ConstructComponentById(componentPtr, componentInfo, newEntityLocation);
 
         // Destroy pointer
         componentInfo.DestroyComponent(componentPtr);
@@ -249,7 +283,7 @@ class EntityManager
 
     void DeserializeEntity(Json entityJson)
     {
-        Entity entity = CreateEntity();
+        std::vector<PendingComponent> pendingComponents;
 
         for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
         {
@@ -267,10 +301,10 @@ class EntityManager
                 Log_Warning("Failed to deserialize component: " + componentName);
                 continue;
             }
-
-            // Add to ECS
-            AddToEntityById(entity, componentInfo->id, componentPtr);
+            pendingComponents.push_back({ componentInfo, componentPtr });
         }
+
+        CreateEntity(pendingComponents);
     }
 
     Json SerializeAllEntites()

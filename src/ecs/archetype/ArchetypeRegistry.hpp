@@ -104,6 +104,16 @@ class ArchetypeRegistry
         return signature;
     }
 
+    ComponentSignatureMask MakeSignatureMask(std::vector<PendingComponent>& pendingComponents)
+    {
+        ComponentSignatureMask signature;
+        for (const auto& component : pendingComponents)
+        {
+            signature.set(component.componentInfoPtr->id);
+        }
+        return signature;
+    }
+
     template <typename... QueryGroup>
     Query* GetOrCreateQuery()
     {

@@ -154,9 +154,9 @@ class Archetype
         new (&componentArray[entityLocation.indexInChunk]) Component(std::forward<Component>(component));
     }
 
-    void ConstructComponentById(void* componentPtr, const ComponentInfo& componentInfo, ComponentID id, const EntityStorageLocation& entityLocation)
+    void ConstructComponentById(void* componentPtr, const ComponentInfo& componentInfo, const EntityStorageLocation& entityLocation)
     {
-        size_t allocatorIndex = m_sparse[id];
+        size_t allocatorIndex = m_sparse[componentInfo.id];
         void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
         componentInfo.EmplaceComponent(rawBlock, componentPtr, entityLocation.indexInChunk);
     }
@@ -212,6 +212,29 @@ class Archetype
                 new (&typeArray[index]) Type(std::forward<Components>(components));
             }(),
             ...);
+
+        ++targetChunk.size;
+        ++m_totalSize;
+
+        uint32_t chunkIndex = static_cast<uint32_t>(m_chunks.size() - 1);
+        uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
+
+        targetChunk.entities[indexInChunk] = entity;
+
+        return EntityStorageLocation { m_archetypeId, chunkIndex, indexInChunk };
+    }
+
+    EntityStorageLocation AddEntity(Entity entity, std::vector<PendingComponent>& pendingComponents)
+    {
+        ArchetypeChunk& targetChunk = m_chunks[GetFreeChunkIndex()];
+        const size_t index = targetChunk.size;
+
+        for (const auto& component : pendingComponents)
+        {
+            ComponentID componentId = component.componentInfoPtr->id;
+            void* rawBlock = targetChunk.components[m_sparse[componentId]];
+            component.componentInfoPtr->EmplaceComponent(rawBlock, component.componentDataPtr, index);
+        }
 
         ++targetChunk.size;
         ++m_totalSize;
