@@ -40,6 +40,7 @@ sf::RenderWindow& Engine::GetRenderWindow() { return m_window; }
 RenderSystem& Engine::GetRenderSystem() { return m_renderSystem; }
 SceneManager& Engine::GetSceneManager() { return m_sceneManager; }
 InputSystem& Engine::GetInputSystem() { return m_inputSystem; }
+EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTemplateManager; }
 
 void Engine::Init()
 {
@@ -55,7 +56,23 @@ void Engine::Init()
     m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize));
     m_sceneManager.ChangeScene("Game", m_currentWorld);
 
+    // size_t count = 5;
+    // for (size_t i = 0; i < count; ++i)
+    // {
+    //     Vect2f startPos { Random::Float(100, m_windowSize.x - 100), Random::Float(100, m_windowSize.y - 100) };
 
+    //     Vect2f startVel { Random::Float(-90, 90), Random::Float(-90, 90) };
+
+    //     float speed = Random::Float(1, 5);
+    //     float radius = Random::Float(50, 100);
+    //     int points = Random::Int(3, 20);
+
+    //     m_editorWorld->CreateEntity(CTransform(startPos, { 3, 3 }, 45),
+    //         CMovement(speed),
+    //         CRigidBody(startVel, radius, 0.1f, true),
+    //         CCollider({ radius * 2, radius * 2 }, { 0, 0 }, false),
+    //         CShape(points, Random::Color(), sf::Color::White, radius, 0));
+    // }
 }
 
 void Engine::PausePlayMode()
@@ -106,18 +123,15 @@ void Engine::TogglePlayMode()
 void Engine::SaveEditWorldData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.SaveSceneToFile(*m_editorWorld, "src/sceneData/test.Json");
+    m_sceneManager.SaveSceneToFile(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 void Engine::LoadEditorSceneData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.LoadSceneFromFile(*m_editorWorld, "src/sceneData/test.Json");
+    m_sceneManager.LoadSceneFromFile(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 
-void Engine::LoadTempSceneData()
-{
-     m_sceneManager.LoadSceneFromFile(*m_tempWorld, "src/sceneData/test.Json");
-}
+void Engine::LoadTempSceneData() { m_sceneManager.LoadSceneFromFile(*m_tempWorld, "src/assets/sceneData/test.Json"); }
 
 float Engine::BeginFrame()
 {

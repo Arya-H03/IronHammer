@@ -175,7 +175,7 @@ class EntityManager
         // Add new Component
         dstArchetype.ConstructComponentById(componentPtr, componentInfo, componentId, newEntityLocation);
 
-        //Destroy pointer
+        // Destroy pointer
         componentInfo.DestroyComponent(componentPtr);
     }
 
@@ -203,6 +203,34 @@ class EntityManager
         // Have to update the EntityStorageLocation of BOTH Entities.
         m_entityStorageLocations[deletionResult.first.id] = deletionResult.second; // Swaped Entity
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
+    }
+
+  public:
+
+    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
+    {
+        m_entitySlots.reserve(initialEntitySize);
+        m_entityStorageLocations.reserve(initialEntitySize);
+    }
+
+    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
+
+    template <typename Component>
+    bool HasComponent(Entity entity)
+    {
+        if (!ValidateEntity(entity)) return false;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.HasComponent<Component>();
+    }
+
+    template <typename Component>
+    Component* TryGetComponent(Entity entity)
+    {
+        if (!ValidateEntity(entity)) return nullptr;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
     }
 
     Json SerializeEntity(EntityStorageLocation entityLocation)
@@ -246,40 +274,13 @@ class EntityManager
         }
     }
 
-  public:
-
-    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
-    {
-        m_entitySlots.reserve(initialEntitySize);
-        m_entityStorageLocations.reserve(initialEntitySize);
-    }
-
-    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
-
-    template <typename Component>
-    bool HasComponent(Entity entity)
-    {
-        if (!ValidateEntity(entity)) return false;
-        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
-        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.HasComponent<Component>();
-    }
-
-    template <typename Component>
-    Component* TryGetComponent(Entity entity)
-    {
-        if (!ValidateEntity(entity)) return nullptr;
-        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
-        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
-    }
-
     Json SerializeAllEntites()
     {
         Json allEntitiesJson;
 
         for (auto& entityLocation : m_entityStorageLocations)
         {
+            if(entityLocation.archetypeId == InvalidArchetypeID) continue;
             Json entityJson = SerializeEntity(entityLocation);
             allEntitiesJson["entities"].push_back(entityJson);
         }
@@ -294,6 +295,4 @@ class EntityManager
             DeserializeEntity(entityJson);
         }
     }
-
-
 };

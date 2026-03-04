@@ -99,4 +99,18 @@ namespace EntityInspectorHelpers
         }
         ImGui::PopItemWidth();
     }
+
+    inline void InputTextWithHint(const char* label,const char* hint, std::string& str)
+    {
+        char buffer[256] {};
+        strncpy(buffer, str.c_str(), sizeof(buffer) - 1);
+        ImGui::Text(" ");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(inputFieldWidth);
+        if (ImGui::InputTextWithHint(label,hint, buffer, sizeof(buffer)))
+        {
+            str = buffer;
+        }
+        ImGui::PopItemWidth();
+    }
 }

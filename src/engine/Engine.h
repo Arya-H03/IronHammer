@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "ecs/World.hpp"
+#include "ecs/entity/EntityTemplateManager.h"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "core/utils/Vect2.hpp"
@@ -39,6 +40,7 @@ class Engine
     RenderSystem m_renderSystem;
     InputSystem m_inputSystem;
     SceneManager m_sceneManager;
+    EntityTemplateManager m_entityTemplateManager;
 
     void EnterPlayMode();
     void ExitPlayMode();
@@ -58,6 +60,7 @@ class Engine
     RenderSystem& GetRenderSystem();
     SceneManager& GetSceneManager();
     InputSystem& GetInputSystem();
+    EntityTemplateManager& GetEntityTemplateManager();
 
     void TogglePlayMode();
     void PausePlayMode();

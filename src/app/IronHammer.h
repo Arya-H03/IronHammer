@@ -21,8 +21,7 @@ class IronHammer
             float dt = m_engine.BeginFrame();
             m_engine.UpdateRuntime();
 
-            EditorFrameContext editorFrameContext(m_engine.GetRenderSystem(), m_engine.GetInputSystem(), m_engine.GetCurrentWorld());
-            m_editor.Update(editorFrameContext);
+            m_editor.Update();
 
             m_engine.RenderFrame();
             m_engine.EndFrame();

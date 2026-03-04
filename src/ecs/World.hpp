@@ -1,14 +1,13 @@
 #pragma once
 
 #include "ecs/archetype/Archetype.h"
-#include "ecs/archetype/ArchetypeDebugger.hpp"
+
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/Components.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
-#include "ecs/entity/EntityInspector.hpp"
-#include <vector>
+
 
 class World
 {
@@ -20,23 +19,14 @@ class World
     EntityManager m_entityManager;
     CommandBuffer m_commandBuffer;
 
-    EntityInspector m_entityInspector;
-    const ArchetypeDebugger m_archetypeDebugger;
-
     void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(); }
 
   public:
 
-    World()
-        : m_entityManager(m_archetypeRegistry)
-        , m_commandBuffer(m_entityManager)
-        , m_entityInspector(m_entityManager)
-        , m_archetypeDebugger(m_archetypeRegistry, m_commandBuffer, m_entityInspector)
-    {
-    }
-
-    EntityInspector& GetEntityInspector() { return m_entityInspector; }
-    const ArchetypeDebugger& GetArchetypeDebugger() const { return m_archetypeDebugger; }
+    World() : m_entityManager(m_archetypeRegistry), m_commandBuffer(m_entityManager) { }
+    ArchetypeRegistry& GetArchetypeRegistry() { return m_archetypeRegistry; }
+    EntityManager& GetEntityManager() { return m_entityManager; }
+    CommandBuffer& GetCommandBuffer() { return m_commandBuffer; }
 
     template <typename Func>
     void ForEachComponentOfEntity(const EntityStorageLocation& entityLocation, Func&& func)
@@ -91,8 +81,9 @@ class World
 
     Json SerializeWorld() { return m_entityManager.SerializeAllEntites(); }
 
-    void DeserializeWorld(Json worldJson)
-    {
-        m_entityManager.DeserializeWorld(worldJson);
-    }
+    void DeserializeWorld(Json worldJson) { m_entityManager.DeserializeWorld(worldJson); }
+
+    Json SerializeEntity(EntityStorageLocation entityLocation) { return m_entityManager.SerializeEntity(entityLocation); }
+
+    void DeserializeEntity(Json entityJson) { m_entityManager.DeserializeEntity(entityJson); }
 };

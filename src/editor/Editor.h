@@ -1,73 +1,53 @@
 #pragma once
 
-#include <SFML/Graphics/RenderTexture.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <cerrno>
-#include <functional>
-#include "core/utils/Debug.h"
-#include "ecs/World.hpp"
-#include "engine/Engine.h"
+#include "EditorContext.h"
+#include "EditorGui.h"
 #include "input/InputManager.h"
-#include "input/InputSystem.h"
-#include "rendering/RenderSystem.h"
-#include "editor/EditorGui.h"
-
-struct EditorFrameContext
-{
-    RenderSystem& renderSystem;
-    InputSystem& inputSystem;
-    World* world;
-};
+#include <SFML/Window/Keyboard.hpp>
 
 class Editor
 {
   private:
 
-    Engine& m_engine;
+    EditorContext m_editorContext;
+    EditorGui m_gui;
     InputManager m_inputManager;
 
-    sf::RenderWindow& m_window;
-    sf::RenderTexture m_renderTexture;
-
-    EditorConfig::Layout m_editorLayout;
-    EditorGuiCallbacks m_editorGuiCallbacks;
-    EditorGui m_editorGui;
-
-    void RenderViewport(RenderSystem& renderSystem)
+    void RenderViewportTexture()
     {
-        m_renderTexture.clear();
-        renderSystem.HandleRenderSystem(m_renderTexture);
-        m_renderTexture.display();
+        m_editorContext.viewportTexture.clear();
+        m_editorContext.renderSystem->HandleRenderSystem(m_editorContext.viewportTexture);
+        m_editorContext.viewportTexture.display();
     }
 
   public:
 
-    const sf::RenderTexture& GetViewportRenderTexture() const { return m_renderTexture; }
-
-    Editor(Engine& engine)
-        : m_engine(engine)
-        , m_window(m_engine.GetRenderWindow())
-        , m_editorLayout(m_engine.GetWindowSize())
-        , m_editorGui(m_editorLayout, m_editorGuiCallbacks)
-        , m_editorGuiCallbacks([&]() { m_engine.TogglePlayMode(); }, [&]() { m_engine.PausePlayMode(); }, [&]() { m_window.close(); })
+    Editor(Engine& engine) : m_editorContext(engine), m_gui(m_editorContext)
     {
-        m_renderTexture = sf::RenderTexture({ m_editorLayout.Viewport_Width, m_editorLayout.Viewport_Height });
-        m_editorGui.ApplyGuiTheme();
+        m_gui.ApplyGuiTheme();
 
-        m_inputManager.CreateInputAction("Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_window.close(); });
-        m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() {m_engine.SaveEditWorldData(); });
+        // One time sync into context
+        m_editorContext.renderSystem = &m_editorContext.engine.GetRenderSystem();
+        m_editorContext.inputSystem = &m_editorContext.engine.GetInputSystem();
+        m_editorContext.entityTemplates = &m_editorContext.engine.GetEntityTemplateManager();
 
+        m_inputManager.CreateInputAction(
+            "Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_editorContext.engine.GetRenderWindow().close(); });
+
+        m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
     }
 
-    void OnEnter() { }
-    void OnExit() { }
-    void Update(EditorFrameContext& frameContext)
+    void Update()
     {
-        m_inputManager.Update(frameContext.inputSystem);
+        // Sync runtime into context
+        m_editorContext.world = m_editorContext.engine.GetCurrentWorld();
+        m_editorContext.engineMode = m_editorContext.engine.GetEngineMode();
+        m_editorContext.isPlayModePaused = m_editorContext.engine.GetIsPlayModePaused();
 
-        m_editorGui.HandleGUISystem(
-            frameContext.renderSystem, frameContext.world, m_renderTexture, m_engine.GetEngineMode(), m_engine.GetIsPlayModePaused());
+        m_inputManager.Update(*m_editorContext.inputSystem);
 
-        RenderViewport(frameContext.renderSystem);
+        RenderViewportTexture();
+
+        m_gui.Update();
     }
 };

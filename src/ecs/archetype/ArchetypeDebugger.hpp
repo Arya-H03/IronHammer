@@ -15,11 +15,10 @@ class ArchetypeDebugger
 {
   private:
 
-    ArchetypeRegistry& m_archetypeRegistry;
-    CommandBuffer& m_commandBuffer;
-    EntityInspector& m_entityInspector;
-
-    void DrawIndividualArchetypeGUI(Archetype& archetype, const std::function<void(Entity)>& deleteEntityCallBack) const
+    void DrawIndividualArchetypeGUI(EntityManager& entityManager,
+        Archetype& archetype,
+        const std::function<void(Entity)>& deleteEntityCallBack,
+        EntityInspector& entityInspector) const
     {
         ImGui::TextColored(ImVec4(0.75f, 0.75f, 0.75f, 1.0f), "Capacity: %zu", archetype.m_chunkCapacity * archetype.m_chunks.size());
         ImGui::SameLine();
@@ -70,10 +69,10 @@ class ArchetypeDebugger
                 }
 
                 ImGui::SameLine();
-                bool isSelected = (m_entityInspector.GetCurrentInspectorEntity() == currentEntity);
+                bool isSelected = (entityInspector.GetCurrentInspectorEntity() == currentEntity);
                 if (ImGui::Selectable("Entity", isSelected))
                 {
-                    m_entityInspector.SetCurrentInspectorEntity(currentEntity);
+                    entityInspector.SetCurrentInspectorEntity(currentEntity, entityManager);
                 }
                 ImGui::SameLine();
                 ImGui::Text("%u", currentEntity.id);
@@ -86,21 +85,21 @@ class ArchetypeDebugger
 
   public:
 
-    ArchetypeDebugger(ArchetypeRegistry& archetypeRegistry, CommandBuffer& commandBuffer, EntityInspector& entityInspector)
-        : m_archetypeRegistry(archetypeRegistry), m_commandBuffer(commandBuffer), m_entityInspector(entityInspector)
-    {
-    }
+    ArchetypeDebugger() = default;
 
-    void DrawArchetypeGuiTab() const
+    void DrawArchetypeGuiTab(EntityManager& entityManager,
+        const ArchetypeRegistry& archetypeRegistry,
+        CommandBuffer& m_commandBuffer,
+        EntityInspector& entityInspector) const
     {
-        for (auto& archetype : m_archetypeRegistry.GetAllArchetypes())
+        for (auto& archetype : archetypeRegistry.GetAllArchetypes())
         {
-            int i = m_archetypeRegistry.GetAllArchetypes().size();
+            int i = archetypeRegistry.GetAllArchetypes().size();
             std::string nodeTitle = "Arch " + std::to_string(archetype->GetArchetypeId()) + ": " + archetype->GetArchetypeName();
 
             if (ImGui::CollapsingHeader(nodeTitle.c_str()))
             {
-                DrawIndividualArchetypeGUI(*archetype, [&](Entity entity) { m_commandBuffer.DestroyEntity(entity); });
+                DrawIndividualArchetypeGUI(entityManager, *archetype, [&](Entity entity) { m_commandBuffer.DestroyEntity(entity); }, entityInspector);
             }
         }
     }

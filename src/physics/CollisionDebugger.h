@@ -1,6 +1,5 @@
 #pragma once
 #include <imgui.h>
-#include <utility>
 #include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "physics/BroadPhaseCollisionSystem.h"
@@ -12,9 +11,6 @@ class CollisionDebugger
 
     BroadPhaseCollisionSystem& m_broadPhaseCollision;
     NarrowPhaseCollisionSystem& m_narrowPhaseCollision;
-    ImVec4 defaultTextColor;
-    ImVec4 yellowTextColor;
-    ImVec4 rustTextColor;
 
     void BroadPhaseGui(World* worldPtr) const
     {
