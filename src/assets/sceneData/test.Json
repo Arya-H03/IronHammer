@@ -317,6 +317,112 @@
           "y": 3.0
         }
       }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 196.88677978515625,
+          "y": 189.88699340820313
+        }
+      },
+      "Movement": {
+        "speed": 1.5079472064971924
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 73.04254150390625,
+          "y": 60.301544189453125
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          0,
+          16,
+          255,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 32,
+        "radius": 98.44338989257813
+      },
+      "Transform": {
+        "position": {
+          "x": 184.0,
+          "y": 353.0
+        },
+        "rotation": 5.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 196.88677978515625,
+          "y": 189.88699340820313
+        }
+      },
+      "Movement": {
+        "speed": 1.5079472064971924
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 73.04254150390625,
+          "y": 60.301544189453125
+        }
+      },
+      "Shape": {
+        "fillColor": [
+          255,
+          121,
+          0,
+          255
+        ],
+        "outlineColor": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "outlineThickness": 0.0,
+        "points": 32,
+        "radius": 98.44338989257813
+      },
+      "Transform": {
+        "position": {
+          "x": 608.0,
+          "y": 326.0
+        },
+        "rotation": 5.0,
+        "scale": {
+          "x": 3.0,
+          "y": 3.0
+        }
+      }
     }
   ]
 }

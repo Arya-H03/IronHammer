@@ -54,16 +54,16 @@ class World
         m_commandBuffer.CreateEntityFromComponents(std::forward<Components>(components)...);
     }
 
-    void CreateEntityFromTemplate(Entity entity, EntityTemplate& entityTemplate)
+    std::vector<PendingComponent>& CreateEntityFromTemplate(Entity entity, EntityTemplate& entityTemplate)
     {
         std::vector<PendingComponent> pendingComponents = m_entityManager.DeserializeEntity(entityTemplate.entityJson);
-        m_commandBuffer.CreateEntityFromTemplate(entity, std::move(pendingComponents));
+        return m_commandBuffer.CreateEntityFromTemplate(entity, std::move(pendingComponents));
     }
 
-    void CreateEntityFromTemplate(EntityTemplate& entityTemplate)
+    std::vector<PendingComponent>& CreateEntityFromTemplate(EntityTemplate& entityTemplate)
     {
         std::vector<PendingComponent> pendingComponents = m_entityManager.DeserializeEntity(entityTemplate.entityJson);
-        m_commandBuffer.CreateEntityFromTemplate(std::move(pendingComponents));
+        return m_commandBuffer.CreateEntityFromTemplate(std::move(pendingComponents));
     }
 
     void DestroyEntity(Entity entity) { m_commandBuffer.DestroyEntity(entity); }

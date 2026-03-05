@@ -1,10 +1,13 @@
 #pragma once
+#include "imgui.h"
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <math.h>
 #include <SFML/Graphics.hpp>
+#include <sys/types.h>
 
 template <typename T>
 class Vect2
@@ -18,9 +21,17 @@ class Vect2
     {
         x = 0;
         y = 0;
-    };
+    }
     Vect2(T X, T Y) : x(X), y(Y) { }
-    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2) { }
+
+    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2.y) { }
+
+    Vect2(const ImVec2& imGuiVec2) : x(static_cast<T>(imGuiVec2.x)), y(static_cast<T>(imGuiVec2.y)) { }
+
+    inline static const Vect2<T> Zero = Vect2<T>(0, 0);
+    inline static const Vect2<T> One = Vect2<T>(1, 1);
+
+    operator ImVec2() const { return ImVec2(static_cast<float>(x), static_cast<float>(y)); }
 
     Vect2 operator+(const Vect2& rhs) const { return Vect2(x + rhs.x, y + rhs.y); }
 

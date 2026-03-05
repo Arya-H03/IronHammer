@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "core/utils/Vect2.hpp"
+#include "editor/Viewport.h"
 
 namespace EditorConfig
 {
@@ -50,7 +51,6 @@ namespace EditorConfig
         uint16_t Viewport_Width = 0;
         uint16_t Viewport_Height = 0;
 
-        // Constructor
         Layout(Vect2<uint16_t> windowSize) : WindowWidth(windowSize.x), WindowHeight(windowSize.y)
         {
             // Menu
@@ -58,7 +58,6 @@ namespace EditorConfig
 
             // Vertical Calculations
             const uint16_t ContentTop = MenuBarHeight + PanelSpacing;
-
             const uint16_t ContentHeight = WindowHeight - MenuBarHeight - LogHeight - PanelSpacing;
 
             // Debug
@@ -76,12 +75,13 @@ namespace EditorConfig
             Log_Y = WindowHeight - LogHeight;
             Log_Width = WindowWidth - InspectorWidth;
 
-
             // Viewport
             Viewport_X = DebugWidth;
             Viewport_Y = ContentTop;
             Viewport_Width = WindowWidth - DebugWidth - InspectorWidth;
             Viewport_Height = ContentHeight;
+
+            Viewport::SetViewport(Vect2f(Viewport_X, Viewport_Y), Vect2f(Viewport_Width, Viewport_Height));
         }
     };
 

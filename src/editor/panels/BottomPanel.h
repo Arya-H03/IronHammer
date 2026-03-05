@@ -32,15 +32,16 @@ class BottomPanel
                     m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
                 }
 
-                if (ImGui::BeginDragDropSource())
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip))
                 {
-                    ImGui::SetDragDropPayload("EntityTemplate", name.c_str(), name.size() + 1);
-
+                    ImGui::SetDragDropPayload("ENTITY_TEMPLATE", name.c_str(), name.size() + 1);
+                    ImGui::SetNextWindowPos(ImGui::GetMousePos(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+                    ImGui::BeginTooltip();
                     ImGui::Text("%s", name.c_str());
+                    ImGui::EndTooltip();
                     ImGui::EndDragDropSource();
                 }
             }
-
             ImGui::EndTabItem();
         }
     }
@@ -60,7 +61,7 @@ class BottomPanel
         if (ImGui::BeginTabBar("BottomTabs"))
         {
             DrawLogTab();
-            DrawEntityTemplateTab();
+            //DrawEntityTemplateTab();
 
             ImGui::EndTabBar();
         }

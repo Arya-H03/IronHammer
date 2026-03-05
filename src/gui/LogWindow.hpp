@@ -12,6 +12,7 @@ class LogWindow
     bool showWarnings = true;
     bool showErrors = true;
     size_t m_selectedIndex;
+    size_t m_lastLogCount = 0;
 
     std::vector<int> m_visibleIndices;
 
@@ -78,6 +79,8 @@ class LogWindow
         ImGui::BeginChild("LogRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
 
         const auto& logs = Debug::GetLogMessages();
+        bool newLogsArrived = logs.size() > m_lastLogCount;
+        m_lastLogCount = logs.size();
         m_visibleIndices.clear();
         for (int i = 0; i < logs.size(); ++i)
         {
@@ -113,6 +116,7 @@ class LogWindow
                 ImGui::Separator();
             }
         }
+        if (newLogsArrived) ImGui::SetScrollHereY(1.0f);
         ImGui::EndChild();
     }
 

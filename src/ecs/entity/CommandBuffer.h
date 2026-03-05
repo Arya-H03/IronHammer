@@ -1,12 +1,19 @@
 #pragma once
 
 #include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include <algorithm>
 #include <functional>
 #include <tuple>
 #include <utility>
 #include <vector>
+
+// Optimize Later:
+// Remove std::function entirely
+// Store commands in contiguous memory
+// Sort commands by archetype signature before execution
+// Allow command buffers per system/thread
 
 class CommandBuffer
 {
@@ -16,14 +23,12 @@ class CommandBuffer
     {
         Entity* returnEntity;
         std::vector<PendingComponent> pendingComponents;
-        ComponentSignatureMask signature; // precomputed signature
     };
 
     struct CreateFromComponentCommand
     {
         Entity* returnEntity;
         std::function<Entity(EntityManager&)> CreateFn;
-        ComponentSignatureMask signature; // precomputed signature
     };
 
     struct DestroyEntityCommand
@@ -63,16 +68,18 @@ class CommandBuffer
     CommandBuffer() = default;
 
     // Create from EntityTemplate ///////
-    void CreateEntityFromTemplate(std::vector<PendingComponent>&& components)
+    std::vector<PendingComponent>& CreateEntityFromTemplate(std::vector<PendingComponent>&& components)
     {
-        ComponentSignatureMask sig = ComponentRegistry::MakeSignatureMask(components);
-        m_createFromEntityTemplateCommands.push_back({ nullptr, std::move(components), sig });
+        m_createFromEntityTemplateCommands.push_back({ nullptr, std::move(components) });
+        auto& command = m_createFromEntityTemplateCommands.back();
+        return command.pendingComponents;
     }
 
-    void CreateEntityFromTemplate(Entity entity, std::vector<PendingComponent>&& components)
+    std::vector<PendingComponent>& CreateEntityFromTemplate(Entity entity, std::vector<PendingComponent>&& components)
     {
-        ComponentSignatureMask sig = ComponentRegistry::MakeSignatureMask(components);
-        m_createFromEntityTemplateCommands.push_back({ &entity, std::move(components), sig });
+        m_createFromEntityTemplateCommands.push_back({ &entity, std::move(components) });
+        auto& command = m_createFromEntityTemplateCommands.back();
+        return command.pendingComponents;
     }
     //////////////////////////////////////
 
@@ -80,29 +87,25 @@ class CommandBuffer
     template <typename... Components>
     void CreateEntityFromComponents(Components&&... components)
     {
-        ComponentSignatureMask sig = ComponentRegistry::MakeSignatureMask<std::decay_t<Components>...>();
         auto tuple = std::make_tuple(std::forward<Components>(components)...);
 
-        m_createFromComponentCommands.push_back({ nullptr,
-            [tuple = std::move(tuple)](EntityManager& entityManager) mutable {
-                return std::apply(
-                    [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(tuple));
-            },
-            sig });
+        m_createFromComponentCommands.push_back({ nullptr, [tuple = std::move(tuple)](EntityManager& entityManager) mutable {
+                                                     return std::apply([&](auto&&... comps)
+                                                         { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); },
+                                                         std::move(tuple));
+                                                 } });
     }
 
     template <typename... Components>
     void CreateEntityFromComponents(Entity entity, Components&&... components)
     {
-        ComponentSignatureMask sig = ComponentRegistry::MakeSignatureMask<std::decay_t<Components>...>();
         auto tuple = std::make_tuple(std::forward<Components>(components)...);
 
-        m_createFromComponentCommands.push_back({ &entity,
-            [tuple = std::move(tuple)](EntityManager& entityManager)mutable {
-                return std::apply(
-                    [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(tuple));
-            },
-            sig });
+        m_createFromComponentCommands.push_back({ &entity, [tuple = std::move(tuple)](EntityManager& entityManager) mutable {
+                                                     return std::apply([&](auto&&... comps)
+                                                         { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); },
+                                                         std::move(tuple));
+                                                 } });
     }
     /////////////////////////////////////
 
@@ -125,14 +128,8 @@ class CommandBuffer
             { entity, [entity](EntityManager& entityManager) { entityManager.RemoveComponentFrom<Component>(entity); } });
     }
 
-
     void ExecuteAllCommands(EntityManager& entityManager)
     {
-        // Optimize Later: group by signature
-        // auto cmpSig = [](auto& a, auto& b) { return a.signature < b.signature; };
-        // std::sort(m_createEntityFromTemplateOps.begin(), m_createEntityFromTemplateOps.end(), cmpSig);
-        // std::sort(m_createEntityFromComponentOps.begin(), m_createEntityFromComponentOps.end(), cmpSig);
-
         for (auto& command : m_createFromEntityTemplateCommands)
         {
             Entity entity = entityManager.CreateEntity(command.pendingComponents);
