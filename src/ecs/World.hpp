@@ -92,6 +92,7 @@ class World
         return m_entityManager.TryGetComponent<Component>(entity);
     }
 
+    Json SerializeEntity(EntityStorageLocation entityLocation) { return m_entityManager.SerializeEntity(entityLocation); }
     Json SerializeWorld() { return m_entityManager.SerializeAllEntites(); }
 
     void DeserializeWorld(Json worldJson)
@@ -103,5 +104,17 @@ class World
         }
     }
 
-    Json SerializeEntity(EntityStorageLocation entityLocation) { return m_entityManager.SerializeEntity(entityLocation); }
+    template <typename T>
+    T* GetComponentFromPendings(const std::vector<PendingComponent>& pendingComponent)
+    {
+        for (auto& component : pendingComponent)
+        {
+            if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
+            {
+                T* componentPtr = reinterpret_cast<T*>(component.componentDataPtr);
+                return componentPtr;
+            }
+        }
+        return nullptr;
+    }
 };

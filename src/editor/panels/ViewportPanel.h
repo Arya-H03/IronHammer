@@ -37,16 +37,14 @@ class ViewportPanel
                 std::vector<PendingComponent>& components =
                     m_editorContext.world->CreateEntityFromTemplate(*m_editorContext.entityTemplateManager->GetTemplateByName(templateName));
 
-                for (auto& component : components)
+                CTransform* transform = m_editorContext.world->GetComponentFromPendings<CTransform>(components);
+                if (transform)
                 {
-                    if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<CTransform>())
-                    {
-                        CTransform* transform = reinterpret_cast<CTransform*>(component.componentDataPtr);
-                        transform->position = Viewport::ScreenToViewportMouse();
-
-                        // Log_Warning("Transfrom:" + std::to_string(transform->position.x) + " / " + std::to_string(transform->position.y));
-                        // Log_Warning("Mouse:" + std::to_string(mouse.x) + " / " + std::to_string(mouse.y));
-                    }
+                    transform->position = Viewport::ScreenToViewportMouse();
+                }
+                else
+                {
+                    Log_Error("Tried to drop an Entity in Viewport with no transform");
                 }
             }
 
