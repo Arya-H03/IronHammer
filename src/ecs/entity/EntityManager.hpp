@@ -12,7 +12,7 @@
 
 class EntityManager
 {
-    friend class CommandBuffer;
+    friend class OldCommandBuffer;
 
     struct EntitySlot
     {
@@ -33,6 +33,59 @@ class EntityManager
     std::vector<EntityStorageLocation> m_entityStorageLocations;
 
     ArchetypeRegistry& m_archetypeRegistry;
+
+  public:
+
+    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
+    {
+        m_entitySlots.reserve(initialEntitySize);
+        m_entityStorageLocations.reserve(initialEntitySize);
+    }
+
+    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
+
+    EntityStorageLocation GetEntityLocation(Entity entity) const
+    {
+        if (!ValidateEntity(entity)) return EntityStorageLocation {};
+        return m_entityStorageLocations[entity.id];
+    }
+
+    Archetype* GetEntityArchetypePtr(Entity entity) const
+    {
+        if (!ValidateEntity(entity)) return nullptr;
+        return &m_archetypeRegistry.GetArchetypeById(GetEntityLocation(entity).archetypeId);
+    }
+
+    bool ValidateEntity(Entity entity) const
+    {
+        bool isIdValid = entity.id < m_entitySlots.size();
+        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
+        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
+#ifndef NDEBUG
+        if (!isIdValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+        if (!isEntityOccupied) Log_Warning(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+        if (!isGenValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+#endif
+        return isIdValid && isEntityOccupied && isGenValid;
+    }
+
+    template <typename Component>
+    bool HasComponent(Entity entity)
+    {
+        if (!ValidateEntity(entity)) return false;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.HasComponent<Component>();
+    }
+
+    template <typename Component>
+    Component* TryGetComponent(Entity entity)
+    {
+        if (!ValidateEntity(entity)) return nullptr;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
+    }
 
     template <typename... Components>
     Entity CreateEntity(Components&&... components)
@@ -64,7 +117,7 @@ class EntityManager
         }
 
         // Find Archetype
-        ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask<std::decay_t<Components>...>();
+        ComponentSignatureMask signature = ComponentRegistry::MakeSignatureMask<std::decay_t<Components>...>();
         Archetype& archetype = m_archetypeRegistry.GetArchetype(signature);
         EntityStorageLocation newEntityArchetypeStorage = archetype.AddEntity(newEntity, components...);
 
@@ -102,7 +155,7 @@ class EntityManager
         }
 
         // Find Archetype
-        ComponentSignatureMask signature = m_archetypeRegistry.MakeSignatureMask(pendingComponents);
+        ComponentSignatureMask signature = ComponentRegistry::MakeSignatureMask(pendingComponents);
         Archetype& archetype = m_archetypeRegistry.GetArchetype(signature);
         EntityStorageLocation newEntityArchetypeStorage = archetype.AddEntity(newEntity, pendingComponents);
 
@@ -110,6 +163,7 @@ class EntityManager
         m_entityStorageLocations[newEntityArchetypeStorageIndex] = newEntityArchetypeStorage;
         return newEntity;
     }
+
     void DestroyEntity(Entity entity)
     {
         if (!ValidateEntity(entity)) return;
@@ -152,7 +206,7 @@ class EntityManager
 
         // Have to update the EntityStorageLocation of BOTH Entities.
         m_entityStorageLocations[deletionResult.first.id] = deletionResult.second; // Swaped Entity
-        m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
+        m_entityStorageLocations[entity.id] = newEntityLocation;                   //mutable Poped Entity
 
         // Add new Component
         dstArchetype.ConstructComponentByType(std::forward<Component>(component), componentId, newEntityLocation);
@@ -213,59 +267,6 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
     }
 
-  public:
-
-    EntityManager(ArchetypeRegistry& archetypeRegistry) : m_archetypeRegistry(archetypeRegistry)
-    {
-        m_entitySlots.reserve(initialEntitySize);
-        m_entityStorageLocations.reserve(initialEntitySize);
-    }
-
-    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
-
-    EntityStorageLocation GetEntityLocation(Entity entity) const
-    {
-        if (!ValidateEntity(entity)) return EntityStorageLocation {};
-        return m_entityStorageLocations[entity.id];
-    }
-
-    Archetype* GetEntityArchetypePtr(Entity entity) const
-    {
-        if (!ValidateEntity(entity)) return nullptr;
-        return &m_archetypeRegistry.GetArchetypeById(GetEntityLocation(entity).archetypeId);
-    }
-
-    bool ValidateEntity(Entity entity) const
-    {
-        bool isIdValid = entity.id < m_entitySlots.size();
-        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
-        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
-#ifndef NDEBUG
-        if (!isIdValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
-        if (!isEntityOccupied) Log_Warning(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
-        if (!isGenValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
-#endif
-        return isIdValid && isEntityOccupied && isGenValid;
-    }
-
-    template <typename Component>
-    bool HasComponent(Entity entity)
-    {
-        if (!ValidateEntity(entity)) return false;
-        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
-        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.HasComponent<Component>();
-    }
-
-    template <typename Component>
-    Component* TryGetComponent(Entity entity)
-    {
-        if (!ValidateEntity(entity)) return nullptr;
-        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
-        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
-    }
-
     Json SerializeEntity(EntityStorageLocation entityLocation)
     {
         Json entityJson;
@@ -281,7 +282,7 @@ class EntityManager
         return entityJson;
     }
 
-    void DeserializeEntity(Json entityJson)
+    std::vector<PendingComponent> DeserializeEntity(Json entityJson)
     {
         std::vector<PendingComponent> pendingComponents;
 
@@ -304,7 +305,7 @@ class EntityManager
             pendingComponents.push_back({ componentInfo, componentPtr });
         }
 
-        CreateEntity(pendingComponents);
+        return pendingComponents;
     }
 
     Json SerializeAllEntites()
@@ -319,13 +320,5 @@ class EntityManager
         }
 
         return allEntitiesJson;
-    }
-
-    void DeserializeWorld(Json worldJson)
-    {
-        for (const auto& entityJson : worldJson["entities"])
-        {
-            DeserializeEntity(entityJson);
-        }
     }
 };

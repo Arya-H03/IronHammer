@@ -2,20 +2,11 @@
 #include <string>
 #include "core/utils/Debug.h"
 #include "ecs/World.hpp"
-#include "core/saving/JsonUtility.h"
 #include "ecs/common/ECSCommon.h"
 #include "core/utils/FileHelper.h"
 #include <memory>
 #include <unordered_map>
 #include <filesystem>
-
-struct EntityTemplate
-{
-    std::string name;
-    Json entityJson;
-
-    EntityTemplate(std::string n, Json j) : name(std::move(n)), entityJson(std::move(j)) { }
-};
 
 class EntityTemplateManager
 {

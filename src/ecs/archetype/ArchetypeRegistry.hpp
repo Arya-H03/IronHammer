@@ -8,6 +8,7 @@
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/query/Query.hpp"
+#include <iostream>
 
 template <typename... Component>
 struct RequiredComponents
@@ -37,6 +38,7 @@ class ArchetypeRegistry
         {
             if (signature.test(id))
             {
+                std::cerr<<id;
                 name += ComponentRegistry::GetComponentNameById(id);
                 name += "  ";
             }
@@ -94,24 +96,6 @@ class ArchetypeRegistry
         }
 
         return RegisterArchetype(signature);
-    }
-
-    template <typename... Components>
-    ComponentSignatureMask MakeSignatureMask()
-    {
-        ComponentSignatureMask signature;
-        (signature.set(ComponentRegistry::GetComponentID<Components>()), ...);
-        return signature;
-    }
-
-    ComponentSignatureMask MakeSignatureMask(std::vector<PendingComponent>& pendingComponents)
-    {
-        ComponentSignatureMask signature;
-        for (const auto& component : pendingComponents)
-        {
-            signature.set(component.componentInfoPtr->id);
-        }
-        return signature;
     }
 
     template <typename... QueryGroup>

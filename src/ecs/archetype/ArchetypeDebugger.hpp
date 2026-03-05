@@ -2,11 +2,9 @@
 #include <functional>
 #include <imgui.h>
 #include <string>
-#include "core/utils/Debug.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/archetype/Archetype.h"
-#include "ecs/entity/EntityCommands.hpp"
 #include "ecs/entity/EntityManager.hpp"
 #include "core/utils/Colors.h"
 #include "ecs/entity/EntityInspector.h"

@@ -6,6 +6,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
@@ -63,6 +64,8 @@ class ComponentRegistry
     }
 
   public:
+
+    static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
 
     template <typename ComponentType>
     static void RegisterComponent()
@@ -150,7 +153,23 @@ class ComponentRegistry
         return nullptr;
     }
 
-    static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
+    template <typename... Components>
+    static ComponentSignatureMask MakeSignatureMask()
+    {
+        ComponentSignatureMask signature;
+        (signature.set(ComponentRegistry::GetComponentID<Components>()), ...);
+        return signature;
+    }
+
+    static ComponentSignatureMask MakeSignatureMask(std::vector<PendingComponent>& pendingComponents)
+    {
+        ComponentSignatureMask signature;
+        for (const auto& component : pendingComponents)
+        {
+            signature.set(component.componentInfoPtr->id);
+        }
+        return signature;
+    }
 
     // Deprecated
     template <typename ComponentType>

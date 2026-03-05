@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <bitset>
+#include "core/saving/JsonUtility.h"
 
 static constexpr uint16_t MaxComponents = 32;
 using ComponentID = uint32_t;
@@ -30,4 +31,12 @@ struct EntityStorageLocation
     uint32_t indexInChunk = UINT32_MAX;
 
     static constexpr EntityStorageLocation InvalidLocation() { return { InvalidArchetypeID, UINT32_MAX, UINT32_MAX }; }
+};
+
+struct EntityTemplate
+{
+    std::string name;
+    Json entityJson;
+
+    EntityTemplate(std::string n, Json j) : name(std::move(n)), entityJson(std::move(j)) { }
 };

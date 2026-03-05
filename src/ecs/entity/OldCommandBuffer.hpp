@@ -7,7 +7,8 @@
 #include <utility>
 #include <vector>
 
-class CommandBuffer
+// Deprecated
+class OldCommandBuffer
 {
   private:
 
@@ -75,7 +76,7 @@ class CommandBuffer
 
   public:
 
-    CommandBuffer(EntityManager& entityManager) : m_entityManager(entityManager) { }
+    OldCommandBuffer(EntityManager& entityManager) : m_entityManager(entityManager) { }
 
     void ExecuteAllCommands()
     {
