@@ -2,6 +2,7 @@
 
 #include "EditorContext.h"
 #include "EditorGui.h"
+#include "EditorGrid.h"
 #include "input/InputManager.h"
 #include <SFML/Window/Keyboard.hpp>
 
@@ -17,6 +18,7 @@ class Editor
     {
         m_editorContext.viewportTexture.clear();
         m_editorContext.renderSystem->HandleRenderSystem(m_editorContext.viewportTexture);
+        m_editorContext.editorGrid.RenderGrid(m_editorContext.viewportTexture);
         m_editorContext.viewportTexture.display();
     }
 

@@ -1,16 +1,17 @@
 #pragma once
 
 #include "core/utils/Vect2.hpp"
+#include <cstdint>
 class Viewport
 {
   private:
 
     inline static Vect2f m_position { 0.f, 0.f };
-    inline static Vect2f m_size { 0.f, 0.f };
+    inline static Vect2<uint16_t> m_size { 0, 0 };
 
   public:
 
-    inline static void SetViewport(const Vect2f& position, const Vect2f& size)
+    inline static void SetViewport(const Vect2f& position, const Vect2<uint16_t>& size)
     {
         m_position = position;
         m_size = size;
@@ -18,7 +19,7 @@ class Viewport
 
     inline static Vect2f GetPosition() { return m_position; }
 
-    inline static Vect2f GetSize() { return m_size; }
+    inline static Vect2<uint16_t> GetSize() { return m_size; }
 
     inline static bool IsMouseInside()
     {

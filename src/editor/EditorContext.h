@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics/RenderTexture.hpp>
+#include "editor/EditorGrid.h"
 #include "engine/Engine.h"
 #include "ecs/World.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
@@ -24,10 +25,11 @@ struct EditorContext
 
     EntityInspector inspector;
     ArchetypeDebugger archetypeDebugger;
+    EditorConfig::Layout layout;
+    EditorGrid editorGrid;
 
     sf::RenderTexture viewportTexture;
 
-    EditorConfig::Layout layout;
 
     EditorContext(Engine& engine) : engine(engine), layout(engine.GetWindowSize())
     {

@@ -81,7 +81,7 @@ namespace EditorConfig
             Viewport_Width = WindowWidth - DebugWidth - InspectorWidth;
             Viewport_Height = ContentHeight;
 
-            Viewport::SetViewport(Vect2f(Viewport_X, Viewport_Y), Vect2f(Viewport_Width, Viewport_Height));
+            Viewport::SetViewport(Vect2f(Viewport_X, Viewport_Y), Vect2<uint16_t>(Viewport_Width, Viewport_Height));
         }
     };
 

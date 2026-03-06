@@ -6,8 +6,8 @@
 
 namespace EntityInspectorHelpers
 {
-    inline float inputFieldWidth = 96;
-    inline float colorFieldWidth = 120;
+    inline float inputFieldWidth = 100;
+    inline float colorFieldWidth = 225;
 
     template <typename T>
     inline void TypeHeader(const std::string& typeName, void* ptr)
@@ -30,6 +30,7 @@ namespace EntityInspectorHelpers
         ImGui::TableSetColumnIndex(0);
         ImGui::Text("%s", tag);
         ImGui::TableSetColumnIndex(1);
+        ImGui::SetCursorPosX(135);
     }
 
     inline void DragScalar(const char* label, size_t* value, bool* isDirty = nullptr)

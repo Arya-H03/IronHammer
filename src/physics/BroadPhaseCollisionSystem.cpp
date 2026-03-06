@@ -27,7 +27,7 @@ void BroadPhaseCollisionSystem::PopulateGrid(World* worldPtr)
         {
             size_t index = i * m_cellPerRow + j;
 
-            Vect2f pos(((j * m_cellSize) + (m_cellSize / 2)), ((i * m_cellSize) + (m_cellSize / 2)));
+            Vect2f pos(((j * m_cellSize) + (m_cellSize * 0.5f)), ((i * m_cellSize) + (m_cellSize * 0.5f)));
             Vect2<int> coord(i, j);
             m_grid[index] = Cell(coord, pos);
 

@@ -25,8 +25,26 @@ class ViewportPanel
 
         ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
 
+        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         auto size = m_editorContext.viewportTexture.getSize();
-        ImGui::Image(m_editorContext.viewportTexture.getTexture(), ImVec2((float) size.x - 20, (float) size.y - 20));
+
+        float texAspect = (float)size.x / size.y;
+        float viewportAspect = viewportSize.x / viewportSize.y;
+
+        ImVec2 drawSize;
+
+        if (viewportAspect > texAspect)
+        {
+            drawSize.y = viewportSize.y;
+            drawSize.x = viewportSize.y * texAspect;
+        }
+        else
+        {
+            drawSize.x = viewportSize.x;
+            drawSize.y = viewportSize.x / texAspect;
+        }
+
+        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(),drawSize);
 
         if (ImGui::BeginDragDropTarget())
         {
