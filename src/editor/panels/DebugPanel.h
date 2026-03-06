@@ -86,12 +86,16 @@ class DebugPanel
         ImGui::RadioButton("64", &m_editorContext.editorGrid.GetCellSize(), 64);
         ImGui::SameLine();
 
+        ImGui::SetCursorPosX(tabWidth -  2 * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Snap to Grid").x));
+        bool& canSnapToGrid = m_editorContext.editorGrid.GetCanSnapToGrid();
+        ImGui::Checkbox("Snap to Grid", &canSnapToGrid);
+
+        ImGui::SameLine();
+
         ImGui::SetCursorPosX(tabWidth - (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Grid").x));
-        bool canShowGrid = m_editorContext.editorGrid.GetCanShowGrid();
-        if (ImGui::Checkbox("Show Grid", &canShowGrid))
-        {
-            m_editorContext.editorGrid.SetCanShowGrid(canShowGrid);
-        }
+        bool& canShowGrid = m_editorContext.editorGrid.GetCanShowGrid();
+        ImGui::Checkbox("Show Grid", &canShowGrid);
+
 
         ImGui::Spacing();
         ImGui::Spacing();

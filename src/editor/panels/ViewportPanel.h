@@ -1,12 +1,15 @@
 #pragma once
 #include "core/utils/Debug.h"
+#include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "editor/EditorContext.h"
 #include "editor/Viewport.h"
+#include <cmath>
 #include <imgui.h>
 #include <string>
 #include <vector>
+#include <cmath>
 
 class ViewportPanel
 {
@@ -28,7 +31,7 @@ class ViewportPanel
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         auto size = m_editorContext.viewportTexture.getSize();
 
-        float texAspect = (float)size.x / size.y;
+        float texAspect = (float) size.x / size.y;
         float viewportAspect = viewportSize.x / viewportSize.y;
 
         ImVec2 drawSize;
@@ -44,7 +47,7 @@ class ViewportPanel
             drawSize.y = viewportSize.x / texAspect;
         }
 
-        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(),drawSize);
+        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize);
 
         if (ImGui::BeginDragDropTarget())
         {
@@ -58,7 +61,17 @@ class ViewportPanel
                 CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);
                 if (transform)
                 {
-                    transform->position = Viewport::ScreenToViewportMouse();
+                    Vect2f mousePos = Viewport::ScreenToViewportMouse();
+                    if (m_editorContext.editorGrid.GetCanSnapToGrid())
+                    {
+                        int cellSize = m_editorContext.editorGrid.GetCellSize();
+                        transform->position.x = std::round(mousePos.x / cellSize) * cellSize;
+                        transform->position.y = std::round(mousePos.y / cellSize) * cellSize;
+                    }
+                    else
+                    {
+                        transform->position = mousePos;
+                    }
                 }
                 else
                 {

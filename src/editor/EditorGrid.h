@@ -16,13 +16,14 @@ class EditorGrid
     uint16_t m_cellPerCol;
     uint16_t m_cellPerRow;
     bool m_canShowGrid = true;
+    bool m_canSnapToGrid = false;
 
   public:
 
     EditorGrid() : m_viewPortWidth(Viewport::GetSize().x), m_viewPortHeight(Viewport::GetSize().y) { }
 
-    bool GetCanShowGrid() const { return m_canShowGrid; }
-    void SetCanShowGrid(bool newVal) { m_canShowGrid = newVal; }
+    bool& GetCanShowGrid() { return m_canShowGrid; }
+    bool& GetCanSnapToGrid() { return m_canSnapToGrid; }
     int& GetCellSize() { return m_cellSize; }
     sf::Color& GetCellColor() { return m_gridColor; }
 
@@ -42,7 +43,6 @@ class EditorGrid
         for (int x = 0; x <= m_cellPerRow; x++)
         {
             float xpos = x * m_cellSize;
-
             grid.append(sf::Vertex({ xpos, 0.f }, m_gridColor));
             grid.append(sf::Vertex({ xpos, height }, m_gridColor));
         }
@@ -51,7 +51,6 @@ class EditorGrid
         for (int y = 0; y <= m_cellPerCol; y++)
         {
             float ypos = y * m_cellSize;
-
             grid.append(sf::Vertex({ 0.f, ypos }, m_gridColor));
             grid.append(sf::Vertex({ width, ypos }, m_gridColor));
         }
