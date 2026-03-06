@@ -37,7 +37,7 @@ class ViewportPanel
                 std::vector<PendingComponent>& components =
                     m_editorContext.world->CreateEntityFromTemplate(*m_editorContext.entityTemplateManager->GetTemplateByName(templateName));
 
-                CTransform* transform = m_editorContext.world->GetComponentFromPendings<CTransform>(components);
+                CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);
                 if (transform)
                 {
                     transform->position = Viewport::ScreenToViewportMouse();

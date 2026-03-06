@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Graphics/Texture.hpp>
 #include <cstdint>
 #include <bitset>
 #include "core/saving/JsonUtility.h"
@@ -35,8 +36,9 @@ struct EntityStorageLocation
 
 struct EntityTemplate
 {
-    std::string name;
+    sf::Texture entityTexture;
+    std::string entityName;
     Json entityJson;
 
-    EntityTemplate(std::string n, Json j) : name(std::move(n)), entityJson(std::move(j)) { }
+    EntityTemplate(sf::Texture tex,std::string name, Json json) : entityTexture(tex),entityName(std::move(name)), entityJson(std::move(json)) {}
 };

@@ -6,7 +6,6 @@
 #include <cassert>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
@@ -33,8 +32,40 @@ struct ComponentInfo
 };
 struct PendingComponent
 {
-    const ComponentInfo* componentInfoPtr;
-    void* componentDataPtr;
+    const ComponentInfo* componentInfoPtr = nullptr;
+    void* componentDataPtr = nullptr;
+
+    PendingComponent() = default;
+    PendingComponent(const ComponentInfo* info, void* data) : componentInfoPtr(info), componentDataPtr(data) { }
+
+    PendingComponent(PendingComponent&& other) noexcept : componentInfoPtr(other.componentInfoPtr), componentDataPtr(other.componentDataPtr)
+    {
+        other.componentDataPtr = nullptr;
+        other.componentInfoPtr = nullptr;
+    }
+
+    PendingComponent& operator=(PendingComponent&& other) noexcept
+    {
+        if (this != &other)
+        {
+            if (componentInfoPtr) componentInfoPtr->DestroyComponent(componentDataPtr);
+
+            componentInfoPtr = other.componentInfoPtr;
+            componentDataPtr = other.componentDataPtr;
+
+            other.componentInfoPtr = nullptr;
+            other.componentDataPtr = nullptr;
+        }
+        return *this;
+    }
+
+    PendingComponent(const PendingComponent&) = delete;
+    PendingComponent& operator=(const PendingComponent&) = delete;
+
+    ~PendingComponent()
+    {
+        if (componentInfoPtr) const_cast<ComponentInfo*>(componentInfoPtr)->DestroyComponent(componentDataPtr);
+    }
 };
 
 class ComponentRegistry
@@ -171,6 +202,76 @@ class ComponentRegistry
         return signature;
     }
 
+    inline static std::vector<PendingComponent> GetAllPendingComponentsFromEntityJson(Json& entityJson)
+    {
+        std::vector<PendingComponent> pendingComponents;
+
+        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
+        {
+            const std::string componentName = it.key();
+            const ComponentInfo* componentInfo = ComponentRegistry::GetComponentInfoPtrByName(componentName);
+            if (!componentInfo)
+            {
+                Log_Warning("Unknown component during deserialization: " + componentName);
+                continue;
+            }
+
+            void* componentPtr = componentInfo->DeSerializeComponent(entityJson);
+            if (!componentPtr)
+            {
+                Log_Warning("Failed to deserialize component: " + componentName);
+                continue;
+            }
+            pendingComponents.emplace_back(componentInfo, componentPtr);
+        }
+        return pendingComponents;
+    }
+
+    template <typename Component>
+    static PendingComponent GetPendingComponentFromEntityJson(Json& entityJson)
+    {
+        std::string name = GetComponentNameByType<Component>();
+
+        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
+        {
+            if (it.key() != name) continue;
+
+            const ComponentInfo* info = ComponentRegistry::GetComponentInfoPtrByName(name);
+            if (!info) return PendingComponent();
+
+            void* data = info->DeSerializeComponent(entityJson);
+            if (!data) return PendingComponent();
+
+            return PendingComponent(info, data);
+        }
+        return PendingComponent();
+    }
+
+    template <typename T>
+    static T* GetComponentFromPendings(const std::vector<PendingComponent>& pendingComponent)
+    {
+        for (auto& component : pendingComponent)
+        {
+            if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
+            {
+                T* componentPtr = reinterpret_cast<T*>(component.componentDataPtr);
+                return componentPtr;
+            }
+        }
+        return nullptr;
+    }
+
+    template <typename T>
+    static T* GetComponentFromPending(const PendingComponent& pendingComponent)
+    {
+        if (pendingComponent.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
+        {
+            T* componentPtr = reinterpret_cast<T*>(pendingComponent.componentDataPtr);
+            return componentPtr;
+        }
+
+        return nullptr;
+    }
     // Deprecated
     template <typename ComponentType>
     static const char* GetComponentNameByType(const ComponentType& component)

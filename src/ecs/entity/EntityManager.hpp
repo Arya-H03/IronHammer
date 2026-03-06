@@ -282,32 +282,6 @@ class EntityManager
         return entityJson;
     }
 
-    std::vector<PendingComponent> DeserializeEntity(Json entityJson)
-    {
-        std::vector<PendingComponent> pendingComponents;
-
-        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
-        {
-            const std::string componentName = it.key();
-            const ComponentInfo* componentInfo = ComponentRegistry::GetComponentInfoPtrByName(componentName);
-            if (!componentInfo)
-            {
-                Log_Warning("Unknown component during deserialization: " + componentName);
-                continue;
-            }
-
-            void* componentPtr = componentInfo->DeSerializeComponent(entityJson);
-            if (!componentPtr)
-            {
-                Log_Warning("Failed to deserialize component: " + componentName);
-                continue;
-            }
-            pendingComponents.push_back({ componentInfo, componentPtr });
-        }
-
-        return pendingComponents;
-    }
-
     Json SerializeAllEntites()
     {
         Json allEntitiesJson;

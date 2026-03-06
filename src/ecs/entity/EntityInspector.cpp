@@ -41,7 +41,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(
                     name = "Entity_" + std::to_string(m_currentLiveEntityData.entity.id) + "_"
                            + std::to_string(m_currentLiveEntityData.entity.generation);
                 }
-                entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntityData.location, name);
+                entityTemplateManager.CreateEntityTemplate(currentWorld,m_currentLiveEntityData.entity, m_currentLiveEntityData.location, name);
                 name = "";
             }
 

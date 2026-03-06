@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/saving/JsonUtility.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
@@ -7,7 +8,6 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/entity/CommandBuffer.h"
 #include "ecs/entity/EntityManager.hpp"
-#include <vector>
 
 class World
 {
@@ -17,7 +17,6 @@ class World
 
     ArchetypeRegistry m_archetypeRegistry;
     EntityManager m_entityManager;
-    // OldCommandBuffer m_commandBuffer;
     CommandBuffer m_commandBuffer;
 
     void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager); }
@@ -56,13 +55,13 @@ class World
 
     std::vector<PendingComponent>& CreateEntityFromTemplate(Entity entity, EntityTemplate& entityTemplate)
     {
-        std::vector<PendingComponent> pendingComponents = m_entityManager.DeserializeEntity(entityTemplate.entityJson);
+        std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityTemplate.entityJson);
         return m_commandBuffer.CreateEntityFromTemplate(entity, std::move(pendingComponents));
     }
 
     std::vector<PendingComponent>& CreateEntityFromTemplate(EntityTemplate& entityTemplate)
     {
-        std::vector<PendingComponent> pendingComponents = m_entityManager.DeserializeEntity(entityTemplate.entityJson);
+        std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityTemplate.entityJson);
         return m_commandBuffer.CreateEntityFromTemplate(std::move(pendingComponents));
     }
 
@@ -97,24 +96,10 @@ class World
 
     void DeserializeWorld(Json worldJson)
     {
-        for (const auto& entityJson : worldJson["entities"])
+        for (auto& entityJson : worldJson["entities"])
         {
-            std::vector<PendingComponent> pendingComponents = m_entityManager.DeserializeEntity(entityJson);
+            std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityJson);
             m_commandBuffer.CreateEntityFromTemplate(std::move(pendingComponents));
         }
-    }
-
-    template <typename T>
-    T* GetComponentFromPendings(const std::vector<PendingComponent>& pendingComponent)
-    {
-        for (auto& component : pendingComponent)
-        {
-            if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
-            {
-                T* componentPtr = reinterpret_cast<T*>(component.componentDataPtr);
-                return componentPtr;
-            }
-        }
-        return nullptr;
     }
 };

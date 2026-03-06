@@ -1,12 +1,20 @@
 #pragma once
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/Shape.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <string>
 #include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "core/utils/FileHelper.h"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/component/Components.hpp"
 #include <memory>
 #include <unordered_map>
 #include <filesystem>
+#include <utility>
 
 class EntityTemplateManager
 {
@@ -28,7 +36,7 @@ class EntityTemplateManager
         return it->second.get();
     }
 
-    bool CreateEntityTemplate(World& world, EntityStorageLocation entityLocation, const std::string& name)
+    bool CreateEntityTemplate(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& name)
     {
         auto it = m_templateMap.find(name);
         if (it != m_templateMap.end())
@@ -38,11 +46,54 @@ class EntityTemplateManager
         }
 
         Json entityJson = world.SerializeEntity(entityLocation);
-        auto newTemplate = std::make_unique<EntityTemplate>(name, entityJson);
+
+        CShape* cshape = world.TryGetComponent<CShape>(entity);
+        sf::Texture tex = GenerateEntityTemplateTexture(cshape);
+
+        auto newTemplate = std::make_unique<EntityTemplate>(tex, name, entityJson);
         m_templateMap.emplace(name, std::move(newTemplate));
         JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
 
         return true;
+    }
+
+    sf::Texture GenerateEntityTemplateTexture(CShape* cshape)
+    {
+        if (!cshape)
+        {
+            // Return empty texture
+            sf::RenderTexture tmp({64, 64});
+            tmp.clear(sf::Color::White);
+            tmp.display();
+            return tmp.getTexture();
+        }
+
+        // Compute texture size: radius * 2 + outline
+        float texSizeF = cshape->radius * 2.f + cshape->outlineThickness * 2.f;
+        unsigned int texSize = static_cast<unsigned int>(std::ceil(texSizeF));
+
+        // Create render texture
+        sf::RenderTexture renderTex({ texSize, texSize });
+
+        renderTex.clear(sf::Color::Transparent);
+
+        // Create the shape
+        sf::CircleShape shape;
+        shape.setPointCount(cshape->points);
+        cshape->fillColor.a *= 0.7f;
+        shape.setFillColor(cshape->fillColor);
+        shape.setOutlineColor(sf::Color::White);
+        shape.setOutlineThickness(cshape->outlineThickness);
+        shape.setRadius(cshape->radius);
+
+        // Center the shape in the texture
+        shape.setOrigin({ cshape->radius + cshape->outlineThickness, cshape->radius + cshape->outlineThickness });
+        shape.setPosition({ texSizeF / 2.f, texSizeF / 2.f });
+
+        renderTex.draw(shape);
+        renderTex.display();
+
+        return renderTex.getTexture();
     }
 
     void UpdateEntityTemplate(Json& entityJson, const std::string& name)
@@ -89,7 +140,7 @@ class EntityTemplateManager
         FileHelper::RenameFile(oldName, storageFolder + oldName + ".json", newName, storageFolder + newName + ".json");
 
         pair.key() = newName;
-        pair.mapped()->name = newName;
+        pair.mapped()->entityName = newName;
         m_templateMap.insert(std::move(pair));
     }
 
@@ -103,7 +154,12 @@ class EntityTemplateManager
                 std::string filename = entry.path().stem().string();
 
                 Json entityJson = JsonUtility::LoadJsonObjectFromFile(filePath);
-                auto newTemplate = std::make_unique<EntityTemplate>(filename, entityJson);
+
+                PendingComponent pendingComponent = ComponentRegistry::GetPendingComponentFromEntityJson<CShape>(entityJson);
+                CShape* cshape = ComponentRegistry::GetComponentFromPending<CShape>(pendingComponent);
+                sf::Texture tex = GenerateEntityTemplateTexture(cshape);
+
+                auto newTemplate = std::make_unique<EntityTemplate>(std::move(tex), filename, entityJson);
                 m_templateMap.emplace(filename, std::move(newTemplate));
             }
         }

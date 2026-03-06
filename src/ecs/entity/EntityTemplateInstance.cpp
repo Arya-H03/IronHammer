@@ -3,7 +3,7 @@
 
 EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
 {
-    m_name = sourceTemplate.name;
+    m_name = sourceTemplate.entityName;
     DeserializeFrom(sourceTemplate.entityJson);
 }
 

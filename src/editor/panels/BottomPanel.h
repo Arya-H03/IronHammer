@@ -1,14 +1,20 @@
 #pragma once
 #include "editor/EditorContext.h"
 #include "gui/LogWindow.hpp"
+#include "imgui-SFML.h"
+#include <SFML/Graphics/Texture.hpp>
 #include <imgui.h>
 
 class BottomPanel
 {
   private:
 
-    EditorContext& m_editorContext;
     LogWindow m_logWindow;
+
+    float iconSize = 64.f;
+    float itemWidth = 88.f;
+
+    EditorContext& m_editorContext;
 
     void DrawLogTab()
     {
@@ -25,23 +31,57 @@ class BottomPanel
 
         if (ImGui::BeginTabItem("Entity Templates"))
         {
+            float panelWidth = ImGui::GetContentRegionAvail().x;
+
+            int itemsPerRow = std::max(1, (int) (panelWidth / itemWidth));
+            int i = 0;
+
             for (auto& [name, entityTemplate] : m_editorContext.entityTemplateManager->GetEntityTemplates())
             {
-                if (ImGui::Selectable(name.c_str()))
+                ImGui::BeginGroup();
+
+                float cursorX = ImGui::GetCursorPosX();
+                ImGui::SetCursorPosX(cursorX + (itemWidth - iconSize) * 0.5f);
+
+                if (ImGui::ImageButton(name.c_str(), (ImTextureID) entityTemplate->entityTexture.getNativeHandle(), ImVec2(iconSize, iconSize)))
                 {
                     m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
                 }
 
+                static bool dragging = false;
+
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip))
                 {
                     ImGui::SetDragDropPayload("ENTITY_TEMPLATE", name.c_str(), name.size() + 1);
-                    ImGui::SetNextWindowPos(ImGui::GetMousePos(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-                    ImGui::BeginTooltip();
-                    ImGui::Text("%s", name.c_str());
-                    ImGui::EndTooltip();
+                    dragging = true;
                     ImGui::EndDragDropSource();
                 }
+                else
+                    dragging = false;
+
+                if (dragging)
+                {
+                    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+                    ImVec2 mouse = ImGui::GetIO().MousePos;
+
+                    sf::Vector2u texSize = entityTemplate->entityTexture.getSize();
+                    ImVec2 halfSize(texSize.x * 0.5f, texSize.y * 0.5f);
+
+                    drawList->AddImage((ImTextureID) entityTemplate->entityTexture.getNativeHandle(),
+                        ImVec2(mouse.x - halfSize.x, mouse.y - halfSize.y),
+                        ImVec2(mouse.x + halfSize.x, mouse.y + halfSize.y));
+                }
+
+                float textWidth = ImGui::CalcTextSize(name.c_str()).x;
+                ImGui::SetCursorPosX(cursorX + (itemWidth - textWidth) * 0.6f);
+                ImGui::Text("%s", name.c_str());
+
+                ImGui::EndGroup();
+
+                // horizontal layout
+                if (++i % itemsPerRow != 0) ImGui::SameLine();
             }
+
             ImGui::EndTabItem();
         }
     }
@@ -61,7 +101,7 @@ class BottomPanel
         if (ImGui::BeginTabBar("BottomTabs"))
         {
             DrawLogTab();
-            //DrawEntityTemplateTab();
+            DrawEntityTemplateTab();
 
             ImGui::EndTabBar();
         }
