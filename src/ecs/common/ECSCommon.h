@@ -19,10 +19,7 @@ struct Entity
     EntityID id = InvalidEntityID;
     uint32_t generation = InvalidEntityID;
 
-    bool operator==(const Entity otherEntity) const
-    {
-        return id == otherEntity.id && generation == otherEntity.generation;
-    }
+    bool operator==(const Entity otherEntity) const { return id == otherEntity.id && generation == otherEntity.generation; }
 };
 
 struct EntityStorageLocation
@@ -36,9 +33,12 @@ struct EntityStorageLocation
 
 struct EntityTemplate
 {
-    sf::Texture entityTexture;
+     sf::Texture entityTexture;
     std::string entityName;
     Json entityJson;
 
-    EntityTemplate(sf::Texture tex,std::string name, Json json) : entityTexture(tex),entityName(std::move(name)), entityJson(std::move(json)) {}
+    EntityTemplate( sf::Texture tex, const std::string& name, const Json& json)
+        : entityTexture(std::move(tex)), entityName(name), entityJson(json)
+    {
+    }
 };

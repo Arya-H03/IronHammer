@@ -1,6 +1,7 @@
 #include "RenderSystem.h"
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -11,6 +12,7 @@
 #include "Tracy.hpp"
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
+#include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
 
 RenderSystem::RenderSystem(World* world)
@@ -18,6 +20,7 @@ RenderSystem::RenderSystem(World* world)
     , shapeQuery(m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
     , textQuery(m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
     , colliderQuery(m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , spriteQuery(m_worldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
 }
 
@@ -27,6 +30,7 @@ void RenderSystem::ResetWorld(World* newWorldPtr)
     shapeQuery = m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
     textQuery = m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
     colliderQuery = m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
+    spriteQuery = m_worldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
@@ -42,8 +46,8 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
 
     for (size_t i = 0; i < points; ++i)
     {
-        float angle1 = (i * 2.f * M_PI) / points + rotationRad;
-        float angle2 = ((i + 1) * 2.f * M_PI) / points + rotationRad;
+        float angle1 = (i * 2.f * M_PI) / points + rotationRad + M_PI / 4;
+        float angle2 = ((i + 1) * 2.f * M_PI) / points + rotationRad + M_PI / 4;
 
         float a1Cos = std::cos(angle1), a2Cos = std::cos(angle2);
         float a1Sin = std::sin(angle1), a2Sin = std::sin(angle2);
@@ -100,6 +104,82 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
     batch.append(sf::Vertex(topLeft, Colors::OxidizedGreen_SFML));
 
     return 8;
+}
+
+void RenderSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch)
+{
+    float width = csprite.size.x * ctransform.scale.x;
+    float height = csprite.size.y * ctransform.scale.y;
+    float halfWidth = width / 2.0f;
+    float halfHeight = height / 2.0f;
+
+    Vect2f center = ctransform.position;
+
+    float rad = ctransform.rotation * (float) M_PI / 180.0f;
+    float cosRad = std::cos(rad);
+    float sinRad = std::sin(rad);
+
+    auto ApplyRotation = [&](float x, float y) { return sf::Vector2f(center.x + x * cosRad - y * sinRad, center.y + x * sinRad + y * cosRad); };
+
+    sf::Vector2 point1 = ApplyRotation(-halfWidth, -halfHeight);
+    sf::Vector2 point2 = ApplyRotation(halfWidth, -halfHeight);
+    sf::Vector2 point3 = ApplyRotation(halfWidth, halfHeight);
+    sf::Vector2 point4 = ApplyRotation(-halfWidth, halfHeight);
+
+    float u1 = csprite.textureRect.position.x;
+    float v1 = csprite.textureRect.position.y;
+    float u2 = csprite.textureRect.position.x + csprite.textureRect.size.x;
+    float v2 = csprite.textureRect.position.y + csprite.textureRect.size.y;
+
+    sf::Vector2f uvTopLeft(u1, v1);
+    sf::Vector2f uvTopRight(u2, v1);
+    sf::Vector2f uvBottomRight(u2, v2);
+    sf::Vector2f uvBottomLeft(u1, v2);
+
+    // First triangle
+    batch.append(sf::Vertex(point1, csprite.color, uvTopLeft));
+    batch.append(sf::Vertex(point2, csprite.color, uvTopRight));
+    batch.append(sf::Vertex(point3, csprite.color, uvBottomRight));
+
+    // Second triangle
+    batch.append(sf::Vertex(point1, csprite.color, uvTopLeft));
+    batch.append(sf::Vertex(point3, csprite.color, uvBottomRight));
+    batch.append(sf::Vertex(point4, csprite.color, uvBottomLeft));
+}
+
+void RenderSystem::RenderSprites(sf::RenderTarget& renderTarget)
+{
+    static sf::VertexArray batch(sf::PrimitiveType::Triangles);
+    batch.clear();
+
+    const sf::Texture* currentTexture = nullptr;
+
+    for (auto& archetype : spriteQuery->GetMatchingArchetypes())
+    {
+        for (auto& chunk : archetype->GetChunks())
+        {
+            ZoneScopedN("Per Entity Render Sprites");
+
+            auto spriteCompRow = chunk.GetComponentRow<CSprite>();
+            auto transformCompRow = chunk.GetComponentRow<CTransform>();
+
+            for (size_t i = 0; i < chunk.size; ++i)
+            {
+                const CSprite& csprite = spriteCompRow[i];
+                const CTransform& ctransform = transformCompRow[i];
+
+                if (currentTexture != csprite.texture)
+                {
+                    renderTarget.draw(batch, currentTexture);
+                    batch.clear();
+                    currentTexture = csprite.texture;
+                }
+
+                AddSpriteToBatch(csprite, ctransform, batch);
+            }
+        }
+    }
+    renderTarget.draw(batch, currentTexture);
 }
 
 void RenderSystem::RenderShapes(sf::RenderTarget& renderTarget)
@@ -226,6 +306,7 @@ void RenderSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
     if (m_canDrawShapes) RenderShapes(renderTarget);
     if (m_canDrawColliders) RenderColliders(renderTarget);
     if (m_canDrawText) RenderText(renderTarget);
+    RenderSprites(renderTarget);
 
     // ImGui::SFML::Render(m_window);
     // m_window.display();

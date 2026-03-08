@@ -74,6 +74,8 @@ class ComponentRegistry
 
     inline static std::vector<ComponentInfo> componentInfos;
 
+    ComponentRegistry() = delete;
+
     static ComponentID MakeComponentID()
     {
         static ComponentID counter = 0;

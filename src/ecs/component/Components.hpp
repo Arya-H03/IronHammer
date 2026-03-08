@@ -1,10 +1,14 @@
 #pragma once
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <string>
 #include <nlohmann/json.hpp>
+#include "assets/AssetManager.h"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
@@ -81,6 +85,72 @@ inline void to_json(Json& j, const CMovement& c) { j = { { "speed", c.speed } };
 
 inline void from_json(const Json& j, CMovement& c) { c.speed = j.value("speed", 0.f); }
 
+struct CSprite
+{
+    const sf::Texture* texture = nullptr;
+    std::string textureName;
+    Vect2f size;
+    sf::IntRect textureRect;
+    sf::Color color = sf::Color::White;
+
+    static constexpr const char* name = "Sprite";
+
+    CSprite() = default;
+
+    // Constructor using texture name
+    CSprite(const std::string& texName, Vect2f sz, sf::IntRect texRect, sf::Color col = sf::Color::White)
+        : textureName(texName), size(sz), textureRect(texRect), color(col)
+    {
+        texture = AssetManager::Instance().LoadTexture(textureName); // resolve pointer
+    }
+
+    REGISTER_COMPONENT(CSprite);
+
+    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    {
+        TypeHeader<CSprite>(name, ptr);
+        if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit))
+        {
+            TableNextField("Texture");
+            EntityInspectorHelpers::InputText("##TextureName", textureName, isDirty);
+
+            TableNextField("Size");
+            EntityInspectorHelpers::DragFloat2("##SpriteSizeX", &size.x, "##SpriteSizeY", &size.y, 0.1, isDirty);
+
+            //TableNextField("Texture Rect");
+            //EntityInspectorHelpers::DragIntRect("##TextureRect", &textureRect, isDirty);
+
+            TableNextField("Color");
+            EntityInspectorHelpers::ColorEdit4("##SpriteColor", color, isDirty);
+
+            ImGui::EndTable();
+        }
+    }
+};
+
+inline void to_json(Json& j, const CSprite& c)
+{
+    j = Json::object();
+    j["textureName"] = c.textureName;
+    j["size"] = { c.size.x, c.size.y };
+    j["textureRect"] = { c.textureRect.position.x, c.textureRect.position.y, c.textureRect.size.x, c.textureRect.size.y };
+    j["color"] = { c.color.r, c.color.g, c.color.b, c.color.a };
+}
+
+inline void from_json(const Json& j, CSprite& c)
+{
+    c.textureName = j.value("textureName", "");
+    c.texture = c.textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(c.textureName);
+
+    auto sizeArr = j.value("size", std::vector<float> { 32.f, 32.f });
+    c.size = Vect2f(sizeArr[0], sizeArr[1]);
+
+    auto texRectArr = j.value("textureRect", std::vector<int> { 0, 0, 32, 32 });
+    c.textureRect = sf::IntRect({ texRectArr[0], texRectArr[1] }, { texRectArr[2], texRectArr[3] });
+
+    auto colArr = j.value("color", std::vector<uint8_t> { 255, 255, 255, 255 });
+    c.color = sf::Color(colArr[0], colArr[1], colArr[2], colArr[3]);
+}
 struct CShape
 {
     size_t points;

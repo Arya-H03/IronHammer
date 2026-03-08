@@ -6,6 +6,7 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "Tracy.hpp"
 #include "ecs/system/ISystem.h"
+#include "editor/Viewport.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionDebugger.h"
 #include "physics/CollisionResolutionSystem.h"
@@ -48,9 +49,9 @@ class CollisionSystem : public ISetupSystem
                         transformComp.position.y = colliderComp.halfSize.y - colliderComp.offset.y;
                         rigidBodyComp.velocity.y *= -1;
                     }
-                    else if (transformComp.position.y + colliderComp.offset.y + colliderComp.halfSize.y >= m_windowSize.y)
+                    else if (transformComp.position.y + colliderComp.offset.y + colliderComp.halfSize.y >= Viewport::GetSize().y)
                     {
-                        transformComp.position.y = m_windowSize.y - colliderComp.halfSize.y - colliderComp.offset.y;
+                        transformComp.position.y = Viewport::GetSize().y - colliderComp.halfSize.y - colliderComp.offset.y;
                         rigidBodyComp.velocity.y *= -1;
                     }
 
@@ -60,9 +61,9 @@ class CollisionSystem : public ISetupSystem
                         rigidBodyComp.velocity.x *= -1;
                     }
 
-                    else if (transformComp.position.x + colliderComp.offset.x + colliderComp.halfSize.x >= m_windowSize.x)
+                    else if (transformComp.position.x + colliderComp.offset.x + colliderComp.halfSize.x >= Viewport::GetSize().x)
                     {
-                        transformComp.position.x = m_windowSize.x - colliderComp.halfSize.x - colliderComp.offset.x;
+                        transformComp.position.x = Viewport::GetSize().x - colliderComp.halfSize.x - colliderComp.offset.x;
                         rigidBodyComp.velocity.x *= -1;
                     }
                 }

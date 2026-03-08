@@ -5,6 +5,7 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <cstddef>
 #include "ecs/World.hpp"
+#include "ecs/component/Components.hpp"
 
 class RenderSystem
 {
@@ -15,6 +16,7 @@ class RenderSystem
     Query* shapeQuery;
     Query* textQuery;
     Query* colliderQuery;
+    Query* spriteQuery;
 
     // Flags
     bool m_canDrawText = false;
@@ -27,10 +29,12 @@ class RenderSystem
 
     size_t AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch);
     size_t AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch);
+    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch);
 
     void RenderShapes(sf::RenderTarget& renderTarget);
     void RenderColliders(sf::RenderTarget& renderTarget);
     void RenderText(sf::RenderTarget& renderTarget);
+    void RenderSprites(sf::RenderTarget& renderTarget);
 
   public:
 

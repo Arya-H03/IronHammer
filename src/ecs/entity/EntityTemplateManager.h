@@ -3,9 +3,16 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/Shape.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Angle.hpp>
+#include <algorithm>
+#include <cstdint>
 #include <string>
+#include "assets/AssetManager.h"
+#include "core/saving/JsonUtility.h"
 #include "core/utils/Debug.h"
+#include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "core/utils/FileHelper.h"
@@ -22,6 +29,7 @@ class EntityTemplateManager
 
     const std::string storageFolder = "src/assets/entityTemplates/";
     std::unordered_map<std::string, std::unique_ptr<EntityTemplate>> m_templateMap;
+    const uint16_t m_IconTextureSize = 64;
 
   public:
 
@@ -38,8 +46,7 @@ class EntityTemplateManager
 
     bool CreateEntityTemplate(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& name)
     {
-        auto it = m_templateMap.find(name);
-        if (it != m_templateMap.end())
+        if (m_templateMap.contains(name))
         {
             Log_Warning("Tried to create an Entity Template with an already existing name: " + name);
             return false;
@@ -47,53 +54,124 @@ class EntityTemplateManager
 
         Json entityJson = world.SerializeEntity(entityLocation);
 
-        CShape* cshape = world.TryGetComponent<CShape>(entity);
-        sf::Texture tex = GenerateEntityTemplateTexture(cshape);
+        const sf::Texture texture = GenerateEntityTemplateTexture(world, entity);
+        m_templateMap.emplace(name, std::make_unique<EntityTemplate>(std::move(texture), name, entityJson));
 
-        auto newTemplate = std::make_unique<EntityTemplate>(tex, name, entityJson);
-        m_templateMap.emplace(name, std::move(newTemplate));
         JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
 
         return true;
     }
 
-    sf::Texture GenerateEntityTemplateTexture(CShape* cshape)
+    const sf::Texture GenerateEntityTemplateTexture(World& world, Entity entity)
     {
-        if (!cshape)
+        CSprite* csprite = world.TryGetComponent<CSprite>(entity);
+        CTransform* ctransform = world.TryGetComponent<CTransform>(entity);
+
+        sf::RenderTexture renderTexture({ m_IconTextureSize, m_IconTextureSize });
+        renderTexture.clear(sf::Color(40, 40, 40));
+
+        if (!csprite || !ctransform)
         {
-            // Return empty texture
-            sf::RenderTexture tmp({64, 64});
-            tmp.clear(sf::Color::White);
-            tmp.display();
-            return tmp.getTexture();
+            renderTexture.display();
+            return renderTexture.getTexture();
         }
 
-        // Compute texture size: radius * 2 + outline
-        float texSizeF = cshape->radius * 2.f + cshape->outlineThickness * 2.f;
-        unsigned int texSize = static_cast<unsigned int>(std::ceil(texSizeF));
+        sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
+        if (!texture)
+        {
+            Log_Error("Failed to load texture: " + csprite->textureName);
+            renderTexture.display();
+            return renderTexture.getTexture();
+        }
 
-        // Create render texture
-        sf::RenderTexture renderTex({ texSize, texSize });
+        float worldWidth = csprite->size.x * ctransform->scale.x;
+        float worldHeight = csprite->size.y * ctransform->scale.y;
 
-        renderTex.clear(sf::Color::Transparent);
+        if (worldWidth <= 0 || worldHeight <= 0)
+        {
+            renderTexture.display();
+            return renderTexture.getTexture();
+        }
 
-        // Create the shape
-        sf::CircleShape shape;
-        shape.setPointCount(cshape->points);
-        cshape->fillColor.a *= 0.7f;
-        shape.setFillColor(cshape->fillColor);
-        shape.setOutlineColor(sf::Color::White);
-        shape.setOutlineThickness(cshape->outlineThickness);
-        shape.setRadius(cshape->radius);
+        float scaleX = (float) m_IconTextureSize / worldWidth;
+        float scaleY = (float) m_IconTextureSize / worldHeight;
+        float fitScale = std::min(scaleX, scaleY) * 0.8f; // add some padding
 
-        // Center the shape in the texture
-        shape.setOrigin({ cshape->radius + cshape->outlineThickness, cshape->radius + cshape->outlineThickness });
-        shape.setPosition({ texSizeF / 2.f, texSizeF / 2.f });
 
-        renderTex.draw(shape);
-        renderTex.display();
+        sf::Sprite sprite(*texture);
+        sprite.setTextureRect(csprite->textureRect);
+        sprite.setColor(csprite->color);
 
-        return renderTex.getTexture();
+
+        sprite.setOrigin({ csprite->size.x * 0.5f, csprite->size.y * 0.5f });
+        sprite.setPosition({ m_IconTextureSize * 0.5f, m_IconTextureSize * 0.5f });
+
+
+        sprite.setScale({ fitScale, fitScale });
+
+
+        sprite.setRotation(sf::degrees(ctransform->rotation));
+
+        renderTexture.draw(sprite);
+        renderTexture.display();
+
+        return renderTexture.getTexture();
+    }
+
+    const sf::Texture GenerateEntityTemplateTexture(Json entityJson) const
+    {
+        PendingComponent pendingCSprite = ComponentRegistry::GetPendingComponentFromEntityJson<CSprite>(entityJson);
+        CSprite* csprite = ComponentRegistry::GetComponentFromPending<CSprite>(pendingCSprite);
+        PendingComponent pendingCTransform = ComponentRegistry::GetPendingComponentFromEntityJson<CTransform>(entityJson);
+        CTransform* ctransform = ComponentRegistry::GetComponentFromPending<CTransform>(pendingCTransform);
+
+        sf::RenderTexture renderTexture({ m_IconTextureSize, m_IconTextureSize });
+        renderTexture.clear(sf::Color(40, 40, 40)); // background
+
+        if (!csprite || !ctransform)
+        {
+            renderTexture.display();
+            return renderTexture.getTexture();
+        }
+
+        sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
+        if (!texture)
+        {
+            renderTexture.display();
+            return renderTexture.getTexture();
+        }
+        float worldWidth = csprite->size.x * ctransform->scale.x;
+        float worldHeight = csprite->size.y * ctransform->scale.y;
+
+        if (worldWidth <= 0 || worldHeight <= 0)
+        {
+            renderTexture.display();
+            return renderTexture.getTexture();
+        }
+
+        float scaleX = (float) m_IconTextureSize / worldWidth;
+        float scaleY = (float) m_IconTextureSize / worldHeight;
+        float fitScale = std::min(scaleX, scaleY) * 0.8f; // add some padding
+
+
+        sf::Sprite sprite(*texture);
+        sprite.setTextureRect(csprite->textureRect);
+        sprite.setColor(csprite->color);
+
+
+        sprite.setOrigin({ csprite->size.x * 0.5f, csprite->size.y * 0.5f });
+        sprite.setPosition({ m_IconTextureSize * 0.5f, m_IconTextureSize * 0.5f });
+
+
+        sprite.setScale({ fitScale, fitScale });
+
+
+        sprite.setRotation(sf::degrees(ctransform->rotation));
+
+        renderTexture.draw(sprite);
+        renderTexture.display();
+
+        return renderTexture.getTexture();
     }
 
     void UpdateEntityTemplate(Json& entityJson, const std::string& name)
@@ -107,6 +185,9 @@ class EntityTemplateManager
 
         templatePtr->entityJson = entityJson;
         JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
+
+        const sf::Texture texture = GenerateEntityTemplateTexture(entityJson);
+        templatePtr->entityTexture = std::move(texture);
     }
 
     void DeleteEntityTemplate(const std::string& name)
@@ -155,11 +236,8 @@ class EntityTemplateManager
 
                 Json entityJson = JsonUtility::LoadJsonObjectFromFile(filePath);
 
-                PendingComponent pendingComponent = ComponentRegistry::GetPendingComponentFromEntityJson<CShape>(entityJson);
-                CShape* cshape = ComponentRegistry::GetComponentFromPending<CShape>(pendingComponent);
-                sf::Texture tex = GenerateEntityTemplateTexture(cshape);
-
-                auto newTemplate = std::make_unique<EntityTemplate>(std::move(tex), filename, entityJson);
+                const sf::Texture texture = GenerateEntityTemplateTexture(entityJson);
+                auto newTemplate = std::make_unique<EntityTemplate>(std::move(texture), filename, entityJson);
                 m_templateMap.emplace(filename, std::move(newTemplate));
             }
         }

@@ -3,12 +3,15 @@
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
+#include "ecs/component/Components.hpp"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "scene/BaseScene.h"
 #include "scene/GameScene.h"
 #include "scene/SceneManager.h"
 #include "core/utils/Random.hpp"
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/WindowEnums.hpp>
@@ -67,11 +70,11 @@ void Engine::Init()
     //     float radius = Random::Float(50, 100);
     //     int points = Random::Int(3, 20);
 
-    //     m_editorWorld->CreateEntity(CTransform(startPos, { 3, 3 }, 45),
+    //     m_editorWorld->CreateEntity(CTransform(startPos, { 1, 1 }, 0),
     //         CMovement(speed),
     //         CRigidBody(startVel, radius, 0.1f, true),
-    //         CCollider({ radius * 2, radius * 2 }, { 0, 0 }, false),
-    //         CShape(points, Random::Color(), sf::Color::White, radius, 0));
+    //         CCollider({ radius, radius }, { 0, 0 }, false),
+    //         CSprite("Square", Vect2f(radius, radius), sf::IntRect({ 0, 0 }, { 256, 256 }), Random::Color()));
     // }
 }
 
