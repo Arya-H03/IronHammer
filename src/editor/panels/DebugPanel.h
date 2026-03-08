@@ -1,5 +1,4 @@
 #pragma once
-#include "ecs/entity/EntityInspectorHelper.h"
 #include "editor/EditorContext.h"
 #include "core/utils/Colors.h"
 #include <SFML/Graphics/Color.hpp>
@@ -36,8 +35,13 @@ class DebugPanel
 
         auto& renderSystem = *m_editorContext.renderSystem;
 
+        bool canDrawSprites = renderSystem.GetCanDrawSprites();
+        if (ImGui::Checkbox("Draw Sprites", &canDrawSprites)) renderSystem.SetCanDrawSprites(canDrawSprites);
+
+        ImGui::Separator();
+
         bool canDrawText = renderSystem.GetCanDrawText();
-        if (ImGui::Checkbox("Draw Text", &canDrawText)) renderSystem.SetCanDrawTest(canDrawText);
+        if (ImGui::Checkbox("Draw Texts", &canDrawText)) renderSystem.SetCanDrawTest(canDrawText);
 
         ImGui::Separator();
 
@@ -56,7 +60,7 @@ class DebugPanel
     {
         if (!ImGui::BeginTabItem("Physics")) return;
 
-        // Placeholder for future physics debugger
+        // Placeholder for future integration (this day will come)
         ImGui::TextColored(Colors::ConcreteGrey_ImGui, "Physics Debug Tools");
 
         ImGui::Separator();
@@ -86,7 +90,7 @@ class DebugPanel
         ImGui::RadioButton("64", &m_editorContext.editorGrid.GetCellSize(), 64);
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX(tabWidth -  2 * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Snap to Grid").x));
+        ImGui::SetCursorPosX(tabWidth - 2 * (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Snap to Grid").x));
         bool& canSnapToGrid = m_editorContext.editorGrid.GetCanSnapToGrid();
         ImGui::Checkbox("Snap to Grid", &canSnapToGrid);
 
@@ -95,7 +99,6 @@ class DebugPanel
         ImGui::SetCursorPosX(tabWidth - (ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x + ImGui::CalcTextSize("Show Grid").x));
         bool& canShowGrid = m_editorContext.editorGrid.GetCanShowGrid();
         ImGui::Checkbox("Show Grid", &canShowGrid);
-
 
         ImGui::Spacing();
         ImGui::Spacing();
@@ -109,7 +112,6 @@ class DebugPanel
                 static_cast<uint8_t>(col[1] * 255),
                 static_cast<uint8_t>(col[2] * 255),
                 static_cast<uint8_t>(col[3] * 255));
-
         }
         ImGui::PopItemWidth();
 

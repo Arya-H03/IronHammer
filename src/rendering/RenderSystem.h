@@ -22,6 +22,7 @@ class RenderSystem
     bool m_canDrawText = false;
     bool m_canDrawColliders = false;
     bool m_canDrawShapes = true;
+    bool m_canDrawSprites = true;
 
     const size_t maxVerticesPerBatch = 10000;
 
@@ -43,10 +44,12 @@ class RenderSystem
     bool GetCanDrawText() const { return m_canDrawText; }
     bool GetCanDrawShapes() const { return m_canDrawShapes; }
     bool GetCanDrawColliders() const { return m_canDrawColliders; }
+    bool GetCanDrawSprites() const { return m_canDrawSprites; }
 
     void SetCanDrawTest(bool val) { m_canDrawText = val; }
     void SetCanDrawShapes(bool val) { m_canDrawShapes = val; }
     void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
+    void SetCanDrawSprites(bool val) { m_canDrawSprites = val; }
 
     void ResetWorld(World* newWorldPtr);
 

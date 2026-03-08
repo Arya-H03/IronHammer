@@ -1,5 +1,4 @@
 #pragma once
-#include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/Components.hpp"
@@ -46,7 +45,7 @@ class BottomPanel
 
                 float cursorX = ImGui::GetCursorPosX();
                 ImGui::SetCursorPosX(cursorX + (itemWidth - iconSize) * 0.5f);
-                if (ImGui::ImageButton(name.c_str(), (ImTextureID) entityTemplate->entityTexture.getNativeHandle(), ImVec2(iconSize, iconSize)))
+                if (ImGui::ImageButton(name.c_str(), (ImTextureID) entityTemplate->iconTexture.getNativeHandle(), ImVec2(iconSize, iconSize)))
                 {
                     m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
                 }
@@ -105,21 +104,20 @@ class BottomPanel
 
             previewWidth = spriteComp->size.x * transform->scale.x;
             previewHeight = spriteComp->size.y * transform->scale.y;
-            rotationDegree = transform->rotation;
+            float halfWidth = previewWidth * 0.5f;
+            float halfHeight = previewHeight * 0.5f;
 
-            ImVec2 halfSize(previewWidth * 0.5f, previewHeight * 0.5f);
-            float rad = -rotationDegree * (M_PI / 180.f);
+            float rad = -transform->rotation * (M_PI / 180.f);
             float cosRad = std::cos(rad);
             float sinRad = std::sin(rad);
 
             auto Rotate = [&](ImVec2 point)
             { return ImVec2(mouse.x + point.x * cosRad - point.y * sinRad, mouse.y + point.x * sinRad + point.y * cosRad); };
 
-            // Define rectangle corners relative to pivot
-            ImVec2 topLeft(-halfSize.x, -halfSize.y);
-            ImVec2 topRight(halfSize.x, -halfSize.y);
-            ImVec2 bottomRight(halfSize.x, halfSize.y);
-            ImVec2 bottomLeft(-halfSize.x, halfSize.y);
+            ImVec2 topLeft(-halfWidth, -halfHeight);
+            ImVec2 topRight(halfWidth, -halfHeight);
+            ImVec2 bottomRight(halfWidth, halfHeight);
+            ImVec2 bottomLeft(-halfWidth, halfHeight);
 
             float u1 = (float) spriteComp->textureRect.position.x / texture->getSize().x;
             float v1 = (float) spriteComp->textureRect.position.y / texture->getSize().y;
@@ -135,7 +133,7 @@ class BottomPanel
                 ImVec2(u2, v1),
                 ImVec2(u2, u2),
                 ImVec2(u1, v2),
-                IM_COL32(spriteComp->color.r,spriteComp->color.g,spriteComp->color.b,spriteComp->color.a));
+                IM_COL32(spriteComp->color.r, spriteComp->color.g, spriteComp->color.b, spriteComp->color.a));
         }
     }
 

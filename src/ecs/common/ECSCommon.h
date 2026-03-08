@@ -33,12 +33,12 @@ struct EntityStorageLocation
 
 struct EntityTemplate
 {
-     sf::Texture entityTexture;
+     sf::Texture iconTexture;
     std::string entityName;
     Json entityJson;
 
     EntityTemplate( sf::Texture tex, const std::string& name, const Json& json)
-        : entityTexture(std::move(tex)), entityName(name), entityJson(json)
+        : iconTexture(std::move(tex)), entityName(name), entityJson(json)
     {
     }
 };

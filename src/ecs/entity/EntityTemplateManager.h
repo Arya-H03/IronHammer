@@ -29,7 +29,8 @@ class EntityTemplateManager
 
     const std::string storageFolder = "src/assets/entityTemplates/";
     std::unordered_map<std::string, std::unique_ptr<EntityTemplate>> m_templateMap;
-    const uint16_t m_IconTextureSize = 64;
+    const uint16_t m_iconTextureSize = 64;
+    const float m_iconTexturePadding = 0.8f;
 
   public:
 
@@ -54,7 +55,7 @@ class EntityTemplateManager
 
         Json entityJson = world.SerializeEntity(entityLocation);
 
-        const sf::Texture texture = GenerateEntityTemplateTexture(world, entity);
+        const sf::Texture texture = GenerateEntityTemplateIconTexture(world, entity);
         m_templateMap.emplace(name, std::make_unique<EntityTemplate>(std::move(texture), name, entityJson));
 
         JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
@@ -62,12 +63,12 @@ class EntityTemplateManager
         return true;
     }
 
-    const sf::Texture GenerateEntityTemplateTexture(World& world, Entity entity)
+    const sf::Texture GenerateEntityTemplateIconTexture(World& world, Entity entity)
     {
         CSprite* csprite = world.TryGetComponent<CSprite>(entity);
         CTransform* ctransform = world.TryGetComponent<CTransform>(entity);
 
-        sf::RenderTexture renderTexture({ m_IconTextureSize, m_IconTextureSize });
+        sf::RenderTexture renderTexture({ m_iconTextureSize, m_iconTextureSize });
         renderTexture.clear(sf::Color(40, 40, 40));
 
         if (!csprite || !ctransform)
@@ -79,38 +80,24 @@ class EntityTemplateManager
         sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
         if (!texture)
         {
-            Log_Error("Failed to load texture: " + csprite->textureName);
+            Log_Error("Could not load texture: " + csprite->textureName);
             renderTexture.display();
             return renderTexture.getTexture();
         }
-
-        float worldWidth = csprite->size.x * ctransform->scale.x;
-        float worldHeight = csprite->size.y * ctransform->scale.y;
-
-        if (worldWidth <= 0 || worldHeight <= 0)
-        {
-            renderTexture.display();
-            return renderTexture.getTexture();
-        }
-
-        float scaleX = (float) m_IconTextureSize / worldWidth;
-        float scaleY = (float) m_IconTextureSize / worldHeight;
-        float fitScale = std::min(scaleX, scaleY) * 0.8f; // add some padding
-
 
         sf::Sprite sprite(*texture);
         sprite.setTextureRect(csprite->textureRect);
         sprite.setColor(csprite->color);
+        sprite.setOrigin({ csprite->textureRect.size.x * 0.5f, csprite->textureRect.size.y * 0.5f });
+        sprite.setPosition({ m_iconTextureSize * 0.5f, m_iconTextureSize * 0.5f });
+        sprite.setRotation(sf::degrees(-ctransform->rotation)); // Negate rotation to match rendering
 
-
-        sprite.setOrigin({ csprite->size.x * 0.5f, csprite->size.y * 0.5f });
-        sprite.setPosition({ m_IconTextureSize * 0.5f, m_IconTextureSize * 0.5f });
-
-
-        sprite.setScale({ fitScale, fitScale });
-
-
-        sprite.setRotation(sf::degrees(ctransform->rotation));
+        float spriteWidth = csprite->size.x * ctransform->scale.x;
+        float spriteHeight = csprite->size.y * ctransform->scale.y;
+        float scaleX = spriteWidth / (m_iconTexturePadding * m_iconTextureSize);
+        float scaleY = spriteHeight / (m_iconTexturePadding * m_iconTextureSize);
+        float fitScale = std::max(scaleX, scaleY); // fit to icon size based on longest axis
+        sprite.setScale({ spriteWidth / (csprite->textureRect.size.x * fitScale), spriteHeight / (csprite->textureRect.size.y * fitScale) });
 
         renderTexture.draw(sprite);
         renderTexture.display();
@@ -118,15 +105,16 @@ class EntityTemplateManager
         return renderTexture.getTexture();
     }
 
-    const sf::Texture GenerateEntityTemplateTexture(Json entityJson) const
+    const sf::Texture GenerateEntityTemplateIconTexture(Json entityJson) const
     {
         PendingComponent pendingCSprite = ComponentRegistry::GetPendingComponentFromEntityJson<CSprite>(entityJson);
         CSprite* csprite = ComponentRegistry::GetComponentFromPending<CSprite>(pendingCSprite);
+
         PendingComponent pendingCTransform = ComponentRegistry::GetPendingComponentFromEntityJson<CTransform>(entityJson);
         CTransform* ctransform = ComponentRegistry::GetComponentFromPending<CTransform>(pendingCTransform);
 
-        sf::RenderTexture renderTexture({ m_IconTextureSize, m_IconTextureSize });
-        renderTexture.clear(sf::Color(40, 40, 40)); // background
+        sf::RenderTexture renderTexture({ m_iconTextureSize, m_iconTextureSize });
+        renderTexture.clear(sf::Color(40, 40, 40)); // Icon  background
 
         if (!csprite || !ctransform)
         {
@@ -137,36 +125,24 @@ class EntityTemplateManager
         sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
         if (!texture)
         {
+            Log_Error("Could not load texture: " + csprite->textureName);
             renderTexture.display();
             return renderTexture.getTexture();
         }
-        float worldWidth = csprite->size.x * ctransform->scale.x;
-        float worldHeight = csprite->size.y * ctransform->scale.y;
-
-        if (worldWidth <= 0 || worldHeight <= 0)
-        {
-            renderTexture.display();
-            return renderTexture.getTexture();
-        }
-
-        float scaleX = (float) m_IconTextureSize / worldWidth;
-        float scaleY = (float) m_IconTextureSize / worldHeight;
-        float fitScale = std::min(scaleX, scaleY) * 0.8f; // add some padding
-
 
         sf::Sprite sprite(*texture);
         sprite.setTextureRect(csprite->textureRect);
         sprite.setColor(csprite->color);
+        sprite.setOrigin({ csprite->textureRect.size.x * 0.5f, csprite->textureRect.size.y * 0.5f });
+        sprite.setPosition({ m_iconTextureSize * 0.5f, m_iconTextureSize * 0.5f });
+        sprite.setRotation(sf::degrees(-ctransform->rotation)); // Negate rotation to match rendering
 
-
-        sprite.setOrigin({ csprite->size.x * 0.5f, csprite->size.y * 0.5f });
-        sprite.setPosition({ m_IconTextureSize * 0.5f, m_IconTextureSize * 0.5f });
-
-
-        sprite.setScale({ fitScale, fitScale });
-
-
-        sprite.setRotation(sf::degrees(ctransform->rotation));
+        float spriteWidth = csprite->size.x * ctransform->scale.x;
+        float spriteHeight = csprite->size.y * ctransform->scale.y;
+        float scaleX = spriteWidth / (m_iconTexturePadding * m_iconTextureSize);
+        float scaleY = spriteHeight / (m_iconTexturePadding * m_iconTextureSize);
+        float fitScale = std::max(scaleX, scaleY); // fit to icon size based on longest axis
+        sprite.setScale({ spriteWidth / (csprite->textureRect.size.x * fitScale), spriteHeight / (csprite->textureRect.size.y * fitScale) });
 
         renderTexture.draw(sprite);
         renderTexture.display();
@@ -186,8 +162,8 @@ class EntityTemplateManager
         templatePtr->entityJson = entityJson;
         JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
 
-        const sf::Texture texture = GenerateEntityTemplateTexture(entityJson);
-        templatePtr->entityTexture = std::move(texture);
+        const sf::Texture texture = GenerateEntityTemplateIconTexture(entityJson);
+        templatePtr->iconTexture = std::move(texture);
     }
 
     void DeleteEntityTemplate(const std::string& name)
@@ -236,7 +212,7 @@ class EntityTemplateManager
 
                 Json entityJson = JsonUtility::LoadJsonObjectFromFile(filePath);
 
-                const sf::Texture texture = GenerateEntityTemplateTexture(entityJson);
+                const sf::Texture texture = GenerateEntityTemplateIconTexture(entityJson);
                 auto newTemplate = std::make_unique<EntityTemplate>(std::move(texture), filename, entityJson);
                 m_templateMap.emplace(filename, std::move(newTemplate));
             }

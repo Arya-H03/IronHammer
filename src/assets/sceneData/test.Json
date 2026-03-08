@@ -274,6 +274,61 @@
           "y": 1.0
         }
       }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 98.44338989257813,
+          "y": 98.44338989257813
+        }
+      },
+      "Movement": {
+        "speed": 1.5079472064971924
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 73.04254150390625,
+          "y": 60.301544189453125
+        }
+      },
+      "Sprite": {
+        "color": [
+          55,
+          90,
+          161,
+          255
+        ],
+        "size": [
+          50.0,
+          20.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 381.0,
+          "y": 331.0
+        },
+        "rotation": 45.0,
+        "scale": {
+          "x": 8.0,
+          "y": 5.0
+        }
+      }
     }
   ]
 }

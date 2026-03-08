@@ -52,7 +52,6 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
         float a1Cos = std::cos(angle1), a2Cos = std::cos(angle2);
         float a1Sin = std::sin(angle1), a2Sin = std::sin(angle2);
 
-        // Outline
         if (cshape.outlineThickness > 0)
         {
             sf::Vector2f outer1 { center.x + a1Cos * outerRadius, center.y + a1Sin * outerRadius };
@@ -64,7 +63,6 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
             verticesAdded += 3;
         }
 
-        // Fill
         sf::Vector2f inner1 { center.x + a1Cos * innerRadius, center.y + a1Sin * innerRadius };
         sf::Vector2f inner2 { center.x + a2Cos * innerRadius, center.y + a2Sin * innerRadius };
 
@@ -84,13 +82,11 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
 
     sf::Vector2f center(ctransform.position.x + ccollider.offset.x, ctransform.position.y + ccollider.offset.y);
 
-    // 4 corners
     sf::Vector2f topLeft { center.x - halfWidth, center.y - halfHeight };
     sf::Vector2f topRight { center.x + halfWidth, center.y - halfHeight };
     sf::Vector2f bottomRight { center.x + halfWidth, center.y + halfHeight };
     sf::Vector2f bottomLeft { center.x - halfWidth, center.y + halfHeight };
 
-    // Each pair = one line segment
     batch.append(sf::Vertex(topLeft, Colors::OxidizedGreen_SFML));
     batch.append(sf::Vertex(topRight, Colors::OxidizedGreen_SFML));
 
@@ -119,12 +115,12 @@ void RenderSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ct
     float cosRad = std::cos(rad);
     float sinRad = std::sin(rad);
 
-    auto ApplyRotation = [&](float x, float y) { return sf::Vector2f(center.x + x * cosRad - y * sinRad, center.y + x * sinRad + y * cosRad); };
+    auto Rotate = [&](float x, float y) { return sf::Vector2f(center.x + x * cosRad - y * sinRad, center.y + x * sinRad + y * cosRad); };
 
-    sf::Vector2 point1 = ApplyRotation(-halfWidth, -halfHeight);
-    sf::Vector2 point2 = ApplyRotation(halfWidth, -halfHeight);
-    sf::Vector2 point3 = ApplyRotation(halfWidth, halfHeight);
-    sf::Vector2 point4 = ApplyRotation(-halfWidth, halfHeight);
+    sf::Vector2 topLeft = Rotate(-halfWidth, -halfHeight);
+    sf::Vector2 topRight = Rotate(halfWidth, -halfHeight);
+    sf::Vector2 bottomRight = Rotate(halfWidth, halfHeight);
+    sf::Vector2 bottomLeft = Rotate(-halfWidth, halfHeight);
 
     float u1 = csprite.textureRect.position.x;
     float v1 = csprite.textureRect.position.y;
@@ -136,15 +132,13 @@ void RenderSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ct
     sf::Vector2f uvBottomRight(u2, v2);
     sf::Vector2f uvBottomLeft(u1, v2);
 
-    // First triangle
-    batch.append(sf::Vertex(point1, csprite.color, uvTopLeft));
-    batch.append(sf::Vertex(point2, csprite.color, uvTopRight));
-    batch.append(sf::Vertex(point3, csprite.color, uvBottomRight));
+    batch.append(sf::Vertex(topLeft, csprite.color, uvTopLeft));
+    batch.append(sf::Vertex(topRight, csprite.color, uvTopRight));
+    batch.append(sf::Vertex(bottomRight, csprite.color, uvBottomRight));
 
-    // Second triangle
-    batch.append(sf::Vertex(point1, csprite.color, uvTopLeft));
-    batch.append(sf::Vertex(point3, csprite.color, uvBottomRight));
-    batch.append(sf::Vertex(point4, csprite.color, uvBottomLeft));
+    batch.append(sf::Vertex(topLeft, csprite.color, uvTopLeft));
+    batch.append(sf::Vertex(bottomRight, csprite.color, uvBottomRight));
+    batch.append(sf::Vertex(bottomLeft, csprite.color, uvBottomLeft));
 }
 
 void RenderSystem::RenderSprites(sf::RenderTarget& renderTarget)
@@ -303,10 +297,10 @@ void RenderSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
 {
     // m_window.clear();
 
+    if(m_canDrawSprites) RenderSprites(renderTarget);
     if (m_canDrawShapes) RenderShapes(renderTarget);
     if (m_canDrawColliders) RenderColliders(renderTarget);
     if (m_canDrawText) RenderText(renderTarget);
-    RenderSprites(renderTarget);
 
     // ImGui::SFML::Render(m_window);
     // m_window.display();
