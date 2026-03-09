@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <imgui.h>
 #include <string>
 #include "core/utils/Colors.h"
@@ -74,6 +75,12 @@ class LogWindow
         }
     }
 
+    void OpenFileFromTrace(const TraceBreakdown& traceBreakdown)
+    {
+        std::string command = "zed " + traceBreakdown.path + ":" + std::to_string(traceBreakdown.line) + ":" + std::to_string(traceBreakdown.column);
+        std::system(command.c_str());
+    }
+
     void LogWindowMessages()
     {
         ImGui::BeginChild("LogRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
@@ -98,19 +105,25 @@ class LogWindow
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
             {
                 const LogMessage& log = logs[m_visibleIndices[i]];
-                ImGui::Text("%s", log.time.c_str());
-                ImGui::SameLine();
-                ImGui::TextColored(log.color, "%s", log.message.c_str());
+                std::string logLable = log.time + " " + log.message;
 
-                std::string label = log.shortFilePath + ": " + std::to_string(log.lineNumber) + "##" + std::to_string(m_visibleIndices[i]);
-                ImGui::PushStyleColor(ImGuiCol_Text, Colors::LinkBlue_ImGui);
-                if (ImGui::Selectable(label.c_str(), false))
+                ImGui::PushStyleColor(ImGuiCol_Text, log.color);
+                if (ImGui::TreeNode(logLable.c_str()))
                 {
-                }
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                {
-                    std::string command = "zed " + log.fullFilePath + ":" + std::to_string(log.lineNumber);
-                    std::system(command.c_str());
+                    for (size_t i = 0; i < log.traceBreakdowns.size(); ++i)
+                    {
+                        const TraceBreakdown& traceBreakdown = log.traceBreakdowns[i];
+                        std::string traceText = traceBreakdown.ToString();
+
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
+                        ImGui::BulletText("%s", traceText.c_str());
+                        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                        {
+                            OpenFileFromTrace(traceBreakdown);
+                        }
+                        ImGui::PopStyleColor();
+                    }
+                    ImGui::TreePop();
                 }
                 ImGui::PopStyleColor();
                 ImGui::Separator();

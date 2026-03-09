@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include "core/utils/Random.hpp"
 #include "ecs/World.hpp"
+#include "editor/Viewport.h"
 #include "input/InputSystem.h"
 
 GameScene::GameScene(Vect2<uint16_t> windowSize) : BaseScene(windowSize), m_collisionSystem(m_windowSize) { }
@@ -14,7 +15,7 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_movementSystem.SetupSystem(worldPtr);
     m_collisionSystem.SetupSystem(worldPtr);
 
-    //SpawnTestEntities();
+    SpawnTestEntities();
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -39,22 +40,21 @@ void GameScene::Update(World* worldPtr, InputSystem& inputSystem)
 
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 100;
+    size_t count = 0;
 
     for (size_t i = 0; i < count; ++i)
     {
-        Vect2f startPos { Random::Float(50, m_windowSize.x - 50), Random::Float(50, m_windowSize.y - 50) };
-
+        Vect2f startPos { Random::Float(Viewport::GetPosition().x, Viewport::GetPosition().x + Viewport::GetSize().x * 0.5f),
+            Random::Float(Viewport::GetPosition().y, Viewport::GetPosition().y + Viewport::GetSize().y + 0.5f) };
         Vect2f startVel { Random::Float(-90, 90), Random::Float(-90, 90) };
 
         float speed = Random::Float(1, 5);
         float radius = Random::Float(1, 5);
-        int points = Random::Int(3, 20);
 
         m_worldPtr->CreateEntity(CTransform(startPos, { 3, 3 }, 45),
             CMovement(speed),
             CRigidBody(startVel, radius, 0.1f, true),
             CCollider({ radius * 2, radius * 2 }, { 0, 0 }, false),
-            CShape(points, Random::Color(), sf::Color::White, radius, 0));
+            CSprite("Square", Vect2f(radius, radius), sf::IntRect({ 0, 0 }, { 256, 256 }), Random::Color()));
     }
 }

@@ -13,16 +13,16 @@ class FileHelper
         {
             if (!std::filesystem::exists(filePath))
             {
-                Log_Warning("File does not exist: " + filePath);
+                LOG_WARNING("File does not exist: " + filePath);
             }
             if (!std::filesystem::remove(filePath))
             {
-                Log_Warning("File could not be deleted: " + filePath);
+                LOG_WARNING("File could not be deleted: " + filePath);
             }
         }
         catch (std::filesystem::filesystem_error& e)
         {
-            Log_Error("Filesystem error: " + std::string(e.what()));
+            LOG_ERROR("Filesystem error: " + std::string(e.what()));
         }
     }
 
@@ -32,13 +32,13 @@ class FileHelper
         {
             if (!std::filesystem::exists(oldPath))
             {
-                Log_Warning("File path does not exist: " + oldPath);
+                LOG_WARNING("File path does not exist: " + oldPath);
                 return;
             }
 
             if (std::filesystem::exists(newPath))
             {
-                Log_Warning("File path does not exist: " + newPath);
+                LOG_WARNING("File path does not exist: " + newPath);
                 return;
             }
 
@@ -46,7 +46,7 @@ class FileHelper
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            Log_Error("Filesystem error: " + std::string(e.what()));
+            LOG_ERROR("Filesystem error: " + std::string(e.what()));
         }
     }
 };

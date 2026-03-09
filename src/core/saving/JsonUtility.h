@@ -15,7 +15,7 @@ class JsonUtility
         std::ofstream file(filePath);
         if (!file.is_open())
         {
-            Log_Error("Failed to open file for saving scene: " + filePath);
+            LOG_ERROR("Failed to open file for saving scene: " + filePath);
             return false;
         }
 
@@ -31,7 +31,7 @@ class JsonUtility
         std::ifstream file(filePath);
         if (!file.is_open())
         {
-            Log_Error("Failed to open scene file: " + filePath);
+            LOG_ERROR("Failed to open scene file: " + filePath);
             return jsonObject;
         }
 

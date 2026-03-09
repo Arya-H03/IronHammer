@@ -30,7 +30,7 @@ bool Engine::GetIsPlayModePaused() const
 {
     if (!m_sceneManager.GetCurrentScenePtr())
     {
-        Log_Warning("Tried to GetIsPlayModePaused when there is not currentScene");
+        LOG_WARNING("Tried to GetIsPlayModePaused when there is not currentScene");
         return false;
     }
 
@@ -97,7 +97,7 @@ void Engine::EnterPlayMode()
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
 
     m_engineMode = EngineMode::Play;
-    Log_Info("Changed to PlayMode");
+    LOG_INFO("Changed to PlayMode");
 }
 
 void Engine::ExitPlayMode()
@@ -108,7 +108,7 @@ void Engine::ExitPlayMode()
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);
 
     m_engineMode = EngineMode::Edit;
-    Log_Info("Changed to EditMode");
+    LOG_INFO("Changed to EditMode");
 }
 
 void Engine::TogglePlayMode()

@@ -49,7 +49,7 @@ class EntityTemplateManager
     {
         if (m_templateMap.contains(name))
         {
-            Log_Warning("Tried to create an Entity Template with an already existing name: " + name);
+            LOG_WARNING("Tried to create an Entity Template with an already existing name: " + name);
             return false;
         }
 
@@ -80,7 +80,7 @@ class EntityTemplateManager
         sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
         if (!texture)
         {
-            Log_Error("Could not load texture: " + csprite->textureName);
+            LOG_ERROR("Could not load texture: " + csprite->textureName);
             renderTexture.display();
             return renderTexture.getTexture();
         }
@@ -125,7 +125,7 @@ class EntityTemplateManager
         sf::Texture* texture = AssetManager::Instance().LoadTexture(csprite->textureName);
         if (!texture)
         {
-            Log_Error("Could not load texture: " + csprite->textureName);
+            LOG_ERROR("Could not load texture: " + csprite->textureName);
             renderTexture.display();
             return renderTexture.getTexture();
         }
@@ -155,7 +155,7 @@ class EntityTemplateManager
         auto* templatePtr = GetTemplateByName(name);
         if (!templatePtr)
         {
-            Log_Warning("Tried to update non-existent template: " + name);
+            LOG_WARNING("Tried to update non-existent template: " + name);
             return;
         }
 
@@ -171,7 +171,7 @@ class EntityTemplateManager
         auto it = m_templateMap.find(name);
         if (it == m_templateMap.end())
         {
-            Log_Warning("Tried to delete non-existent template: " + name);
+            LOG_WARNING("Tried to delete non-existent template: " + name);
             return;
         }
 
@@ -183,14 +183,14 @@ class EntityTemplateManager
     {
         if (m_templateMap.contains(newName))
         {
-            Log_Warning("Template already exists: " + newName);
+            LOG_WARNING("Template already exists: " + newName);
             return;
         }
 
         auto pair = m_templateMap.extract(oldName);
         if (!pair)
         {
-            Log_Warning("Template not found: " + oldName);
+            LOG_WARNING("Template not found: " + oldName);
             return;
         }
 

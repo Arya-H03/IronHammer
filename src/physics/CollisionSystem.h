@@ -95,8 +95,8 @@ class CollisionSystem : public ISetupSystem
 
         CheckForScreenBorderCollision();
 
-        auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
-        auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
-        m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
+        // auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
+        // auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
+        // m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
     }
 };

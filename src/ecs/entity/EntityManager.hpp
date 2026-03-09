@@ -62,9 +62,9 @@ class EntityManager
         bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
         bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
 #ifndef NDEBUG
-        if (!isIdValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
-        if (!isEntityOccupied) Log_Warning(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
-        if (!isGenValid) Log_Warning(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+        if (!isIdValid) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+        if (!isEntityOccupied) LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+        if (!isGenValid) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
 #endif
         return isIdValid && isEntityOccupied && isGenValid;
     }

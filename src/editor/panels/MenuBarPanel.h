@@ -27,7 +27,7 @@ class MenuBarPanel
     {
         if (!texture.loadFromFile(path))
         {
-            Log_Warning("Failed to load texture: " + path);
+            LOG_WARNING("Failed to load texture: " + path);
             return;
         }
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "scene/BaseScene.h"
 #include "core/saving/JsonUtility.h"
@@ -22,7 +23,7 @@ class SceneManager
     void RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene)
     {
         m_scenes[name] = std::move(scene);
-        Log_Info(name + " Scene was registered");
+        LOG_INFO(name + " Scene was registered");
     }
 
     void ChangeScene(const std::string& name, World* worldPtr)
@@ -36,7 +37,7 @@ class SceneManager
         m_currentScene = it->second.get();
         m_currentScene->OnChangeTo(worldPtr);
 
-        Log_Info("Changed to Scene " + name);
+        LOG_INFO("Changed to Scene " + name);
     }
 
     void SaveScene(World& world, const std::string& filePath)
@@ -50,7 +51,7 @@ class SceneManager
         std::ifstream file(filePath);
         if (!file.is_open())
         {
-            Log_Warning("Failed to open scene file: " + filePath);
+            LOG_ERROR("Failed to open scene file: " + filePath);
             return;
         }
 

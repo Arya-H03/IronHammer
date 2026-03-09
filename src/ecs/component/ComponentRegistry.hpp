@@ -140,7 +140,7 @@ class ComponentRegistry
         {
             if (!json.contains(ComponentType::name))
             {
-                Log_Warning("Tried to deserialize json that doesn't contain required component");
+                LOG_WARNING("Tried to deserialize json that doesn't contain required component");
                 return nullptr;
             }
 
@@ -214,14 +214,14 @@ class ComponentRegistry
             const ComponentInfo* componentInfo = ComponentRegistry::GetComponentInfoPtrByName(componentName);
             if (!componentInfo)
             {
-                Log_Warning("Unknown component during deserialization: " + componentName);
+                LOG_WARNING("Unknown component during deserialization: " + componentName);
                 continue;
             }
 
             void* componentPtr = componentInfo->DeSerializeComponent(entityJson);
             if (!componentPtr)
             {
-                Log_Warning("Failed to deserialize component: " + componentName);
+                LOG_WARNING("Failed to deserialize component: " + componentName);
                 continue;
             }
             pendingComponents.emplace_back(componentInfo, componentPtr);

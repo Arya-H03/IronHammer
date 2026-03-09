@@ -98,7 +98,7 @@ class BottomPanel
             const sf::Texture* texture = spriteComp->texture;
             if (!texture)
             {
-                Log_Warning("Tired to preview an EntityTemplate with CSprite but no texture.");
+                LOG_WARNING("Tired to preview an EntityTemplate with CSprite but no texture.");
                 return;
             }
 

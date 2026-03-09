@@ -29,7 +29,7 @@ class AssetManager
     {
         if (m_textures.contains(name))
         {
-            Log_Error("Texture already exists: " + name);
+            LOG_ERROR("Texture already exists: " + name);
             return;
         }
 
@@ -37,7 +37,7 @@ class AssetManager
 
         if (!texture->loadFromFile(filePath))
         {
-            Log_Error("Could not load texture: " + filePath);
+            LOG_ERROR("Could not load texture: " + filePath);
             return;
         }
 
@@ -49,7 +49,7 @@ class AssetManager
         auto it = m_textures.find(name);
         if (it == m_textures.end())
         {
-            Log_Error("Could not file texture: " + name);
+            LOG_ERROR("Could not file texture: " + name);
             return nullptr;
         }
         return it->second.get();

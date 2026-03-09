@@ -75,7 +75,7 @@ class ViewportPanel
                 }
                 else
                 {
-                    Log_Error("Tried to drop an Entity in Viewport with no transform");
+                    LOG_ERROR("Tried to drop an Entity in Viewport with no transform");
                 }
             }
 
