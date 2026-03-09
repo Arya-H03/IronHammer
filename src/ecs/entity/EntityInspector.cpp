@@ -10,11 +10,17 @@ void EntityInspector::DrawComponentDisplay(ComponentID componentId, void* compon
     ComponentRegistry::GetComponentInfoById(componentId).DisplayComponent(componentPtr, nullptr);
 }
 
-void EntityInspector::DrawInspectorGuiForLiveEntity(
-    EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld) const
+void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld)
 {
-    if (m_currentLiveEntityData.entity.id != InvalidEntityID && entityManager.ValidateEntity(m_currentLiveEntityData.entity))
+    if (m_currentLiveEntityData.entity.id != InvalidEntityID)
     {
+        if (!entityManager.ValidateEntity(m_currentLiveEntityData.entity))
+        {
+            m_inspectorMode = InspectorMode::None;
+            m_currentLiveEntityData.Clear();
+            return;
+        }
+
         ImGui::SeparatorText("Entity");
         ImGui::Text("Id:%u | Gen:%u", m_currentLiveEntityData.entity.id, m_currentLiveEntityData.entity.generation);
         ImGui::SeparatorText("Archetype");
@@ -41,7 +47,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(
                     name = "Entity_" + std::to_string(m_currentLiveEntityData.entity.id) + "_"
                            + std::to_string(m_currentLiveEntityData.entity.generation);
                 }
-                entityTemplateManager.CreateEntityTemplate(currentWorld,m_currentLiveEntityData.entity, m_currentLiveEntityData.location, name);
+                entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntityData.entity, m_currentLiveEntityData.location, name);
                 name = "";
             }
 
@@ -144,13 +150,8 @@ void EntityInspector::DrawInspectorGui(EntityManager& entityManager, EntityTempl
 {
     switch (m_inspectorMode)
     {
-        case InspectorMode::LiveEntity:
-            DrawInspectorGuiForLiveEntity(entityManager, entityTemplateManager, currentWorld);
-            break;
-        case InspectorMode::EntityTemplate:
-            DrawInspectorGuiForEntityTemplate(entityTemplateManager);
-            break;
-        case InspectorMode::None:
-            break;
+        case InspectorMode::LiveEntity: DrawInspectorGuiForLiveEntity(entityManager, entityTemplateManager, currentWorld); break;
+        case InspectorMode::EntityTemplate: DrawInspectorGuiForEntityTemplate(entityTemplateManager); break;
+        case InspectorMode::None: break;
     }
 };

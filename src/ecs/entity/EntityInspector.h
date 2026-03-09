@@ -40,7 +40,7 @@ class EntityInspector
     InspectorMode m_inspectorMode = InspectorMode::None;
 
     void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const;
-    void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld) const;
+    void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
     void DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager);
 
   public:
