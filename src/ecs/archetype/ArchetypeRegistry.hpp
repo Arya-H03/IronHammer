@@ -8,7 +8,6 @@
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/query/Query.hpp"
-#include <iostream>
 
 template <typename... Component>
 struct RequiredComponents

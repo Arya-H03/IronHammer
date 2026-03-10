@@ -41,7 +41,7 @@ class Editor
 
         m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
         m_inputManager.CreateInputAction("Info", sf::Keyboard::Key::I, InputTrigger::Pressed, [&]() { LOG_INFO("Info"); });
-        m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [&]() {LOG_WARNING("Warning"); });
+        m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [&]() { LOG_WARNING("Warning"); });
         m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, [&]() { LOG_ERROR("Error"); });
     }
 

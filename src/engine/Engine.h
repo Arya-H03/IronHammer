@@ -14,6 +14,7 @@
 
 enum class EngineMode
 {
+    None,
     Edit,
     Play
 };

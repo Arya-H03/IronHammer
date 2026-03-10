@@ -7,6 +7,7 @@
 #include "ecs/entity/EntityManager.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
 #include "ecs/entity/EntityTemplateInstance.h"
+#include "engine/Engine.h"
 
 using namespace EntityInspectorHelpers;
 
@@ -38,6 +39,7 @@ class EntityInspector
     InspectorLiveEntityData m_currentLiveEntityData;
     std::unique_ptr<EntityTemplateInstance> m_currentEntityTemplateInstance;
     InspectorMode m_inspectorMode = InspectorMode::None;
+    EngineMode m_lastEngineMode = EngineMode::None;
 
     void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const;
     void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
@@ -51,5 +53,5 @@ class EntityInspector
 
     void InspectLiveEntity(Entity entity, EntityManager& entityManager);
     void InspectEntityTemplate(EntityTemplate& entityTemplate);
-    void DrawInspectorGui(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
+    void DrawInspectorGui(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld, EngineMode engineMode);
 };

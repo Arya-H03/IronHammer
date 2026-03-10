@@ -76,6 +76,20 @@ class Archetype
         std::fill(std::begin(m_sparse), std::end(m_sparse), INT16_MAX);
     }
 
+    bool ValidateEntityLocation(const EntityStorageLocation& entityLocation)
+    {
+        bool isChunkIndexValid = entityLocation.chunkIndex < m_chunks.size();
+        bool isIndexInChunkValid = entityLocation.indexInChunk < m_chunks[entityLocation.chunkIndex].size;
+#ifndef NDEBUG
+        if (!isChunkIndexValid)
+            LOG_WARNING(std::format("Invalid chunk index: {} | Should be at most {}", entityLocation.chunkIndex, m_chunks.size()));
+        if (!isIndexInChunkValid)
+            LOG_WARNING(std::format(
+                "Invalid index in chunk: {} | Should be at most {}", entityLocation.indexInChunk, m_chunks[entityLocation.indexInChunk].size));
+#endif
+        return isChunkIndexValid && isIndexInChunkValid;
+    }
+
     void InitializeComponentAllocators(const ComponentSignatureMask& signature)
     {
         for (ComponentID id = 0; id < MaxComponents; ++id)
@@ -133,12 +147,10 @@ class Archetype
     template <typename Func>
     void ForEachComponent(const EntityStorageLocation& entityLocation, Func&& func)
     {
+        if(!ValidateEntityLocation(entityLocation)){ return;}
+
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
-            assert(entityLocation.archetypeId == m_archetypeId && "entityLocation has the wrong archetype id" );
-            assert(entityLocation.chunkIndex < m_chunks.size() && "entityLocation has the wrong chunk index" );
-            assert(entityLocation.indexInChunk < m_chunks[entityLocation.chunkIndex].size && "entityLocation has the wrong index in chunk" );
-
             ComponentID componentId = m_densIds[i];
             ComponentInfo componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
             void* rawBlock = m_chunks[entityLocation.chunkIndex].components[m_sparse[componentId]];

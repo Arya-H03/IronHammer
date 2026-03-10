@@ -2,6 +2,7 @@
 #include <string>
 #include "core/utils/Colors.h"
 #include "ecs/entity/EntityInspectorHelper.h"
+#include "engine/Engine.h"
 
 const Entity EntityInspector::GetCurrentInspectorEntity() const { return m_currentLiveEntityData.entity; }
 
@@ -146,8 +147,15 @@ void EntityInspector::InspectEntityTemplate(EntityTemplate& entityTemplate)
     m_currentLiveEntityData.Clear();
 }
 
-void EntityInspector::DrawInspectorGui(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld)
+void EntityInspector::DrawInspectorGui(
+    EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld, EngineMode engineMode)
 {
+    if (m_lastEngineMode != engineMode)
+    {
+        m_lastEngineMode = engineMode;
+        m_currentLiveEntityData.Clear();
+    }
+
     switch (m_inspectorMode)
     {
         case InspectorMode::LiveEntity: DrawInspectorGuiForLiveEntity(entityManager, entityTemplateManager, currentWorld); break;
