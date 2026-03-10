@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/utils/Debug.h"
 #include "engine/Engine.h"
 #include "editor/Editor.h"
 
@@ -25,6 +26,10 @@ class IronHammer
 
             m_engine.RenderFrame();
             m_engine.EndFrame();
+
+            Debug::FlushLogs();
         }
+
+        Debug::ShutdownLoggerThread();
     }
 };

@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <imgui.h>
 #include <string>
+#include <vector>
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
 
@@ -9,13 +10,12 @@ class LogWindow
 {
   private:
 
+    std::vector<int> m_visibleIndices;
     bool showLogs = true;
     bool showWarnings = true;
     bool showErrors = true;
     size_t m_selectedIndex;
     size_t m_lastLogCount = 0;
-
-    std::vector<int> m_visibleIndices;
 
     void LogWindowHeader()
     {
@@ -27,24 +27,23 @@ class LogWindow
             {
                 Debug::Clear();
                 m_visibleIndices.clear();
+                m_lastLogCount = 0;
             }
 
             ImGui::TableNextColumn();
 
             float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-            float logsWidth = ImGui::CalcTextSize("Logs").x + ImGui::GetFrameHeight()
-                              + ImGui::CalcTextSize(std::to_string(Debug::GetInfoLogCount()).c_str()).x + spacing;
+            float logsWidth = ImGui::CalcTextSize("Info").x + ImGui::GetFrameHeight()
+                              + ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().infoLogCount).c_str()).x + spacing;
 
             float warningsWidth = ImGui::CalcTextSize("Warnings").x + ImGui::GetFrameHeight()
-                                  + ImGui::CalcTextSize(std::to_string(Debug::GetWarningLogCount()).c_str()).x + spacing;
+                                  + ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().warningLogCount).c_str()).x + spacing;
 
-            float errorsWidth =
-                ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight() + ImGui::CalcTextSize(std::to_string(Debug::GetErrorLogCount()).c_str()).x;
+            float errorsWidth = ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight()
+                                + ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().errorLogCount).c_str()).x;
 
             float totalWidth = logsWidth + warningsWidth + errorsWidth + spacing * 10;
-
-            // Move cursor BEFORE drawing
 
             float avail = ImGui::GetContentRegionAvail().x;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + avail - totalWidth);
@@ -52,7 +51,7 @@ class LogWindow
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::ConcreteGrey_ImGui);
             ImGui::Checkbox("Logs", &showLogs);
             ImGui::SameLine();
-            ImGui::Text("(%zu)", Debug::GetInfoLogCount());
+            ImGui::Text("(%zu)", Debug::GetLogCounts().infoLogCount);
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
@@ -60,7 +59,7 @@ class LogWindow
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::HazardYellow_ImGui);
             ImGui::Checkbox("Warnings", &showWarnings);
             ImGui::SameLine();
-            ImGui::Text("(%zu)", Debug::GetWarningLogCount());
+            ImGui::Text("(%zu)", Debug::GetLogCounts().warningLogCount);
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
@@ -68,7 +67,7 @@ class LogWindow
             ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::RustRed_ImGui);
             ImGui::Checkbox("Errors", &showErrors);
             ImGui::SameLine();
-            ImGui::Text("(%zu)", Debug::GetErrorLogCount());
+            ImGui::Text("(%zu)", Debug::GetLogCounts().errorLogCount);
             ImGui::PopStyleColor();
 
             ImGui::EndTable();
@@ -85,17 +84,20 @@ class LogWindow
     {
         ImGui::BeginChild("LogRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
 
-        const auto& logs = Debug::GetLogMessages();
+        const std::deque<LogMessage>& logs = Debug::GetLogMessages();
         bool newLogsArrived = logs.size() > m_lastLogCount;
-        m_lastLogCount = logs.size();
-        m_visibleIndices.clear();
-        for (int i = 0; i < logs.size(); ++i)
+        if (newLogsArrived)
         {
-            const auto& log = logs[i];
-            if (log.logType == LogType::Info && !showLogs) continue;
-            if (log.logType == LogType::Warning && !showWarnings) continue;
-            if (log.logType == LogType::Error && !showErrors) continue;
-            m_visibleIndices.push_back(i);
+            m_lastLogCount = logs.size();
+            m_visibleIndices.clear();
+            for (int i = 0; i < logs.size(); ++i)
+            {
+                const auto& log = logs[i];
+                if (log.logType == LogType::Info && !showLogs) continue;
+                if (log.logType == LogType::Warning && !showWarnings) continue;
+                if (log.logType == LogType::Error && !showErrors) continue;
+                m_visibleIndices.push_back(i);
+            }
         }
 
         ImGuiListClipper clipper;
@@ -105,18 +107,17 @@ class LogWindow
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
             {
                 const LogMessage& log = logs[m_visibleIndices[i]];
-                std::string logLable = log.time + " " + log.message;
 
                 ImGui::PushStyleColor(ImGuiCol_Text, log.color);
-                if (ImGui::TreeNode(logLable.c_str()))
+                std::string nodeLable =  log.displayLable + "##" + std::to_string(i);
+                if (ImGui::TreeNode(nodeLable.c_str()))
                 {
-                    for (size_t i = 0; i < log.traceBreakdowns.size(); ++i)
+                    for (size_t j = 0; j < log.traceBreakdowns.size(); ++j)
                     {
-                        const TraceBreakdown& traceBreakdown = log.traceBreakdowns[i];
-                        std::string traceText = traceBreakdown.ToString();
+                        const TraceBreakdown& traceBreakdown = log.traceBreakdowns[j];
 
                         ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-                        ImGui::BulletText("%s", traceText.c_str());
+                        ImGui::BulletText("%s", traceBreakdown.result.c_str());
                         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                         {
                             OpenFileFromTrace(traceBreakdown);
