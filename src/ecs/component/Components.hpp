@@ -328,6 +328,7 @@ inline void from_json(const Json& j, CRigidBody& c)
 
     if (c.isStatic)
     {
+        c.mass = 0;
         c.inverseMass = 0.f;
     }
     else

@@ -127,7 +127,6 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
 
                 if (ImGui::Button("D", ImVec2(20, 20)))
                 {
-                    std::cerr << currentChunk.entities[currentIndexInCunk].id;
                     deleteEntityCallBack(currentChunk.entities[currentIndexInCunk]);
                 }
                 ImGui::SameLine();

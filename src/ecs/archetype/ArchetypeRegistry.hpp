@@ -38,7 +38,6 @@ class ArchetypeRegistry
         {
             if (signature.test(id))
             {
-                std::cerr<<id;
                 name += ComponentRegistry::GetComponentNameById(id);
                 name += "  ";
             }
