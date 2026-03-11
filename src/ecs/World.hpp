@@ -79,6 +79,13 @@ class World
         m_commandBuffer.RemoveFromEntity<Component>(entity);
     }
 
+    void AddToEntity(Entity entity, ComponentID componentId, void* componentPtr) { m_commandBuffer.AddToEntity(entity, componentId, componentPtr); }
+
+    void RemoveFromEntity(Entity entity, ComponentID componentId, void* componentPtr)
+    {
+        m_commandBuffer.RemoveFromEntity(entity, componentId, componentPtr);
+    }
+
     template <typename Component>
     bool HasComponent(Entity entity)
     {

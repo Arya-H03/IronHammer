@@ -2,7 +2,6 @@
 
 #include <imgui.h>
 #include "ecs/World.hpp"
-#include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityManager.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
@@ -13,19 +12,6 @@ using namespace EntityInspectorHelpers;
 
 class EntityInspector
 {
-    struct InspectorLiveEntityData
-    {
-        Entity entity {};
-        Archetype* archetypePtr = nullptr;
-        EntityStorageLocation location {};
-
-        void Clear()
-        {
-            entity = {};
-            archetypePtr = nullptr;
-            location = {};
-        }
-    };
 
     enum class InspectorMode
     {
@@ -36,12 +22,12 @@ class EntityInspector
 
   private:
 
-    InspectorLiveEntityData m_currentLiveEntityData;
+    Entity m_currentLiveEntity;
     std::unique_ptr<EntityTemplateInstance> m_currentEntityTemplateInstance;
     InspectorMode m_inspectorMode = InspectorMode::None;
     EngineMode m_lastEngineMode = EngineMode::None;
 
-    void DrawComponentDisplay(ComponentID componentId, void* componentPtr) const;
+    void DrawComponentDisplay(World& currentWorld,ComponentID componentId, void* componentPtr) const;
     void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
     void DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager);
 

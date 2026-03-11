@@ -59,14 +59,30 @@ class EntityManager
     bool ValidateEntity(Entity entity) const
     {
         bool isIdValid = entity.id < m_entitySlots.size();
-        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
-        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
+        if (!isIdValid)
+        {
 #ifndef NDEBUG
-        if (!isIdValid) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
-        if (!isEntityOccupied) LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
-        if (!isGenValid) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+            LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
 #endif
-        return isIdValid && isEntityOccupied && isGenValid;
+            return false;
+        }
+        bool isEntityOccupied = m_entitySlots[entity.id].isOccupied;
+        if (!isEntityOccupied)
+        {
+#ifndef NDEBUG
+            LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+#endif
+            return false;
+        }
+        bool isGenValid = m_entitySlots[entity.id].generation == entity.generation;
+        if (!isGenValid)
+        {
+#ifndef NDEBUG
+            LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+#endif
+            return false;
+        }
+        return true;
     }
 
     template <typename Component>
@@ -206,15 +222,17 @@ class EntityManager
 
         // Have to update the EntityStorageLocation of BOTH Entities.
         m_entityStorageLocations[deletionResult.first.id] = deletionResult.second; // Swaped Entity
-        m_entityStorageLocations[entity.id] = newEntityLocation;                   //mutable Poped Entity
+        m_entityStorageLocations[entity.id] = newEntityLocation;                   // mutable Poped Entity
 
         // Add new Component
         dstArchetype.ConstructComponentByType(std::forward<Component>(component), componentId, newEntityLocation);
     }
 
-    void AddToEntityById(Entity entity, ComponentID componentId, void* componentPtr)
+    void AddToEntity(Entity entity, ComponentID componentId, void* componentPtr)
     {
         if (!ValidateEntity(entity)) return;
+
+        //Add me later:
         // if (HasComponent<Component>(entity)) return;
 
         const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
@@ -250,6 +268,31 @@ class EntityManager
         if (!HasComponent<Component>(entity)) return;
 
         ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
+
+        // Find source and destination Archetypes
+        Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocations[entity.id].archetypeId);
+        ComponentSignatureMask distArchetypeSignature = srcArchetype.GetComponentSignature().reset(componentId);
+        Archetype& dstArchetype = m_archetypeRegistry.GetArchetype(distArchetypeSignature);
+
+        // Migrate components from src to dst
+        EntityStorageLocation& currentEntityLocation = m_entityStorageLocations[entity.id];
+        EntityStorageLocation newEntityLocation = dstArchetype.MigrateComponentsFrom(srcArchetype, currentEntityLocation, entity);
+
+        std::pair<Entity, EntityStorageLocation> deletionResult = srcArchetype.RemoveEntity(entity, currentEntityLocation);
+
+        // Have to update the EntityStorageLocation of BOTH Entities.
+        m_entityStorageLocations[deletionResult.first.id] = deletionResult.second; // Swaped Entity
+        m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
+    }
+
+    void RemoveComponentFrom(Entity entity, ComponentID componentId, void* componentPtr)
+    {
+        if (!ValidateEntity(entity)) return;
+
+        //Add me later:
+        //if (!HasComponent<Component>(entity)) return;
+
+        const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
 
         // Find source and destination Archetypes
         Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocations[entity.id].archetypeId);

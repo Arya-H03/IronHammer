@@ -1,63 +1,62 @@
 #include "EntityInspector.h"
 #include <string>
 #include "core/utils/Colors.h"
+#include "ecs/World.hpp"
+#include "ecs/archetype/Archetype.h"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "engine/Engine.h"
 #include "imgui.h"
 
-const Entity EntityInspector::GetCurrentInspectorEntity() const { return m_currentLiveEntityData.entity; }
+const Entity EntityInspector::GetCurrentInspectorEntity() const { return m_currentLiveEntity; }
 
-void EntityInspector::DrawComponentDisplay(ComponentID componentId, void* componentPtr) const
+void EntityInspector::DrawComponentDisplay(World& currentWorld, ComponentID componentId, void* componentPtr) const
 {
-    ComponentRegistry::GetComponentInfoById(componentId).DisplayComponent(componentPtr, []() {}, nullptr);
+    ComponentRegistry::GetComponentInfoById(componentId)
+        .DisplayComponent(componentPtr, [&]() { currentWorld.RemoveFromEntity(m_currentLiveEntity, componentId, componentPtr); }, nullptr);
 }
 
 void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld)
 {
-    if (m_currentLiveEntityData.entity.id != InvalidEntityID)
+    if (!entityManager.ValidateEntity(m_currentLiveEntity))
     {
-        if (!entityManager.ValidateEntity(m_currentLiveEntityData.entity))
+        m_inspectorMode = InspectorMode::None;
+        m_currentLiveEntity = {};
+        return;
+    }
+
+    const EntityStorageLocation& entityLocation = entityManager.GetEntityLocation(m_currentLiveEntity);
+    Archetype* archetypePtr = entityManager.GetEntityArchetypePtr(m_currentLiveEntity);
+
+    ImGui::SeparatorText("Entity");
+    ImGui::Text("Id:%u | Gen:%u", m_currentLiveEntity.id, m_currentLiveEntity.generation);
+    ImGui::SeparatorText("Archetype");
+    ImGui::Text("Id:%u | Chunk:%u | Index:%u", entityLocation.archetypeId, entityLocation.chunkIndex, entityLocation.indexInChunk);
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+
+    archetypePtr->ForEachComponent(entityLocation, [&](ComponentID id, void* ptr) { DrawComponentDisplay(currentWorld,id, ptr); });
+
+    ImGui::SeparatorText("");
+
+    if (ImGui::BeginTable("EntityTemplateTable", 2, ImGuiTableFlags_SizingFixedFit))
+    {
+        TableNextField("Entity Template");
+        static std::string name = "";
+        InputTextWithHint("##EntityTemplateName", "Enter Name", name);
+        ImGui::SameLine();
+        if (ImGui::Button("Create"))
         {
-            m_inspectorMode = InspectorMode::None;
-            m_currentLiveEntityData.Clear();
-            return;
-        }
-
-        ImGui::SeparatorText("Entity");
-        ImGui::Text("Id:%u | Gen:%u", m_currentLiveEntityData.entity.id, m_currentLiveEntityData.entity.generation);
-        ImGui::SeparatorText("Archetype");
-        ImGui::Text("Id:%u | Chunk:%u | Index:%u",
-            m_currentLiveEntityData.location.archetypeId,
-            m_currentLiveEntityData.location.chunkIndex,
-            m_currentLiveEntityData.location.indexInChunk);
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        m_currentLiveEntityData.archetypePtr->ForEachComponent(
-            m_currentLiveEntityData.location, [&](ComponentID id, void* ptr) { DrawComponentDisplay(id, ptr); });
-
-        ImGui::SeparatorText("");
-
-        if (ImGui::BeginTable("EntityTemplateTable", 2, ImGuiTableFlags_SizingFixedFit))
-        {
-            TableNextField("Entity Template");
-            static std::string name = "";
-            InputTextWithHint("##EntityTemplateName", "Enter Name", name);
-            ImGui::SameLine();
-            if (ImGui::Button("Create"))
+            if (name.empty())
             {
-                if (name.empty())
-                {
-                    name = "Entity_" + std::to_string(m_currentLiveEntityData.entity.id) + "_"
-                           + std::to_string(m_currentLiveEntityData.entity.generation);
-                }
-                entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntityData.entity, m_currentLiveEntityData.location, name);
-                name = "";
+                name = "Entity_" + std::to_string(m_currentLiveEntity.id) + "_" + std::to_string(m_currentLiveEntity.generation);
             }
-
-            ImGui::EndTable();
+            entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntity, entityLocation, name);
+            name = "";
         }
+
+        ImGui::EndTable();
     }
 }
 
@@ -136,11 +135,9 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
 
 void EntityInspector::InspectLiveEntity(Entity entity, EntityManager& entityManager)
 {
-    if (m_currentLiveEntityData.entity != entity && entityManager.ValidateEntity(entity))
+    if (m_currentLiveEntity != entity && entityManager.ValidateEntity(entity))
     {
-        m_currentLiveEntityData.entity = entity;
-        m_currentLiveEntityData.location = entityManager.GetEntityLocation(m_currentLiveEntityData.entity);
-        m_currentLiveEntityData.archetypePtr = entityManager.GetEntityArchetypePtr(m_currentLiveEntityData.entity);
+        m_currentLiveEntity = entity;
         m_inspectorMode = InspectorMode::LiveEntity;
         m_currentEntityTemplateInstance.reset();
     }
@@ -150,7 +147,7 @@ void EntityInspector::InspectEntityTemplate(EntityTemplate& entityTemplate)
 {
     m_currentEntityTemplateInstance = std::make_unique<EntityTemplateInstance>(entityTemplate);
     m_inspectorMode = InspectorMode::EntityTemplate;
-    m_currentLiveEntityData.Clear();
+    m_currentLiveEntity = {};
 }
 
 void EntityInspector::DrawInspectorGui(
@@ -159,7 +156,7 @@ void EntityInspector::DrawInspectorGui(
     if (m_lastEngineMode != engineMode)
     {
         m_lastEngineMode = engineMode;
-        m_currentLiveEntityData.Clear();
+        m_currentLiveEntity = {};
     }
 
     switch (m_inspectorMode)

@@ -127,7 +127,7 @@ class ComponentRegistry
             }
             else
             {
-                // For non-trivial types, use move constructor
+                // For non trivial types, use move constructor
                 new (&dstArray[dstIndex]) ComponentType(std::move(srcArray[srcIndex]));
                 // srcArray[srcIndex].~T();
             }
