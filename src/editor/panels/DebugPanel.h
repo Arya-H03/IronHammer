@@ -12,7 +12,7 @@ class DebugPanel
 
     void DrawECSTab()
     {
-        if (!ImGui::BeginTabItem("ECS")) return;
+        if (!ImGui::BeginTabItem("World")) return;
 
         auto& world = *m_editorContext.world;
 

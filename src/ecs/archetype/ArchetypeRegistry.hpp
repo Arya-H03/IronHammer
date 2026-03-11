@@ -33,7 +33,7 @@ class ArchetypeRegistry
     {
         std::string name;
 
-        for (ComponentID id = 0; id < MaxComponents; ++id)
+        for (ComponentId id = 0; id < MaxComponents; ++id)
         {
             if (signature.test(id))
             {

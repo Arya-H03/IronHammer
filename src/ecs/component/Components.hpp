@@ -9,7 +9,6 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "assets/AssetManager.h"
-#include "core/utils/Colors.h"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
@@ -20,9 +19,9 @@ using Json = nlohmann::json;
 
 struct CTransform
 {
-    Vect2f position;
-    Vect2f scale;
-    float rotation;
+    Vect2f position = Vect2f(0, 0);
+    Vect2f scale = Vect2f(1, 1);
+    float rotation = 0.f;
     static constexpr const char* name = "Transform";
 
     CTransform() = default;
@@ -33,7 +32,7 @@ struct CTransform
     {
         position = Vect2f(0, 0);
         scale = Vect2f(1, 1);
-        rotation = 0;
+        rotation = 0.f;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
@@ -72,7 +71,7 @@ inline void from_json(const Json& json, CTransform& c)
 
 struct CMovement
 {
-    float speed;
+    float speed = 0.f;
     static constexpr const char* name = "Movement";
 
     CMovement() = default;
@@ -101,9 +100,9 @@ inline void from_json(const Json& j, CMovement& c) { c.speed = j.value("speed", 
 struct CSprite
 {
     const sf::Texture* texture = nullptr;
-    std::string textureName;
-    Vect2f size;
-    sf::IntRect textureRect;
+    std::string textureName = "";
+    Vect2f size = Vect2f(32, 32);
+    sf::IntRect textureRect = sf::IntRect({ 0, 0 }, { 32, 32 });
     sf::Color color = sf::Color::White;
 
     static constexpr const char* name = "Sprite";
@@ -157,7 +156,6 @@ inline void from_json(const Json& j, CSprite& c)
 {
     c.textureName = j.value("textureName", "");
     c.texture = c.textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(c.textureName);
-
     auto sizeArr = j.value("size", std::vector<float> { 32.f, 32.f });
     c.size = Vect2f(sizeArr[0], sizeArr[1]);
 
@@ -170,11 +168,11 @@ inline void from_json(const Json& j, CSprite& c)
 
 struct CShape
 {
-    size_t points;
-    sf::Color fillColor;
-    sf::Color outlineColor;
-    float radius;
-    float outlineThickness;
+    size_t points = 3;
+    sf::Color fillColor = sf::Color::White;    // sf::Color() == Black, mismatched Reset()
+    sf::Color outlineColor = sf::Color::White; // same
+    float radius = 10.f;
+    float outlineThickness = 1.f;
     static constexpr const char* name = "Shape";
 
     CShape() = default;
@@ -233,16 +231,16 @@ inline void from_json(const Json& j, CShape& c)
     auto fill = j.value("fillColor", std::vector<uint8_t> { 255, 255, 255, 255 });
     c.fillColor = sf::Color(fill[0], fill[1], fill[2], fill[3]);
 
-    auto outline = j.value("outlineColor", std::vector<uint8_t> { 0, 0, 0, 255 });
+    auto outline = j.value("outlineColor", std::vector<uint8_t> { 255, 255, 255, 255 });
     c.outlineColor = sf::Color(outline[0], outline[1], outline[2], outline[3]);
 }
 
 struct CCollider
 {
-    Vect2f size;
-    Vect2f halfSize;
-    Vect2f offset;
-    bool isTrigger;
+    Vect2f size = Vect2f(32, 32);
+    Vect2f halfSize = Vect2f(16, 16);
+    Vect2f offset = Vect2f(0, 0);
+    bool isTrigger = false;
     static constexpr const char* name = "Collider";
 
     CCollider() = default;
@@ -299,12 +297,12 @@ inline void from_json(const Json& j, CCollider& c)
 
 struct CRigidBody
 {
-    Vect2f velocity;
-    Vect2f previousPosition;
-    float mass;
-    float inverseMass;
-    float bounciness; // [0, 1]
-    bool isStatic;
+    Vect2f velocity = Vect2f(0, 0);
+    Vect2f previousPosition = Vect2f(0, 0);
+    float mass = 1.f;
+    float inverseMass = 1.f;
+    float bounciness = 0.5f;
+    bool isStatic = false;
     static constexpr const char* name = "RigidBody";
 
     CRigidBody() = default;
@@ -383,10 +381,10 @@ inline void from_json(const Json& j, CRigidBody& c)
 
 struct CText
 {
-    std::string content;
-    sf::Color textColor;
-    Vect2f offset;
-    float fontSize;
+    std::string content = "";
+    sf::Color textColor = sf::Color::White;
+    Vect2f offset = Vect2f(0, 0);
+    float fontSize = 12.f;
     static constexpr const char* name = "Text";
 
     CText() = default;
@@ -449,18 +447,12 @@ struct CNotDrawable
     CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
 
-    void Reset() { /* nothing to reset */ }
+    void Reset() { }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
         if (ComponentHeader<CNotDrawable>("NotDrawable", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            if (ImGui::BeginTable("CNotDrawableTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
-                TableNextField("Info");
-                ImGui::TextDisabled("This entity is not renderable.");
-                ImGui::EndTable();
-            }
         }
     }
 };

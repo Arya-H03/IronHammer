@@ -10,7 +10,7 @@
 
 const Entity EntityInspector::GetCurrentInspectorEntity() const { return m_currentLiveEntity; }
 
-void EntityInspector::DrawComponentDisplay(World& currentWorld, ComponentID componentId, void* componentPtr) const
+void EntityInspector::DrawComponentDisplay(World& currentWorld, ComponentId componentId, void* componentPtr) const
 {
     ComponentRegistry::GetComponentInfoById(componentId)
         .DisplayComponent(componentPtr, [&]() { currentWorld.RemoveFromEntity(m_currentLiveEntity, componentId, componentPtr); }, nullptr);
@@ -36,7 +36,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
     ImGui::Spacing();
     ImGui::Spacing();
 
-    archetypePtr->ForEachComponent(entityLocation, [&](ComponentID id, void* ptr) { DrawComponentDisplay(currentWorld,id, ptr); });
+    archetypePtr->ForEachComponent(entityLocation, [&](ComponentId id, void* ptr) { DrawComponentDisplay(currentWorld, id, ptr); });
 
     ImGui::SeparatorText("");
 
@@ -57,6 +57,28 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
         }
 
         ImGui::EndTable();
+    }
+
+    ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
+    ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+    ImGui::SetCursorPos(
+        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
+    if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
+    if (ImGui::BeginPopup("AddComponentPopup"))
+    {
+        ImGui::SeparatorText("Components");
+        ImGui::BeginChild("ComponentList", ImVec2(125, 150));
+        for (auto& componentInfo : ComponentRegistry::GetComponentInfos())
+        {
+            if (ImGui::Selectable(componentInfo.name))
+            {
+                currentWorld.AddToEntity(m_currentLiveEntity, componentInfo.id, componentInfo.DefaultConstructComponent());
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::EndChild();
+        ImGui::EndPopup();
     }
 }
 
@@ -131,6 +153,28 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
         m_inspectorMode = InspectorMode::None;
     }
     ImGui::PopStyleColor();
+
+    ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
+    ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+    ImGui::SetCursorPos(
+        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
+    if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
+    if (ImGui::BeginPopup("AddComponentPopup"))
+    {
+        ImGui::SeparatorText("Components");
+        ImGui::BeginChild("ComponentList", ImVec2(125, 150));
+        for (const auto& componentInfo : ComponentRegistry::GetComponentInfos())
+        {
+            if (ImGui::Selectable(componentInfo.name))
+            {
+                m_currentEntityTemplateInstance->AddComponent(&componentInfo, componentInfo.DefaultConstructComponent());
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::EndChild();
+        ImGui::EndPopup();
+    }
 }
 
 void EntityInspector::InspectLiveEntity(Entity entity, EntityManager& entityManager)

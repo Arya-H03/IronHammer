@@ -47,7 +47,7 @@ class Archetype
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
             newChunk.components[i] = m_allocators[i].AllocateBlock();
-            ComponentID id = m_densIds[i];
+            ComponentId id = m_densIds[i];
             newChunk.densIds[i] = id;
             newChunk.sparse[id] = i;
         }
@@ -67,7 +67,7 @@ class Archetype
     const std::string& GetArchetypeName() const { return m_archetypeName; }
     const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
     ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
-    bool HasComponent(ComponentID id) const { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
+    bool HasComponent(ComponentId id) const { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
 
     Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -92,7 +92,7 @@ class Archetype
 
     void InitializeComponentAllocators(const ComponentSignatureMask& signature)
     {
-        for (ComponentID id = 0; id < MaxComponents; ++id)
+        for (ComponentId id = 0; id < MaxComponents; ++id)
         {
             if (!signature.test(id)) continue; // If bit at id is 0
 
@@ -107,14 +107,19 @@ class Archetype
     template <typename Component>
     bool HasComponent()
     {
-        ComponentID id = ComponentRegistry::GetComponentID<Component>();
+        ComponentId id = ComponentRegistry::GetComponentID<Component>();
+        return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
+    }
+
+    bool HasComponent(ComponentId id)
+    {
         return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
     }
 
     template <typename Component>
     Component* GetComponentPtrByTemplate(const EntityStorageLocation& entityLocation)
     {
-        ComponentID id = ComponentRegistry::GetComponentID<Component>();
+        ComponentId id = ComponentRegistry::GetComponentID<Component>();
         if (id >= MaxComponents) return nullptr;
 
         uint16_t denseIndex = m_sparse[id];
@@ -131,7 +136,7 @@ class Archetype
         return reinterpret_cast<Component*>(byteBase + (entityLocation.indexInChunk * sizeof(Component)));
     }
 
-    void* GetComponentPtrById(const EntityStorageLocation& entityLocation, ComponentID componentId)
+    void* GetComponentPtrById(const EntityStorageLocation& entityLocation, ComponentId componentId)
     {
         if (componentId >= MaxComponents) return nullptr;
         if (m_sparse[componentId] >= m_allocators.size()) return nullptr;
@@ -151,7 +156,7 @@ class Archetype
 
         for (size_t i = 0; i < m_allocators.size(); ++i)
         {
-            ComponentID componentId = m_densIds[i];
+            ComponentId componentId = m_densIds[i];
             ComponentInfo componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
             void* rawBlock = m_chunks[entityLocation.chunkIndex].components[m_sparse[componentId]];
             char* byteBase = static_cast<char*>(rawBlock);
@@ -161,7 +166,7 @@ class Archetype
     }
 
     template <typename Component>
-    void ConstructComponentByType(Component&& component, ComponentID id, const EntityStorageLocation& entityLocation)
+    void ConstructComponentByType(Component&& component, ComponentId id, const EntityStorageLocation& entityLocation)
     {
         size_t allocatorIndex = m_sparse[id];
         void* rawBlock = m_chunks[entityLocation.chunkIndex].components[allocatorIndex];
@@ -192,7 +197,7 @@ class Archetype
 
         for (size_t i = 0; i < srcChunk.components.size(); ++i)
         {
-            ComponentID id = srcArchetype.m_densIds[i];
+            ComponentId id = srcArchetype.m_densIds[i];
             if (!HasComponent(id)) continue;
 
             const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
@@ -222,7 +227,7 @@ class Archetype
             [&]
             {
                 using Type = std::decay_t<Components>;
-                ComponentID componentId = ComponentRegistry::GetComponentID<Type>();
+                ComponentId componentId = ComponentRegistry::GetComponentID<Type>();
                 void* rawBlock = targetChunk.components[m_sparse[componentId]];
                 Type* typeArray = reinterpret_cast<Type*>(rawBlock); // Cast raw block to an array of Type
                 new (&typeArray[index]) Type(std::forward<Components>(components));
@@ -247,7 +252,7 @@ class Archetype
 
         for (const auto& component : pendingComponents)
         {
-            ComponentID componentId = component.componentInfoPtr->id;
+            ComponentId componentId = component.componentInfoPtr->id;
             void* rawBlock = targetChunk.components[m_sparse[componentId]];
             component.componentInfoPtr->EmplaceComponent(rawBlock, component.componentDataPtr, index);
         }
@@ -277,7 +282,7 @@ class Archetype
         {
             for (size_t i = 0; i < m_allocators.size(); ++i)
             {
-                ComponentID id = m_densIds[i];
+                ComponentId id = m_densIds[i];
                 void* rawBlock = chunk.components[i];
 
                 const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);

@@ -45,7 +45,7 @@ class CommandBuffer
     struct AddToEntityCommandTypeErased
     {
         Entity entity;
-        ComponentID componentID;
+        ComponentId componentID;
         void* componentPtr;
     };
 
@@ -58,7 +58,7 @@ class CommandBuffer
     struct RemoveFromEntityCommandTypeErased
     {
         Entity entity;
-        ComponentID componentID;
+        ComponentId componentID;
         void* componentPtr;
     };
 
@@ -139,7 +139,7 @@ class CommandBuffer
             [entity, comp = std::move(compCopy)](EntityManager& entityManager) mutable { entityManager.AddToEntity(entity, std::move(comp)); } });
     }
 
-    void AddToEntity(Entity entity, ComponentID componentId, void* componentPtr)
+    void AddToEntity(Entity entity, ComponentId componentId, void* componentPtr)
     {
         m_addToEntityCommandsTypeErased.push_back({ entity, componentId, componentPtr });
     }
@@ -151,7 +151,7 @@ class CommandBuffer
             { entity, [entity](EntityManager& entityManager) { entityManager.RemoveComponentFrom<Component>(entity); } });
     }
 
-    void RemoveFromEntity(Entity entity, ComponentID componentId, void* componentPtr)
+    void RemoveFromEntity(Entity entity, ComponentId componentId, void* componentPtr)
     {
         m_removeFromEntityCommandsTypeErased.push_back({ entity, componentId, componentPtr });
     }

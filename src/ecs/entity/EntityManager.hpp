@@ -94,6 +94,14 @@ class EntityManager
         return archetype.HasComponent<Component>();
     }
 
+    bool HasComponent(Entity entity, ComponentId componentId)
+    {
+        if (!ValidateEntity(entity)) return false;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.HasComponent(componentId);
+    }
+
     template <typename Component>
     Component* TryGetComponent(Entity entity)
     {
@@ -207,7 +215,7 @@ class EntityManager
         if (!ValidateEntity(entity)) return;
         if (HasComponent<Component>(entity)) return;
 
-        ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
+        ComponentId componentId = ComponentRegistry::GetComponentID<Component>();
 
         // Find source and destination Archetypes
         Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocations[entity.id].archetypeId);
@@ -228,12 +236,10 @@ class EntityManager
         dstArchetype.ConstructComponentByType(std::forward<Component>(component), componentId, newEntityLocation);
     }
 
-    void AddToEntity(Entity entity, ComponentID componentId, void* componentPtr)
+    void AddToEntity(Entity entity, ComponentId componentId, void* componentPtr)
     {
         if (!ValidateEntity(entity)) return;
-
-        //Add me later:
-        // if (HasComponent<Component>(entity)) return;
+        if (HasComponent(entity, componentId)) return;
 
         const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
 
@@ -267,7 +273,7 @@ class EntityManager
         if (!ValidateEntity(entity)) return;
         if (!HasComponent<Component>(entity)) return;
 
-        ComponentID componentId = ComponentRegistry::GetComponentID<Component>();
+        ComponentId componentId = ComponentRegistry::GetComponentID<Component>();
 
         // Find source and destination Archetypes
         Archetype& srcArchetype = m_archetypeRegistry.GetArchetypeById(m_entityStorageLocations[entity.id].archetypeId);
@@ -285,12 +291,10 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
     }
 
-    void RemoveComponentFrom(Entity entity, ComponentID componentId, void* componentPtr)
+    void RemoveComponentFrom(Entity entity, ComponentId componentId, void* componentPtr)
     {
         if (!ValidateEntity(entity)) return;
-
-        //Add me later:
-        //if (!HasComponent<Component>(entity)) return;
+        if (!HasComponent(entity, componentId)) return;
 
         const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(componentId);
 
@@ -316,7 +320,7 @@ class EntityManager
 
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         archetype.ForEachComponent(entityLocation,
-            [&](ComponentID id, void* ptr)
+            [&](ComponentId id, void* ptr)
             {
                 const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
                 componentInfo.SerializeComponent(entityJson, ptr);

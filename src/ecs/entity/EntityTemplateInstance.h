@@ -15,8 +15,12 @@ class EntityTemplateInstance
 {
   private:
 
-    std::vector<std::pair<ComponentInfo*, void*>> m_components;
-    std::unordered_set<ComponentID> m_pendingRemovalcomponents;
+    std::vector<std::pair<const ComponentInfo*, void*>> m_components;
+    std::unordered_set<ComponentId> m_presentComponents;
+
+    std::unordered_set<ComponentId> m_pendingRemovalcomponents;
+    std::vector<std::pair<const ComponentInfo*, void*>> m_pendingAdditionComponents;
+
     std::string m_name;
     bool m_isDirty = false;
 
@@ -34,6 +38,7 @@ class EntityTemplateInstance
     void DrawInspector();
     void Save(EntityTemplateManager& entityTemplateManager);
     void Rename(EntityTemplateManager& entityTemplateManager, const std::string& newName);
+    void AddComponent(const ComponentInfo* info, void* ptr);
 
     const std::string& GetName() const { return m_name; }
     bool IsDirty() const { return m_isDirty; }

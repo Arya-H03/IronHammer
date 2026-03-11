@@ -17,11 +17,12 @@ using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 using SerializeComponentFn = void (*)(nlohmann::json&, void*);
 using DeSerializeComponentFn = void* (*) (nlohmann::json&);
 using EmplaceComponentFn = void (*)(void*, void*, size_t);
+using DefaultConstructComponentFn = void* (*) ();
 using DestroyComponentFn = void (*)(void*);
 
 struct ComponentInfo
 {
-    ComponentID id;
+    ComponentId id;
     size_t size;
     const char* name;
     DisplayComponentFn DisplayComponent;
@@ -29,6 +30,7 @@ struct ComponentInfo
     SerializeComponentFn SerializeComponent;
     DeSerializeComponentFn DeSerializeComponent;
     EmplaceComponentFn EmplaceComponent;
+    DefaultConstructComponentFn DefaultConstructComponent;
     DestroyComponentFn DestroyComponent;
 };
 struct PendingComponent
@@ -77,16 +79,16 @@ class ComponentRegistry
 
     ComponentRegistry() = delete;
 
-    static ComponentID MakeComponentID()
+    static ComponentId MakeComponentID()
     {
-        static ComponentID counter = 0;
+        static ComponentId counter = 0;
         return counter++;
     }
 
     template <typename ComponentType>
-    static ComponentID GetOrMakeComponentId()
+    static ComponentId GetOrMakeComponentId()
     {
-        static ComponentID id = MakeComponentID();
+        static ComponentId id = MakeComponentID();
         return id;
     }
 
@@ -99,7 +101,8 @@ class ComponentRegistry
 
   public:
 
-    static const char* GetComponentNameById(ComponentID id) { return componentInfos[id].name; }
+    inline static const std::vector<ComponentInfo>& GetComponentInfos() { return componentInfos; }
+    static const char* GetComponentNameById(ComponentId id) { return componentInfos[id].name; }
 
     template <typename ComponentType>
     static void RegisterComponent()
@@ -157,6 +160,7 @@ class ComponentRegistry
             ComponentType* array = reinterpret_cast<ComponentType*>(arrayPtr);
             ComponentType* source = reinterpret_cast<ComponentType*>(componentPtr);
 
+            // It will be moved into allocator, no need to delete manually.
             new (&array[index]) ComponentType(std::move(*source));
         };
 
@@ -167,14 +171,20 @@ class ComponentRegistry
             operator delete(component);
         };
 
+        newComponentInfo.DefaultConstructComponent = []() -> void*
+        {
+            // It will be funny to forget to delete this later
+            return new ComponentType();
+        };
+
         if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
         componentInfos[newComponentInfo.id] = newComponentInfo;
     }
 
     template <typename ComponentType>
-    static ComponentID GetComponentID()
+    static ComponentId GetComponentID()
     {
-        static ComponentID id = GetOrMakeComponentId<ComponentType>();
+        static ComponentId id = GetOrMakeComponentId<ComponentType>();
         return id;
     }
 
@@ -267,6 +277,7 @@ class ComponentRegistry
     template <typename T>
     static T* GetComponentFromPending(const PendingComponent& pendingComponent)
     {
+        if (!pendingComponent.componentDataPtr || !pendingComponent.componentInfoPtr) return nullptr;
         if (pendingComponent.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
         {
             T* componentPtr = reinterpret_cast<T*>(pendingComponent.componentDataPtr);
@@ -279,18 +290,18 @@ class ComponentRegistry
     template <typename ComponentType>
     static const char* GetComponentNameByType(const ComponentType& component)
     {
-        ComponentID id = GetComponentID<ComponentType>();
+        ComponentId id = GetComponentID<ComponentType>();
         return componentInfos[id].name;
     }
     // Deprecated
     template <typename ComponentType>
     static const char* GetComponentNameByType()
     {
-        ComponentID id = GetComponentID<ComponentType>();
+        ComponentId id = GetComponentID<ComponentType>();
         return componentInfos[id].name;
     }
 
-    static const ComponentInfo& GetComponentInfoById(ComponentID id) { return componentInfos[id]; }
+    static const ComponentInfo& GetComponentInfoById(ComponentId id) { return componentInfos[id]; }
 };
 
 template <typename ComponentType>

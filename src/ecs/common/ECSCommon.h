@@ -5,7 +5,7 @@
 #include "core/saving/JsonUtility.h"
 
 static constexpr uint16_t MaxComponents = 32;
-using ComponentID = uint32_t;
+using ComponentId = uint32_t;
 
 using ArchetypeId = uint32_t;
 using ComponentSignatureMask = std::bitset<MaxComponents>;

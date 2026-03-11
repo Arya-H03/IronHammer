@@ -27,7 +27,7 @@ class EntityInspector
     InspectorMode m_inspectorMode = InspectorMode::None;
     EngineMode m_lastEngineMode = EngineMode::None;
 
-    void DrawComponentDisplay(World& currentWorld,ComponentID componentId, void* componentPtr) const;
+    void DrawComponentDisplay(World& currentWorld,ComponentId componentId, void* componentPtr) const;
     void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld);
     void DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager);
 

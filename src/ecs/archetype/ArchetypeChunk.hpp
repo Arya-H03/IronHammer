@@ -25,7 +25,7 @@ struct ArchetypeChunk
     template <typename Component>
     Component* GetComponentRow() const
     {
-        ComponentID id = ComponentRegistry::GetComponentID<Component>();
+        ComponentId id = ComponentRegistry::GetComponentID<Component>();
         // Invalid Id
         if (id >= MaxComponents) return nullptr;
 

@@ -1,7 +1,7 @@
 #include "EntityTemplateInstance.h"
 #include "EntityTemplateManager.h"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
-#include <algorithm>
 #include <vector>
 
 EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
@@ -20,6 +20,7 @@ void EntityTemplateInstance::Clear()
     }
 
     m_components.clear();
+    m_presentComponents.clear();
     m_isDirty = false;
 }
 
@@ -36,6 +37,7 @@ void EntityTemplateInstance::DeserializeFrom(Json& entityJson)
         if (!componentPtr) continue;
 
         m_components.emplace_back(const_cast<ComponentInfo*>(componentInfo), componentPtr);
+        m_presentComponents.insert(componentInfo->id);
     }
 }
 
@@ -49,9 +51,29 @@ void EntityTemplateInstance::DrawInspector()
     if (m_pendingRemovalcomponents.size() > 0)
     {
         std::erase_if(
-            m_components, [&](const std::pair<ComponentInfo*, void*>& pair) { return m_pendingRemovalcomponents.contains(pair.first->id); });
+            m_components, [&](const std::pair<const ComponentInfo*, void*>& pair) { return m_pendingRemovalcomponents.contains(pair.first->id); });
+
+        std::erase_if(
+            m_presentComponents, [&](ComponentId id) { return m_pendingRemovalcomponents.contains(id); });
         m_pendingRemovalcomponents.clear();
     }
+
+    if (m_pendingAdditionComponents.size() > 0)
+    {
+        for (const auto& [info, ptr] : m_pendingAdditionComponents)
+        {
+            m_components.emplace_back(info, ptr);
+        }
+        m_pendingAdditionComponents.clear();
+    }
+}
+
+void EntityTemplateInstance::AddComponent(const ComponentInfo* info, void* ptr)
+{
+    if (m_presentComponents.contains(info->id)) return;
+    m_pendingAdditionComponents.emplace_back(info, ptr);
+    m_presentComponents.insert(info->id);
+    m_isDirty = true;
 }
 
 void EntityTemplateInstance::Save(EntityTemplateManager& entityTemplateManager)
