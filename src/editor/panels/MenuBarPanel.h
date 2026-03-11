@@ -1,4 +1,5 @@
 #pragma once
+#include "assets/AssetManager.h"
 #include "editor/EditorContext.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
@@ -10,14 +11,6 @@ class MenuBarPanel
   private:
 
     EditorContext& m_editorContext;
-
-    const std::string m_playPath = "assets/play-button.png";
-    const std::string m_pausePath = "assets/pause-button.png";
-    const std::string m_exitPath = "assets/cross-button.png";
-
-    sf::Texture m_playTexture;
-    sf::Texture m_pauseTexture;
-    sf::Texture m_exitTexture;
 
     ImTextureID m_playTexID;
     ImTextureID m_pauseTexID;
@@ -38,10 +31,8 @@ class MenuBarPanel
     {
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 
-        if (m_editorContext.engineMode == EngineMode::Play)
-            ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
-        else
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        if (m_editorContext.engineMode == EngineMode::Play) ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
+        else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
         if (ImGui::ImageButton("PlayBtn", m_playTexID, ImVec2(size, size)))
         {
@@ -58,8 +49,7 @@ class MenuBarPanel
 
         if (m_editorContext.engineMode == EngineMode::Play && m_editorContext.isPlayModePaused)
             ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
-        else
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
         if (ImGui::ImageButton("PauseBtn", m_pauseTexID, ImVec2(size, size)))
         {
@@ -88,9 +78,9 @@ class MenuBarPanel
 
     MenuBarPanel(EditorContext& editorContext) : m_editorContext(editorContext)
     {
-        LoadTexture(m_playTexture, m_playPath, m_playTexID);
-        LoadTexture(m_pauseTexture, m_pausePath, m_pauseTexID);
-        LoadTexture(m_exitTexture, m_exitPath, m_exitTexID);
+        m_playTexID = AssetManager::Instance().GetTextureID("PlayBtn");
+        m_pauseTexID = AssetManager::Instance().GetTextureID("PauseBtn");
+        m_exitTexID = AssetManager::Instance().GetTextureID("CrossBtn");
     }
 
     void Draw()

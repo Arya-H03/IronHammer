@@ -1,9 +1,11 @@
 #pragma once
 
+#include <unordered_set>
 #include <vector>
 #include <string>
 #include <utility>
 #include "core/saving/JsonUtility.h"
+#include "ecs/common/ECSCommon.h"
 
 class EntityTemplate;
 class ComponentInfo;
@@ -14,6 +16,7 @@ class EntityTemplateInstance
   private:
 
     std::vector<std::pair<ComponentInfo*, void*>> m_components;
+    std::unordered_set<ComponentID> m_pendingRemovalcomponents;
     std::string m_name;
     bool m_isDirty = false;
 

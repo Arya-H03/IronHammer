@@ -9,6 +9,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "assets/AssetManager.h"
+#include "core/utils/Colors.h"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
@@ -28,36 +29,45 @@ struct CTransform
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
     REGISTER_COMPONENT(CTransform);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CTransform>(name, ptr);
-        if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
+        position = Vect2f(0, 0);
+        scale = Vect2f(1, 1);
+        rotation = 0;
+    }
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CTransform>("Transform", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Position");
-            EntityInspectorHelpers::DragFloat2("##PosX", &position.x, "##PosY", &position.y, 0.1, isDirty);
-            TableNextField("Scale");
-            EntityInspectorHelpers::DragFloat2("##ScaleX", &scale.x, "##ScaleY", &scale.y, 0.1, isDirty);
-            TableNextField("Rotation");
-            EntityInspectorHelpers::DragFloatWithLimits("##Rotation", &rotation, 0.5f, -360.f, 360.f, isDirty);
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Position");
+                EntityInspectorHelpers::DragFloat2("##PosX", &position.x, "##PosY", &position.y, 0.1f, isDirty);
+                TableNextField("Scale");
+                EntityInspectorHelpers::DragFloat2("##ScaleX", &scale.x, "##ScaleY", &scale.y, 0.1f, isDirty);
+                TableNextField("Rotation");
+                EntityInspectorHelpers::DragFloatWithLimits("##Rotation", &rotation, 0.5f, -360.f, 360.f, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
 
-inline void to_json(Json& json, const CTransform& transform)
+inline void to_json(Json& json, const CTransform& c)
 {
-    json = { { "position", { { "x", transform.position.x }, { "y", transform.position.y } } },
-        { "scale", { { "x", transform.scale.x }, { "y", transform.scale.y } } },
-        { "rotation", transform.rotation } };
+    json = { { "position", { { "x", c.position.x }, { "y", c.position.y } } },
+        { "scale", { { "x", c.scale.x }, { "y", c.scale.y } } },
+        { "rotation", c.rotation } };
 }
 
-inline void from_json(const Json& json, CTransform& transform)
+inline void from_json(const Json& json, CTransform& c)
 {
-    transform.position.x = json["position"].value("x", 0.f);
-    transform.position.y = json["position"].value("y", 0.f);
-    transform.scale.x = json["scale"].value("x", 0.f);
-    transform.scale.y = json["scale"].value("y", 0.f);
-    transform.rotation = json["rotation"];
+    c.position.x = json["position"].value("x", 0.f);
+    c.position.y = json["position"].value("y", 0.f);
+    c.scale.x = json["scale"].value("x", 1.f);
+    c.scale.y = json["scale"].value("y", 1.f);
+    c.rotation = json["rotation"];
 }
 
 struct CMovement
@@ -69,20 +79,23 @@ struct CMovement
     CMovement(float spd) : speed(spd) { }
     REGISTER_COMPONENT(CMovement);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset() { speed = 0.f; }
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        TypeHeader<CMovement>(name, ptr);
-        if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
+        if (ComponentHeader<CMovement>("Movement", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Speed");
-            EntityInspectorHelpers::DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f, isDirty);
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Speed");
+                EntityInspectorHelpers::DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
 
 inline void to_json(Json& j, const CMovement& c) { j = { { "speed", c.speed } }; }
-
 inline void from_json(const Json& j, CMovement& c) { c.speed = j.value("speed", 0.f); }
 
 struct CSprite
@@ -96,34 +109,37 @@ struct CSprite
     static constexpr const char* name = "Sprite";
 
     CSprite() = default;
-
-    // Constructor using texture name
     CSprite(const std::string& texName, Vect2f sz, sf::IntRect texRect, sf::Color col = sf::Color::White)
         : textureName(texName), size(sz), textureRect(texRect), color(col)
     {
-        texture = AssetManager::Instance().LoadTexture(textureName); // resolve pointer
+        texture = AssetManager::Instance().LoadTexture(textureName);
     }
 
     REGISTER_COMPONENT(CSprite);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CSprite>(name, ptr);
-        if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit))
+        textureName = "";
+        texture = nullptr;
+        size = Vect2f(32, 32);
+        textureRect = sf::IntRect({ 0, 0 }, { 32, 32 });
+        color = sf::Color::White;
+    }
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CSprite>("Sprite", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Texture");
-            EntityInspectorHelpers::InputText("##TextureName", textureName, isDirty);
-
-            TableNextField("Size");
-            EntityInspectorHelpers::DragFloat2("##SpriteSizeX", &size.x, "##SpriteSizeY", &size.y, 0.1, isDirty);
-
-            //TableNextField("Texture Rect");
-            //EntityInspectorHelpers::DragIntRect("##TextureRect", &textureRect, isDirty);
-
-            TableNextField("Color");
-            EntityInspectorHelpers::ColorEdit4("##SpriteColor", color, isDirty);
-
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Texture");
+                EntityInspectorHelpers::InputText("##TextureName", textureName, isDirty);
+                TableNextField("Size");
+                EntityInspectorHelpers::DragFloat2("##SpriteSizeX", &size.x, "##SpriteSizeY", &size.y, 0.1f, isDirty);
+                TableNextField("Color");
+                EntityInspectorHelpers::ColorEdit4("##SpriteColor", color, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
@@ -145,12 +161,13 @@ inline void from_json(const Json& j, CSprite& c)
     auto sizeArr = j.value("size", std::vector<float> { 32.f, 32.f });
     c.size = Vect2f(sizeArr[0], sizeArr[1]);
 
-    auto texRectArr = j.value("textureRect", std::vector<int> { 0, 0, 32, 32 });
-    c.textureRect = sf::IntRect({ texRectArr[0], texRectArr[1] }, { texRectArr[2], texRectArr[3] });
+    auto texRect = j.value("textureRect", std::vector<int> { 0, 0, 32, 32 });
+    c.textureRect = sf::IntRect({ texRect[0], texRect[1] }, { texRect[2], texRect[3] });
 
-    auto colArr = j.value("color", std::vector<uint8_t> { 255, 255, 255, 255 });
-    c.color = sf::Color(colArr[0], colArr[1], colArr[2], colArr[3]);
+    auto col = j.value("color", std::vector<uint8_t> { 255, 255, 255, 255 });
+    c.color = sf::Color(col[0], col[1], col[2], col[3]);
 }
+
 struct CShape
 {
     size_t points;
@@ -167,22 +184,33 @@ struct CShape
     }
     REGISTER_COMPONENT(CShape);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CShape>(name, ptr);
-        if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
+        points = 3;
+        radius = 10.f;
+        outlineThickness = 1.f;
+        fillColor = sf::Color::White;
+        outlineColor = sf::Color::White;
+    }
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CShape>("Shape", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Points");
-            EntityInspectorHelpers::DragScalar("##Points", &points, isDirty);
-            TableNextField("Radius");
-            EntityInspectorHelpers::DragFloatWithLimits("##ShapeRadius", &radius, 0.1f, 0.f, 100.f, isDirty);
-            TableNextField("Outline Thickness");
-            EntityInspectorHelpers::DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f, isDirty);
-            TableNextField("Fill Color");
-            EntityInspectorHelpers::ColorEdit4("##ShapeFill", fillColor, isDirty);
-            TableNextField("Outline Color");
-            EntityInspectorHelpers::ColorEdit4("##ShapeOutline", outlineColor, isDirty);
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Points");
+                EntityInspectorHelpers::DragScalar("##Points", &points, isDirty);
+                TableNextField("Radius");
+                EntityInspectorHelpers::DragFloatWithLimits("##ShapeRadius", &radius, 0.1f, 0.f, 100.f, isDirty);
+                TableNextField("Outline Thickness");
+                EntityInspectorHelpers::DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f, isDirty);
+                TableNextField("Fill Color");
+                EntityInspectorHelpers::ColorEdit4("##ShapeFill", fillColor, isDirty);
+                TableNextField("Outline Color");
+                EntityInspectorHelpers::ColorEdit4("##ShapeOutline", outlineColor, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
@@ -224,22 +252,30 @@ struct CCollider
     }
     REGISTER_COMPONENT(CCollider);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CCollider>(name, ptr);
+        size = Vect2f(32, 32);
+        halfSize = Vect2f(16, 16);
+        offset = Vect2f(0, 0);
+        isTrigger = false;
+    }
 
-        if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CCollider>("Collider", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Size");
-            EntityInspectorHelpers::DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1, isDirty);
-            halfSize = { size.x * 0.5f, size.y * 0.5f };
+            if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Size");
+                EntityInspectorHelpers::DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1f, isDirty);
+                halfSize = { size.x * 0.5f, size.y * 0.5f };
 
-            TableNextField("Offset");
-            EntityInspectorHelpers::DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y, 0.1, isDirty);
-            TableNextField("Is Trigger");
-            EntityInspectorHelpers::Checkbox("##ColliderTrigger", &isTrigger, isDirty);
-
-            ImGui::EndTable();
+                TableNextField("Offset");
+                EntityInspectorHelpers::DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y, 0.1f, isDirty);
+                TableNextField("Is Trigger");
+                EntityInspectorHelpers::Checkbox("##ColliderTrigger", &isTrigger, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
@@ -255,12 +291,9 @@ inline void from_json(const Json& j, CCollider& c)
 {
     c.size.x = j["size"].value("x", 1.f);
     c.size.y = j["size"].value("y", 1.f);
-
     c.offset.x = j["offset"].value("x", 0.f);
     c.offset.y = j["offset"].value("y", 0.f);
-
     c.isTrigger = j.value("isTrigger", false);
-
     c.halfSize = { c.size.x * 0.5f, c.size.y * 0.5f };
 }
 
@@ -270,12 +303,12 @@ struct CRigidBody
     Vect2f previousPosition;
     float mass;
     float inverseMass;
-    float bounciness; // [0,1]
+    float bounciness; // [0, 1]
     bool isStatic;
     static constexpr const char* name = "RigidBody";
 
     CRigidBody() = default;
-    CRigidBody(const Vect2f& vel, float m, float bounciness, bool stat) : velocity(vel), mass(m), bounciness(bounciness), isStatic(stat)
+    CRigidBody(const Vect2f& vel, float m, float bounce, bool stat) : velocity(vel), mass(m), bounciness(bounce), isStatic(stat)
     {
         if (isStatic)
         {
@@ -289,23 +322,34 @@ struct CRigidBody
     }
     REGISTER_COMPONENT(CRigidBody);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CRigidBody>(name, ptr);
+        velocity = Vect2f(0, 0);
+        previousPosition = Vect2f(0, 0);
+        mass = 1.f;
+        inverseMass = 1.f;
+        bounciness = 0.5f;
+        isStatic = false;
+    }
 
-        if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CRigidBody>("RigidBody", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Velocity");
-            EntityInspectorHelpers::DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y, 0.1, isDirty);
-            TableNextField("Previous Position");
-            EntityInspectorHelpers::DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y, 0.1, isDirty);
-            TableNextField("Mass");
-            EntityInspectorHelpers::DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f, isDirty);
-            TableNextField("Bounciness");
-            EntityInspectorHelpers::DragFloatWithLimits("##RBBounciness", &bounciness, 0.1f, 0.f, 1.f, isDirty);
-            TableNextField("Is Static");
-            EntityInspectorHelpers::Checkbox("##RBStatic", &isStatic, isDirty);
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Velocity");
+                EntityInspectorHelpers::DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y, 0.1f, isDirty);
+                TableNextField("Previous Position");
+                EntityInspectorHelpers::DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y, 0.1f, isDirty);
+                TableNextField("Mass");
+                EntityInspectorHelpers::DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f, isDirty);
+                TableNextField("Bounciness");
+                EntityInspectorHelpers::DragFloatWithLimits("##RBBounciness", &bounciness, 0.01f, 0.f, 1.f, isDirty);
+                TableNextField("Is Static");
+                EntityInspectorHelpers::Checkbox("##RBStatic", &isStatic, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
@@ -351,22 +395,30 @@ struct CText
     }
     REGISTER_COMPONENT(CText);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
+    void Reset()
     {
-        TypeHeader<CText>(name, ptr);
+        content = "";
+        textColor = sf::Color::White;
+        offset = Vect2f(0, 0);
+        fontSize = 12.f;
+    }
 
-        if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CText>("Text", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Content");
-            EntityInspectorHelpers::InputText("##TextContent", content, isDirty);
-            TableNextField("Font Size");
-            EntityInspectorHelpers::DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f, isDirty);
-            TableNextField("Offset");
-            EntityInspectorHelpers::DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y, 0.1, isDirty);
-            TableNextField("Text Color");
-            EntityInspectorHelpers::ColorEdit4("##TextColor", textColor, isDirty);
-
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Content");
+                EntityInspectorHelpers::InputText("##TextContent", content, isDirty);
+                TableNextField("Font Size");
+                EntityInspectorHelpers::DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f, isDirty);
+                TableNextField("Offset");
+                EntityInspectorHelpers::DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y, 0.1f, isDirty);
+                TableNextField("Text Color");
+                EntityInspectorHelpers::ColorEdit4("##TextColor", textColor, isDirty);
+                ImGui::EndTable();
+            }
         }
     }
 };
@@ -383,7 +435,6 @@ inline void from_json(const Json& j, CText& c)
 {
     c.content = j.value("content", std::string { "" });
     c.fontSize = j.value("fontSize", 12.f);
-
     c.offset.x = j["offset"].value("x", 0.f);
     c.offset.y = j["offset"].value("y", 0.f);
 
@@ -398,25 +449,21 @@ struct CNotDrawable
     CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
 
-    void GuiInspectorDisplay(void* ptr, bool* isDirty = nullptr)
-    {
-        TypeHeader<CNotDrawable>(name, ptr);
+    void Reset() { /* nothing to reset */ }
 
-        if (ImGui::BeginTable("CNotDrawableTable", 2, ImGuiTableFlags_SizingFixedFit))
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CNotDrawable>("NotDrawable", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
         {
-            TableNextField("Info");
-            ImGui::TextDisabled("This entity is not renderable.");
-            ImGui::EndTable();
+            if (ImGui::BeginTable("CNotDrawableTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Info");
+                ImGui::TextDisabled("This entity is not renderable.");
+                ImGui::EndTable();
+            }
         }
     }
 };
 
-inline void to_json(Json& j, const CNotDrawable& c)
-{
-    j = Json::object(); // nothing to store
-}
-
-inline void from_json(const Json& j, CNotDrawable& c)
-{
-    // nothing to load
-}
+inline void to_json(Json& j, const CNotDrawable&) { j = Json::object(); }
+inline void from_json(const Json&, CNotDrawable&) { }

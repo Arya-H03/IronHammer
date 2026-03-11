@@ -1,6 +1,9 @@
 #pragma once
+#include <functional>
 #include <sstream>
 #include <format>
+#include "assets/AssetManager.h"
+#include "core/utils/Colors.h"
 #include "imgui.h"
 #include <SFML/Graphics/Color.hpp>
 
@@ -10,20 +13,55 @@ namespace EntityInspectorHelpers
     inline float colorFieldWidth = 225;
 
     template <typename T>
-    inline void TypeHeader(const std::string& typeName, void* ptr)
+    inline bool ComponentHeader(const char* label,
+        void* ptr,
+        const std::function<void()>& RemoveComponentCallback,
+        const std::function<void()>& ResetCallback,
+        bool* isDirty = nullptr)
     {
         std::ostringstream oss;
         oss << ptr;
         std::string typeInfo = std::format("{} Bytes at {}", sizeof(T), oss.str());
-        ImGui::SeparatorText(typeName.c_str());
+
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+        bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+        ImGui::PopStyleColor();
         if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
             ImGui::Text("%s", typeInfo.c_str());
             ImGui::EndTooltip();
         }
-    }
 
+        if (open)
+        {
+            float headerWidth = ImGui::GetContentRegionAvail().x;
+
+            std::string resetLabel = std::string("Reset##") + label;
+            std::string removeLabel = std::string("Remove##") + label;
+
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+            ImGui::SetCursorPosX(headerWidth - 35);
+            if (ImGui::ImageButton(resetLabel.c_str(), AssetManager::Instance().GetTextureID("ResetBtn"), ImVec2(12.5, 12.5)))
+            {
+                ResetCallback();
+                if (isDirty != nullptr) *isDirty = true;
+            }
+
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(headerWidth - 10);
+            if (ImGui::ImageButton(removeLabel.c_str(), AssetManager::Instance().GetTextureID("CrossBtn"), ImVec2(12.5, 12.5)))
+            {
+                RemoveComponentCallback();
+                if (isDirty != nullptr) *isDirty = true;
+            }
+
+            ImGui::PopStyleColor(2);
+        }
+        return open;
+    }
     inline void TableNextField(const char* tag)
     {
         ImGui::TableNextRow();

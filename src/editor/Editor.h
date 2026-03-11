@@ -27,6 +27,7 @@ class Editor
 
     Editor(Engine& engine) : m_editorContext(engine), m_gui(m_editorContext)
     {
+
         m_gui.ApplyGuiTheme();
 
         // One time sync into context

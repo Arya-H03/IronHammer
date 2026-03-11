@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <functional>
 #include <imgui.h>
 #include <cstddef>
 #include <cstring>
@@ -11,7 +12,7 @@
 #include "ecs/common/ECSCommon.h"
 #include "nlohmann/json_fwd.hpp"
 
-using DisplayComponentFn = void (*)(void*, bool*);
+using DisplayComponentFn = void (*)(void*, const std::function<void()>&, bool*);
 using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
 using SerializeComponentFn = void (*)(nlohmann::json&, void*);
 using DeSerializeComponentFn = void* (*) (nlohmann::json&);
@@ -109,10 +110,10 @@ class ComponentRegistry
         assert(newComponentInfo.id < MaxComponents);
         newComponentInfo.name = ComponentType::name;
         newComponentInfo.size = sizeof(ComponentType);
-        newComponentInfo.DisplayComponent = [](void* ptr, bool* isDirty = nullptr)
+        newComponentInfo.DisplayComponent = [](void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
         {
             ComponentType* component = reinterpret_cast<ComponentType*>(ptr);
-            component->GuiInspectorDisplay(ptr, isDirty);
+            component->GuiInspectorDisplay(ptr, RemoveComponentCallback, isDirty);
         };
         newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
         {

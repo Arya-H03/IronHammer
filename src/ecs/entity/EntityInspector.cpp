@@ -3,12 +3,13 @@
 #include "core/utils/Colors.h"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "engine/Engine.h"
+#include "imgui.h"
 
 const Entity EntityInspector::GetCurrentInspectorEntity() const { return m_currentLiveEntityData.entity; }
 
 void EntityInspector::DrawComponentDisplay(ComponentID componentId, void* componentPtr) const
 {
-    ComponentRegistry::GetComponentInfoById(componentId).DisplayComponent(componentPtr, nullptr);
+    ComponentRegistry::GetComponentInfoById(componentId).DisplayComponent(componentPtr, []() {}, nullptr);
 }
 
 void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld)
@@ -29,6 +30,9 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
             m_currentLiveEntityData.location.archetypeId,
             m_currentLiveEntityData.location.chunkIndex,
             m_currentLiveEntityData.location.indexInChunk);
+
+        ImGui::Spacing();
+        ImGui::Spacing();
 
         m_currentLiveEntityData.archetypePtr->ForEachComponent(
             m_currentLiveEntityData.location, [&](ComponentID id, void* ptr) { DrawComponentDisplay(id, ptr); });
@@ -64,6 +68,8 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
     ImGui::SeparatorText("Entity Template");
 
     ImGui::Text("Name: %s", m_currentEntityTemplateInstance->GetName().c_str());
+    ImGui::Spacing();
+    ImGui::Spacing();
 
     m_currentEntityTemplateInstance->DrawInspector();
 

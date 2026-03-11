@@ -1,5 +1,8 @@
 #include "EntityTemplateInstance.h"
 #include "EntityTemplateManager.h"
+#include "ecs/component/ComponentRegistry.hpp"
+#include <algorithm>
+#include <vector>
 
 EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
 {
@@ -40,7 +43,14 @@ void EntityTemplateInstance::DrawInspector()
 {
     for (auto& [info, ptr] : m_components)
     {
-        if (info && ptr) info->DisplayComponent(ptr, &m_isDirty);
+        if (info && ptr) info->DisplayComponent(ptr, [&]() { m_pendingRemovalcomponents.insert(info->id); }, &m_isDirty);
+    }
+
+    if (m_pendingRemovalcomponents.size() > 0)
+    {
+        std::erase_if(
+            m_components, [&](const std::pair<ComponentInfo*, void*>& pair) { return m_pendingRemovalcomponents.contains(pair.first->id); });
+        m_pendingRemovalcomponents.clear();
     }
 }
 

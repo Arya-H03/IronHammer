@@ -1,5 +1,6 @@
 #pragma once
 #include "core/utils/Debug.h"
+#include "imgui.h"
 #include <SFML/Graphics/Texture.hpp>
 #include <memory>
 #include <SFML/Graphics.hpp>
@@ -17,6 +18,10 @@ class AssetManager
     {
         // This is for testing
         CreateTexture("Square", "assets/Square.png");
+        CreateTexture("PlayBtn", "assets/play-button.png");
+        CreateTexture("PauseBtn", "assets/pause-button.png");
+        CreateTexture("CrossBtn", "assets/cross-button.png");
+        CreateTexture("ResetBtn", "assets/reset-button.png");
     }
 
     static AssetManager& Instance()
@@ -53,6 +58,17 @@ class AssetManager
             return nullptr;
         }
         return it->second.get();
+    }
+
+    ImTextureID GetTextureID(const std::string& name)
+    {
+        auto it = m_textures.find(name);
+        if (it == m_textures.end())
+        {
+            LOG_ERROR("Could not file texture: " + name);
+            return -1;
+        }
+        return it->second.get()->getNativeHandle();
     }
 
     void Clear() { m_textures.clear(); }
