@@ -7,6 +7,7 @@
 #include "engine/Engine.h"
 #include "input/InputManager.h"
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <string>
 
 class Editor
@@ -44,11 +45,10 @@ class Editor
 
         m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
         m_inputManager.CreateInputAction("Test",
-            sf::Keyboard::Key::T,
+            sf::Mouse::Button::Left,
             InputTrigger::Pressed,
             [&]()
             {
-                LOG_INFO(std::to_string(m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world).id));
                 m_editorContext.inspector.InspectLiveEntity(
                     m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world), m_editorContext.world->GetEntityManager());
             });
