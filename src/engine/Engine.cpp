@@ -94,7 +94,7 @@ void Engine::EnterPlayMode()
 
     m_currentWorld = m_tempWorld.get();
 
-    m_renderSystem.ResetWorld(m_currentWorld);
+    m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
 
     m_engineMode = EngineMode::Play;
@@ -105,7 +105,7 @@ void Engine::ExitPlayMode()
 {
     m_currentWorld = m_editorWorld.get();
 
-    m_renderSystem.ResetWorld(m_currentWorld);
+    m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);
 
     m_engineMode = EngineMode::Edit;

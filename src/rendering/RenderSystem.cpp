@@ -16,21 +16,19 @@
 #include "ecs/World.hpp"
 
 RenderSystem::RenderSystem(World* world)
-    : m_worldPtr(world)
-    , shapeQuery(m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , textQuery(m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , colliderQuery(m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
-    , spriteQuery(m_worldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
+    : shapeQuery(world->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , textQuery(world->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , colliderQuery(world->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>())
+    , spriteQuery(world->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
 }
 
-void RenderSystem::ResetWorld(World* newWorldPtr)
+void RenderSystem::SetupSystem(World* newWorldPtr)
 {
-    m_worldPtr = newWorldPtr;
-    shapeQuery = m_worldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
-    textQuery = m_worldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
-    colliderQuery = m_worldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
-    spriteQuery = m_worldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
+    shapeQuery = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
+    textQuery = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
+    colliderQuery = newWorldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
+    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
@@ -297,7 +295,7 @@ void RenderSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
 {
     // m_window.clear();
 
-    if(m_canDrawSprites) RenderSprites(renderTarget);
+    if (m_canDrawSprites) RenderSprites(renderTarget);
     if (m_canDrawShapes) RenderShapes(renderTarget);
     if (m_canDrawColliders) RenderColliders(renderTarget);
     if (m_canDrawText) RenderText(renderTarget);

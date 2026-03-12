@@ -6,12 +6,11 @@
 #include <cstddef>
 #include "ecs/World.hpp"
 #include "ecs/component/Components.hpp"
+#include "ecs/system/ISystem.h"
 
-class RenderSystem
+class RenderSystem:ISetupSystem
 {
   private:
-
-    World* m_worldPtr;
 
     Query* shapeQuery;
     Query* textQuery;
@@ -51,7 +50,7 @@ class RenderSystem
     void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
     void SetCanDrawSprites(bool val) { m_canDrawSprites = val; }
 
-    void ResetWorld(World* newWorldPtr);
+    void SetupSystem(World* newWorldPtr) override;
 
     void HandleRenderSystem(sf::RenderTarget& renderTarget);
 };

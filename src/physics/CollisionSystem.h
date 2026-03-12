@@ -20,7 +20,6 @@ class CollisionSystem : public ISetupSystem
   private:
 
     Vect2<uint16_t> m_windowSize;
-    World* m_worldPtr;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
     NarrowPhaseCollisionSystem m_narrowPhaseCollisionSystem;
     CollisionResolutionSystem m_collisionResolutionSystem;
@@ -77,8 +76,7 @@ class CollisionSystem : public ISetupSystem
 
     void SetupSystem(World* worldPtr) override
     {
-        m_worldPtr = worldPtr;
-        m_collisionQuery = m_worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
+        m_collisionQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
     }
 

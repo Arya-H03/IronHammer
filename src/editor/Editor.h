@@ -4,8 +4,10 @@
 #include "EditorGui.h"
 #include "EditorGrid.h"
 #include "core/utils/Debug.h"
+#include "engine/Engine.h"
 #include "input/InputManager.h"
 #include <SFML/Window/Keyboard.hpp>
+#include <string>
 
 class Editor
 {
@@ -19,7 +21,7 @@ class Editor
     {
         m_editorContext.viewportTexture.clear();
         m_editorContext.renderSystem->HandleRenderSystem(m_editorContext.viewportTexture);
-        m_editorContext.editorGrid.RenderGrid(m_editorContext.viewportTexture);
+        if (m_editorContext.engineMode == EngineMode::Edit) m_editorContext.editorGrid.RenderGrid(m_editorContext.viewportTexture);
         m_editorContext.viewportTexture.display();
     }
 
@@ -41,9 +43,15 @@ class Editor
             "Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_editorContext.engine.GetRenderWindow().close(); });
 
         m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
-        m_inputManager.CreateInputAction("Info", sf::Keyboard::Key::I, InputTrigger::Pressed, [&]() { LOG_INFO("Info"); });
-        m_inputManager.CreateInputAction("Warning", sf::Keyboard::Key::W, InputTrigger::Pressed, [&]() { LOG_WARNING("Warning"); });
-        m_inputManager.CreateInputAction("Error", sf::Keyboard::Key::E, InputTrigger::Pressed, [&]() { LOG_ERROR("Error"); });
+        m_inputManager.CreateInputAction("Test",
+            sf::Keyboard::Key::T,
+            InputTrigger::Pressed,
+            [&]()
+            {
+                LOG_INFO(std::to_string(m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world).id));
+                m_editorContext.inspector.InspectLiveEntity(
+                    m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world), m_editorContext.world->GetEntityManager());
+            });
     }
 
     void Update()
@@ -52,6 +60,8 @@ class Editor
         m_editorContext.world = m_editorContext.engine.GetCurrentWorld();
         m_editorContext.engineMode = m_editorContext.engine.GetEngineMode();
         m_editorContext.isPlayModePaused = m_editorContext.engine.GetIsPlayModePaused();
+        m_editorContext.editorGrid.SetupSystem(m_editorContext.world);
+        m_editorContext.editorGrid.UpdateViewportGrid();
 
         m_inputManager.Update(*m_editorContext.inputSystem);
 

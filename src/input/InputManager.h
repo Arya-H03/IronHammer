@@ -2,6 +2,7 @@
 
 #include "input/InputSystem.h"
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>

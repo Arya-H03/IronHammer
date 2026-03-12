@@ -26,7 +26,7 @@ struct EditorContext
     EntityInspector inspector;
     ArchetypeDebugger archetypeDebugger;
     EditorConfig::Layout layout;
-    EditorGrid editorGrid;
+    EditorGridSystem editorGrid;
 
     sf::RenderTexture viewportTexture;
 
