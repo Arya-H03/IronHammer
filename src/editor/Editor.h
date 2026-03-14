@@ -4,6 +4,7 @@
 #include "EditorGui.h"
 #include "EditorGrid.h"
 #include "core/utils/Debug.h"
+#include "ecs/common/ECSCommon.h"
 #include "engine/Engine.h"
 #include "input/InputManager.h"
 #include <SFML/Window/Keyboard.hpp>
@@ -49,8 +50,8 @@ class Editor
             InputTrigger::Pressed,
             [&]()
             {
-                m_editorContext.inspector.InspectLiveEntity(
-                    m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world), m_editorContext.world->GetEntityManager());
+                Entity entity = m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world);
+                if (entity.id != InvalidEntityID) m_editorContext.inspector.InspectLiveEntity(entity, m_editorContext.world->GetEntityManager());
             });
     }
 

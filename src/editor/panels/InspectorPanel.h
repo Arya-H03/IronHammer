@@ -25,6 +25,7 @@ class InspectorPanel
 
         m_editorContext.inspector.DrawInspectorGui(
             m_editorContext.world->GetEntityManager(), *m_editorContext.entityTemplateManager, *m_editorContext.world, m_editorContext.engineMode);
+
         ImGui::End();
     }
 };

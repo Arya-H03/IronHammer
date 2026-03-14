@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/RenderTexture.hpp>
 #include "editor/EditorGrid.h"
+#include "editor/Viewport.h"
 #include "engine/Engine.h"
 #include "ecs/World.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
@@ -30,9 +31,9 @@ struct EditorContext
 
     sf::RenderTexture viewportTexture;
 
-
     EditorContext(Engine& engine) : engine(engine), layout(engine.GetWindowSize())
     {
         viewportTexture = sf::RenderTexture({ layout.Viewport_Width, layout.Viewport_Height });
+        Viewport::SetViewportTexture(&viewportTexture);
     }
 };

@@ -1,6 +1,8 @@
 #pragma once
+#include "assets/AssetManager.h"
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "editor/EditorContext.h"
@@ -16,6 +18,7 @@ class ViewportPanel
   private:
 
     EditorContext& m_editorContext;
+    ImVec2 buttonSize { 12, 12 };
 
   public:
 
@@ -47,6 +50,7 @@ class ViewportPanel
             drawSize.y = viewportSize.x / texAspect;
         }
 
+        Viewport::UpdateViewportImage(ImGui::GetCursorScreenPos(), drawSize);
         ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize);
 
         if (ImGui::BeginDragDropTarget())
@@ -80,6 +84,32 @@ class ViewportPanel
             }
 
             ImGui::EndDragDropTarget();
+        }
+
+        Entity entity = m_editorContext.inspector.GetCurrentInspectorEntity();
+        if (entity.id != InvalidEntityID)
+        {
+            CTransform* transform = m_editorContext.world->TryGetComponent<CTransform>(entity);
+            if (!transform) return;
+
+            ImVec2 entityScreenPos = Viewport::WorldToViewportGui(transform->position);
+
+            ImGui::SetCursorScreenPos(ImVec2(entityScreenPos.x - (buttonSize.x) * 0.5f, entityScreenPos.y - (buttonSize.y) * 0.5f));
+
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+            ImGui::ImageButton("DragGizmo", AssetManager::Instance().GetTextureID("Square"), buttonSize);
+
+            if (ImGui::IsItemActive())
+            {
+                transform->position = Viewport::ScreenToViewportMouse();
+            }
+
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar();
         }
 
         ImGui::End();

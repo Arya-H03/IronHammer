@@ -28,6 +28,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
     const EntityStorageLocation& entityLocation = entityManager.GetEntityLocation(m_currentLiveEntity);
     Archetype* archetypePtr = entityManager.GetEntityArchetypePtr(m_currentLiveEntity);
 
+
     ImGui::SeparatorText("Entity");
     ImGui::Text("Id:%u | Gen:%u", m_currentLiveEntity.id, m_currentLiveEntity.generation);
     ImGui::SeparatorText("Archetype");
