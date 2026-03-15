@@ -19,7 +19,7 @@ class World
     EntityManager m_entityManager;
     CommandBuffer m_commandBuffer;
 
-    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager); }
+    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager);}
 
   public:
 

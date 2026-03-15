@@ -7,6 +7,7 @@
 #include "ecs/component/Components.hpp"
 #include "editor/EditorContext.h"
 #include "editor/Viewport.h"
+#include "engine/Engine.h"
 #include <cmath>
 #include <imgui.h>
 #include <string>
@@ -17,8 +18,78 @@ class ViewportPanel
 {
   private:
 
+    enum class GizmoAxis
+    {
+        X,
+        Y,
+        XY
+    };
+
     EditorContext& m_editorContext;
-    ImVec2 buttonSize { 12, 12 };
+    ImVec2 m_gizmoCenterSize { 16, 16 };
+    ImVec2 m_gizmoUpArrowSize { 100, 10 };
+    ImVec2 transfromGizmoUpArrowButtonSize { 10, 100 };
+
+    void DrawGizmoButton(const char* id, ImVec2 screenPos, ImTextureID texture, ImVec2 size, Vect2f& dragOffset, Vect2f& position, GizmoAxis axis)
+    {
+        ImGui::SetCursorScreenPos(screenPos);
+        ImGui::ImageButton(id, texture, size);
+
+        if (ImGui::IsItemActivated()) dragOffset = position - Viewport::ScreenToViewportMouse();
+
+        if (ImGui::IsItemActive())
+        {
+            Vect2f mouse = Viewport::ScreenToViewportMouse();
+            if (axis == GizmoAxis::X || axis == GizmoAxis::XY) position.x = mouse.x + dragOffset.x;
+            if (axis == GizmoAxis::Y || axis == GizmoAxis::XY) position.y = mouse.y + dragOffset.y;
+        }
+    }
+
+    void DrawLiveEntityTransformGismo()
+    {
+        Entity entity = m_editorContext.inspector.GetCurrentInspectorEntity();
+        if (entity.id == InvalidEntityID) return;
+
+        CTransform* transform = m_editorContext.world->TryGetComponent<CTransform>(entity);
+        if (!transform) return;
+
+        ImVec2 entityScreenPos = Viewport::WorldToViewportGui(transform->position);
+        static Vect2f dragOffset;
+
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+        DrawGizmoButton("CenterGizmo",
+            ImVec2(entityScreenPos.x - m_gizmoCenterSize.x * 0.5f, entityScreenPos.y - m_gizmoCenterSize.y * 0.5f),
+            AssetManager::Instance().GetTextureID("Square"),
+            m_gizmoCenterSize,
+            dragOffset,
+            transform->position,
+            GizmoAxis::XY);
+
+        DrawGizmoButton("RightArrowGizmo",
+            ImVec2(entityScreenPos.x + m_gizmoCenterSize.x * 0.5f, entityScreenPos.y - m_gizmoUpArrowSize.y * 0.5f),
+            AssetManager::Instance().GetTextureID("RightArrow"),
+            m_gizmoUpArrowSize,
+            dragOffset,
+            transform->position,
+            GizmoAxis::X);
+
+        DrawGizmoButton("UpArrowGizmo",
+            ImVec2(entityScreenPos.x - transfromGizmoUpArrowButtonSize.x * 0.5f,
+                entityScreenPos.y - m_gizmoCenterSize.y * 0.5f - transfromGizmoUpArrowButtonSize.y),
+            AssetManager::Instance().GetTextureID("UpArrow"),
+            transfromGizmoUpArrowButtonSize,
+            dragOffset,
+            transform->position,
+            GizmoAxis::Y);
+
+        ImGui::PopStyleColor(4);
+        ImGui::PopStyleVar();
+    }
 
   public:
 
@@ -86,31 +157,7 @@ class ViewportPanel
             ImGui::EndDragDropTarget();
         }
 
-        Entity entity = m_editorContext.inspector.GetCurrentInspectorEntity();
-        if (entity.id != InvalidEntityID)
-        {
-            CTransform* transform = m_editorContext.world->TryGetComponent<CTransform>(entity);
-            if (!transform) return;
-
-            ImVec2 entityScreenPos = Viewport::WorldToViewportGui(transform->position);
-
-            ImGui::SetCursorScreenPos(ImVec2(entityScreenPos.x - (buttonSize.x) * 0.5f, entityScreenPos.y - (buttonSize.y) * 0.5f));
-
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-
-            ImGui::ImageButton("DragGizmo", AssetManager::Instance().GetTextureID("Square"), buttonSize);
-
-            if (ImGui::IsItemActive())
-            {
-                transform->position = Viewport::ScreenToViewportMouse();
-            }
-
-            ImGui::PopStyleColor(3);
-            ImGui::PopStyleVar();
-        }
+        if (m_editorContext.engineMode == EngineMode::Edit) DrawLiveEntityTransformGismo();
 
         ImGui::End();
     }
