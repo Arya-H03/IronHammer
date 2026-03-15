@@ -107,10 +107,13 @@ class Debug
     inline static std::vector<TraceBreakdown> ResolveStackTrace(
         backward::StackTrace& stackTrace, size_t skipFramesFromStart = 4, size_t skipFramesFromEnd = 4)
     {
+        std::vector<TraceBreakdown> traceBreakdowns;
+
+        if (stackTrace.size() <= skipFramesFromEnd + skipFramesFromStart) return traceBreakdowns;
+
         backward::TraceResolver traceResolver;
         traceResolver.load_stacktrace(stackTrace);
 
-        std::vector<TraceBreakdown> traceBreakdowns;
         traceBreakdowns.reserve(stackTrace.size() - skipFramesFromEnd - skipFramesFromStart);
 
         for (size_t i = skipFramesFromStart; i < stackTrace.size() - skipFramesFromEnd; ++i)
@@ -197,10 +200,21 @@ class Debug
 
     inline static void Log(const std::string& message, ImVec4 color = Colors::ConcreteGrey_ImGui, LogType logType = LogType::Unknown)
     {
-        if (m_logMessageQueue.size() > m_logLimit) m_logMessageQueue.pop_front();
+        if (m_logMessageQueue.size() > m_logLimit)
+        {
+            std::lock_guard lock(m_logMessagesMutex);
+            m_logMessageQueue.pop_front();
+        }
 
         backward::StackTrace stackTrace;
-        stackTrace.load_here(16);
+
+        switch (logType)
+        {
+            case LogType::Info: stackTrace.load_here(0); break;
+            case LogType::Error: stackTrace.load_here(32); break;
+            case LogType::Warning: stackTrace.load_here(16); break;
+            case LogType::Unknown: stackTrace.load_here(0); break;
+        }
         {
             std::lock_guard lock(m_pendingLogsMutex);
             m_pendingLogMesssageQueue.push({ message, Time::GetLocalTimeStamp(), color, logType, std::move(stackTrace) });
