@@ -22,8 +22,10 @@ class AssetManager
         CreateTexture("PauseBtn", "assets/pause-button.png");
         CreateTexture("CrossBtn", "assets/cross-button.png");
         CreateTexture("ResetBtn", "assets/reset-button.png");
-        CreateTexture("RightArrow", "assets/right-arrow.png");
-        CreateTexture("UpArrow", "assets/up-arrow.png");
+        CreateTexture("RightArrowSharp", "assets/right-arrow-sharp.png");
+        CreateTexture("UpArrowSharp", "assets/up-arrow-sharp.png");
+        CreateTexture("RightArrowFlat", "assets/right-arrow-flat.png");
+        CreateTexture("UpArrowFlat", "assets/up-arrow-flat.png");
     }
 
     static AssetManager& Instance()
