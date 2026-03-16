@@ -22,6 +22,26 @@ class ViewportPanel
     EditorContext& m_editorContext;
     ViewportGismo m_viewportGismo;
 
+    void DrawGismo()
+    {
+        if (m_editorContext.engineMode == EngineMode::Edit)
+        {
+            Entity liveEntity = m_editorContext.inspector.GetCurrentInspectorEntity();
+
+            if (!m_editorContext.world->ValidateEntity(liveEntity, false)) return;
+
+            CTransform* transformPtr = m_editorContext.world->TryGetComponent<CTransform>(liveEntity);
+            if (!transformPtr) return;
+
+            switch (m_editorContext.viewPortGizmMode)
+            {
+                case GismoMode::None: break;
+                case GismoMode::Position: m_viewportGismo.DrawLiveEntityPositionGizmo(transformPtr); break;
+                case GismoMode::Scale: m_viewportGismo.DrawLiveEntityScaleGizmo(transformPtr); break;
+            }
+        }
+    }
+
   public:
 
     ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext) { }
@@ -88,16 +108,7 @@ class ViewportPanel
             ImGui::EndDragDropTarget();
         }
 
-        // if (m_editorContext.engineMode == EngineMode::Edit) DrawLiveEntityPositionGizmo();
-        if (m_editorContext.engineMode == EngineMode::Edit)
-        {
-            Entity liveEntity = m_editorContext.inspector.GetCurrentInspectorEntity();
-            if (m_editorContext.world->ValidateEntity(liveEntity,false))
-            {
-                CTransform* transformPtr = m_editorContext.world->TryGetComponent<CTransform>(liveEntity);
-                if (transformPtr) m_viewportGismo.DrawLiveEntityScaleGizmo(transformPtr);
-            }
-        }
+        DrawGismo();
 
         ImGui::End();
     }

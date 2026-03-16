@@ -9,13 +9,9 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
 #include "editor/Viewport.h"
+#include "editor/Gizmo.h"
 
-enum class GizmoAxis
-{
-    X,
-    Y,
-    XY
-};
+
 class ViewportGismo
 {
   private:

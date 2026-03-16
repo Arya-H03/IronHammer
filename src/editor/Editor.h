@@ -5,6 +5,7 @@
 #include "EditorGrid.h"
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
+#include "editor/Gizmo.h"
 #include "engine/Engine.h"
 #include "input/InputManager.h"
 #include <SFML/Window/Keyboard.hpp>
@@ -23,7 +24,8 @@ class Editor
     {
         m_editorContext.viewportTexture.clear();
         m_editorContext.renderSystem->HandleRenderSystem(m_editorContext.viewportTexture);
-        if (m_editorContext.engineMode == EngineMode::Edit) m_editorContext.editorGrid.RenderGrid(m_editorContext.viewportTexture);
+        if (m_editorContext.engineMode == EngineMode::Edit)
+            m_editorContext.editorGrid.RenderGrid(m_editorContext.viewportTexture);
         m_editorContext.viewportTexture.display();
     }
 
@@ -41,18 +43,32 @@ class Editor
 
         Debug::StartLoggerThread();
 
-        m_inputManager.CreateInputAction(
-            "Exit", sf::Keyboard::Key::Escape, InputTrigger::Pressed, [&]() { m_editorContext.engine.GetRenderWindow().close(); });
+        m_inputManager.CreateInputAction("Exit",
+            sf::Keyboard::Key::Escape,
+            InputTrigger::Pressed,
+            [&]() { m_editorContext.engine.GetRenderWindow().close(); });
 
-        m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
-        m_inputManager.CreateInputAction("Test",
+        m_inputManager.CreateInputAction(
+            "Save", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_editorContext.engine.SaveEditWorldData(); });
+
+        m_inputManager.CreateInputAction("SelectLiveEntity",
             sf::Mouse::Button::Left,
             InputTrigger::Pressed,
             [&]()
             {
                 Entity entity = m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world);
-                if (entity.id != InvalidEntityID) m_editorContext.inspector.InspectLiveEntity(entity, m_editorContext.world->GetEntityManager());
+                if (entity.id != InvalidEntityID)
+                    m_editorContext.inspector.InspectLiveEntity(entity, m_editorContext.world->GetEntityManager());
             });
+
+        m_inputManager.CreateInputAction("GizmoPositionMode",
+            sf::Keyboard::Key::W,
+            InputTrigger::Pressed,
+            [&]() { m_editorContext.viewPortGizmMode = GismoMode::Position; });
+        m_inputManager.CreateInputAction("GizmoScaleMode",
+            sf::Keyboard::Key::E,
+            InputTrigger::Pressed,
+            [&]() { m_editorContext.viewPortGizmMode = GismoMode::Scale; });
     }
 
     void Update()

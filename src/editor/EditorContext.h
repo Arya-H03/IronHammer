@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/RenderTexture.hpp>
 #include "editor/EditorGrid.h"
+#include "editor/Gizmo.h"
 #include "editor/Viewport.h"
 #include "engine/Engine.h"
 #include "ecs/World.hpp"
@@ -30,6 +31,8 @@ struct EditorContext
     EditorGridSystem editorGrid;
 
     sf::RenderTexture viewportTexture;
+
+    GismoMode viewPortGizmMode = GismoMode::Position;
 
     EditorContext(Engine& engine) : engine(engine), layout(engine.GetWindowSize())
     {
