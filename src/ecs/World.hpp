@@ -19,7 +19,7 @@ class World
     EntityManager m_entityManager;
     CommandBuffer m_commandBuffer;
 
-    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager);}
+    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager); }
 
   public:
 
@@ -27,6 +27,8 @@ class World
     ArchetypeRegistry& GetArchetypeRegistry() { return m_archetypeRegistry; }
     EntityManager& GetEntityManager() { return m_entityManager; }
     CommandBuffer& GetCommandBuffer() { return m_commandBuffer; }
+
+    bool ValidateEntity(Entity entity, bool log = true) const { return m_entityManager.ValidateEntity(entity,log); }
 
     template <typename Func>
     void ForEachComponentOfEntity(const EntityStorageLocation& entityLocation, Func&& func)

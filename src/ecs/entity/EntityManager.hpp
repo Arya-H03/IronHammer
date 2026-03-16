@@ -56,13 +56,13 @@ class EntityManager
         return &m_archetypeRegistry.GetArchetypeById(GetEntityLocation(entity).archetypeId);
     }
 
-    bool ValidateEntity(Entity entity) const
+    bool ValidateEntity(Entity entity, bool log = true) const
     {
         bool isIdValid = entity.id < m_entitySlots.size();
         if (!isIdValid)
         {
 #ifndef NDEBUG
-            LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+            if (log) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
 #endif
             return false;
         }
@@ -70,7 +70,7 @@ class EntityManager
         if (!isEntityOccupied)
         {
 #ifndef NDEBUG
-            LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+            if (log) LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
 #endif
             return false;
         }
@@ -78,7 +78,7 @@ class EntityManager
         if (!isGenValid)
         {
 #ifndef NDEBUG
-            LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+            if (log) LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
 #endif
             return false;
         }
