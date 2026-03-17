@@ -130,7 +130,8 @@ class LogWindow
                 ImGui::Separator();
             }
         }
-        if (newLogsArrived) ImGui::SetScrollHereY(1.0f);
+
+       // if (newLogsArrived) ImGui::SetScrollHereY(1.0f);
         ImGui::EndChild();
     }
 

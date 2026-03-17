@@ -64,7 +64,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
     ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
     ImGui::SetCursorPos(
-        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
+        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 100)));
     if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
     if (ImGui::BeginPopup("AddComponentPopup"))
     {
@@ -159,7 +159,7 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
     ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
     ImGui::SetCursorPos(
-        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
+        ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5, ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 100)));
     if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
     if (ImGui::BeginPopup("AddComponentPopup"))
     {
