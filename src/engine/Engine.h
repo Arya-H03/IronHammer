@@ -25,8 +25,8 @@ class Engine
 
   private:
 
-    int m_currentFrame = 0;
-    int m_frameLimit = 60;
+    size_t m_currentFrame = 0;
+    size_t m_frameLimit = 60;
 
     sf::Clock m_clock;
     sf::RenderWindow m_window;

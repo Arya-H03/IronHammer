@@ -152,7 +152,7 @@ void Engine::UpdateRuntime()
     m_currentWorld->UpdateWorld();
 
     if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
-        m_sceneManager.GetCurrentScenePtr()->Update(m_currentWorld, m_inputSystem);
+        m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame,m_currentWorld, m_inputSystem);
 }
 
 void Engine::RenderFrame()

@@ -29,7 +29,7 @@ class BaseScene
     virtual void OnExitPlay(World* worldPtr) = 0;
     virtual void OnChangeTo(World* worldPtr) { }
     virtual void OnChangeFrom(World* worldPtr) { }
-    virtual void Update(World* worldPtr,InputSystem& inputSystem) = 0;
+    virtual void Update(size_t currentFrame, World* worldPtr,InputSystem& inputSystem) = 0;
 
     virtual ~BaseScene() = default;
 };

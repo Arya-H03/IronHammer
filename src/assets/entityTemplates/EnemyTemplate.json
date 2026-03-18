@@ -10,16 +10,17 @@
       "y": 32.0
     }
   },
+  "Enemy": {},
   "Movement": {
-    "speed": 1.5079472064971924
+    "speed": 2.0
   },
   "RigidBody": {
     "bounciness": 0.10000000149011612,
     "isStatic": false,
     "mass": 10.0,
     "velocity": {
-      "x": 73.04254150390625,
-      "y": 60.301544189453125
+      "x": 10.0,
+      "y": 10.0
     }
   },
   "Sprite": {
@@ -30,8 +31,8 @@
       255
     ],
     "size": [
-      50.0,
-      50.0
+      32.0,
+      32.0
     ],
     "textureName": "Square",
     "textureRect": [

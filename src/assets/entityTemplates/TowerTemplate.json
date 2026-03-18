@@ -1,0 +1,56 @@
+{
+  "Collider": {
+    "isTrigger": false,
+    "offset": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "size": {
+      "x": 75.0,
+      "y": 75.0
+    }
+  },
+  "Movement": {
+    "speed": 0.0
+  },
+  "RigidBody": {
+    "bounciness": 0.10000000149011612,
+    "isStatic": true,
+    "mass": 0.0,
+    "velocity": {
+      "x": 0.0,
+      "y": 0.0
+    }
+  },
+  "Sprite": {
+    "color": [
+      166,
+      0,
+      0,
+      255
+    ],
+    "size": [
+      75.0,
+      75.0
+    ],
+    "textureName": "Square",
+    "textureRect": [
+      0,
+      0,
+      256,
+      256
+    ]
+  },
+  "Tower": {},
+  "Transform": {
+    "position": {
+      "x": 541.0,
+      "y": 370.0
+    },
+    "rotation": 0.0,
+    "scale": {
+      "x": 1.0,
+      "y": 1.0
+    }
+  }
+}
