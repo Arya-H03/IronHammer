@@ -11,7 +11,7 @@
 - [Architecture at a Glance](#architecture-at-a-glance)
 - [Entity Component System](#entity-component-system)
   - [Why Archetypes?](#why-archetypes)
-  - [Component Self-Registration](#component-self-registration)
+  - [Component Self Registration](#component-self-registration)
   - [Queries](#queries)
   - [CommandBuffer](#commandbuffer)
   - [Entity Generation Safety](#entity-generation-safety)
