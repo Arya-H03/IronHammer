@@ -1,20 +1,23 @@
 #pragma once
 #include "assets/AssetManager.h"
-#include "editor/EditorContext.h"
+#include "core/FrameRateHandler.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
+#include "editor/EditorContext.h"
+
+#include <cmath>
+#include <cstdlib>
 #include <imgui.h>
 #include <SFML/Graphics/Texture.hpp>
 
 class MenuBarPanel
 {
-  private:
-
+private:
     EditorContext& m_editorContext;
-
-    ImTextureID m_playTexID;
-    ImTextureID m_pauseTexID;
-    ImTextureID m_exitTexID;
+    size_t         lastFrameFPS;
+    ImTextureID    m_playTexID;
+    ImTextureID    m_pauseTexID;
+    ImTextureID    m_exitTexID;
 
     void LoadTexture(sf::Texture& texture, const std::string& path, ImTextureID& texID)
     {
@@ -24,14 +27,15 @@ class MenuBarPanel
             return;
         }
 
-        texID = (ImTextureID) texture.getNativeHandle();
+        texID = (ImTextureID)texture.getNativeHandle();
     }
 
     void DrawPlayButton(float size)
     {
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 
-        if (m_editorContext.engineMode == EngineMode::Play) ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
+        if (m_editorContext.engineMode == EngineMode::Play)
+            ImGui::PushStyleColor(ImGuiCol_Button, Colors::Gunmetal_ImGui);
         else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
         if (ImGui::ImageButton("PlayBtn", m_playTexID, ImVec2(size, size)))
@@ -74,41 +78,49 @@ class MenuBarPanel
         ImGui::PopStyleColor();
     }
 
-  public:
-
+public:
     MenuBarPanel(EditorContext& editorContext) : m_editorContext(editorContext)
     {
-        m_playTexID = AssetManager::Instance().GetTextureID("PlayBtn");
+        m_playTexID  = AssetManager::Instance().GetTextureID("PlayBtn");
         m_pauseTexID = AssetManager::Instance().GetTextureID("PauseBtn");
-        m_exitTexID = AssetManager::Instance().GetTextureID("CrossBtn");
+        m_exitTexID  = AssetManager::Instance().GetTextureID("CrossBtn");
     }
 
     void Draw()
     {
         auto& layout = m_editorContext.layout;
 
-        ImGui::SetNextWindowPos(ImVec2((float) layout.Menu_X, (float) layout.Menu_Y));
+        ImGui::SetNextWindowPos(ImVec2((float)layout.Menu_X, (float)layout.Menu_Y));
 
-        ImGui::SetNextWindowSize(ImVec2((float) layout.Menu_Width, (float) layout.Menu_Height));
+        ImGui::SetNextWindowSize(ImVec2((float)layout.Menu_Width, (float)layout.Menu_Height));
 
-        ImGui::Begin(
-            "MenuBar", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+        ImGui::Begin("MenuBar", nullptr,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 
         const float buttonSize = 15.0f;
-        const float spacing = ImGui::GetStyle().ItemSpacing.x;
+        const float spacing    = ImGui::GetStyle().ItemSpacing.x;
+
+        if (std::abs((int)FrameRateHandler::GetCurrentFrameRate() - (int)lastFrameFPS) > 1)
+        {
+            lastFrameFPS = FrameRateHandler::GetCurrentFrameRate();
+        }
+        ImGui::Text("Frame Rate: %zu", lastFrameFPS);
 
         // Center Play & Pause
         float totalWidth = buttonSize * 2.0f + spacing;
         float availWidth = ImGui::GetContentRegionAvail().x;
 
-        ImGui::SetCursorPos(ImVec2((availWidth - totalWidth) * 0.5f, (layout.Menu_Height - buttonSize) * 0.5f));
+        ImGui::SetCursorPos(
+            ImVec2((availWidth - totalWidth) * 0.5f, (layout.Menu_Height - buttonSize) * 0.5f));
 
         DrawPlayButton(buttonSize);
         ImGui::SameLine();
         DrawPauseButton(buttonSize);
 
         // Right aligned Exit
-        float contentWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+        float contentWidth =
+            ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
 
         float exitX = contentWidth - buttonSize;
 

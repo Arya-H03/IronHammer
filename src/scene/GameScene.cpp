@@ -98,22 +98,21 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 }
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 0;
+    size_t count = 20000;
 
     for (size_t i = 0; i < count; ++i)
     {
-        Vect2f startPos{Random::Float(Viewport::GetPosition().x,
-                                      Viewport::GetPosition().x + Viewport::GetSize().x * 0.5f),
-                        Random::Float(Viewport::GetPosition().y,
-                                      Viewport::GetPosition().y + Viewport::GetSize().y + 0.5f)};
-        Vect2f startVel{Random::Float(-90, 90), Random::Float(-90, 90)};
+        Vect2f startPos{Random::Float(0, Viewport::GetSize().x),
+                        Random::Float(0, Viewport::GetSize().y)};
+        Vect2f startVel{Random::Float(-1, 1), Random::Float(-1, 1)};
 
-        float speed  = Random::Float(1, 5);
-        float radius = Random::Float(1, 5);
+        float speed  = Random::Float(100, 250);
+        float radius = Random::Float(1, 2);
+        float bounce = Random::Float(0, 1);
 
-        m_worldPtr->CreateEntity(CTransform(startPos, {3, 3}, 45), CMovement(speed),
-                                 CRigidBody(startVel, radius, 0.1f, true),
-                                 CCollider({radius * 2, radius * 2}, {0, 0}, false),
+        m_worldPtr->CreateEntity(CTransform(startPos, {1, 1}, 0), CMovement(speed),
+                                 CRigidBody(startVel, radius, bounce, false),
+                                 CCollider({radius, radius}, {0, 0}, false),
                                  CSprite("Square", Vect2f(radius, radius),
                                          sf::IntRect({0, 0}, {256, 256}), Random::Color()));
     }

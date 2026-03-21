@@ -40,7 +40,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
   private:
 
-    const float m_cellSize = 8;
+    const float m_cellSize = 4;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
     uint16_t m_cellPerRow, m_cellPerCol;
 

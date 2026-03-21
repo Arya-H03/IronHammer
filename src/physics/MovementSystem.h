@@ -1,11 +1,9 @@
 #pragma once
-#include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
 #include "ecs/system/ISystem.h"
-#include <string>
 
 class MovementSystem : public ISetupSystem
 {

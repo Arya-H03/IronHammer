@@ -41,8 +41,6 @@ bool Engine::GetIsPlayModePaused() const
 EngineMode             Engine::GetEngineMode() const { return m_engineMode; }
 Vect2<uint16_t>        Engine::GetWindowSize() const { return m_windowSize; }
 World*                 Engine::GetCurrentWorld() const { return m_currentWorld; }
-size_t                 Engine::GetFrameLimit() const { return m_frameLimit; }
-float                  Engine::GetTargetFrameTime() const { return m_targetFrameTime; }
 sf::RenderWindow&      Engine::GetRenderWindow() { return m_window; }
 RenderSystem&          Engine::GetRenderSystem() { return m_renderSystem; }
 SceneManager&          Engine::GetSceneManager() { return m_sceneManager; }
@@ -52,7 +50,7 @@ EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTempl
 void Engine::Init()
 {
     m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer");
-    m_window.setFramerateLimit(m_frameLimit);
+    //m_window.setFramerateLimit(m_frameRateHandler.GetTargetFrameRate());
     m_window.setKeyRepeatEnabled(false);
 
     bool ok = ImGui::SFML::Init(m_window);
@@ -62,26 +60,6 @@ void Engine::Init()
 
     m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize));
     m_sceneManager.ChangeScene("Game", m_currentWorld);
-
-    // size_t count = 5;
-    // for (size_t i = 0; i < count; ++i)
-    // {
-    //     Vect2f startPos { Random::Float(100, m_windowSize.x - 100), Random::Float(100,
-    //     m_windowSize.y - 100) };
-
-    //     Vect2f startVel { Random::Float(-90, 90), Random::Float(-90, 90) };
-
-    //     float speed = Random::Float(1, 5);
-    //     float radius = Random::Float(50, 100);
-    //     int points = Random::Int(3, 20);
-
-    //     m_editorWorld->CreateEntity(CTransform(startPos, { 1, 1 }, 0),
-    //         CMovement(speed),
-    //         CRigidBody(startVel, radius, 0.1f, true),
-    //         CCollider({ radius, radius }, { 0, 0 }, false),
-    //         CSprite("Square", Vect2f(radius, radius), sf::IntRect({ 0, 0 }, { 256, 256 }),
-    //         Random::Color()));
-    // }
 }
 
 void Engine::PausePlayMode()
@@ -147,6 +125,7 @@ void Engine::LoadTempSceneData()
 
 void Engine::BeginFrame()
 {
+    m_frameRateHandler.OnFrameBegin();
     ImGui::SFML::Update(m_window, sf::seconds(m_clock.restart().asSeconds()));
     m_inputSystem.PollEvents();
 }
@@ -169,5 +148,5 @@ void Engine::RenderFrame()
 void Engine::EndFrame()
 {
     m_inputSystem.ClearEvents();
-    ++m_currentFrame;
+    m_frameRateHandler.OnFrameEnd();
 }

@@ -1,12 +1,12 @@
 #pragma once
 #include <chrono>
-#include <cstdint>
 #include <ctime>
+#include <ratio>
 #include <string>
 
 class Time
 {
-    friend class IronHammer;
+    friend class FrameRateHandler;
 
 private:
     inline static float m_deltaTime = 0;
@@ -26,12 +26,20 @@ public:
                            localTime.tm_sec);
     }
 
-    inline static long long GetCurrentTimeMS()
+    inline static long long GetCurrentTimeInMillisecond()
     {
         std::chrono::time_point<std::chrono::steady_clock> timePoint =
             std::chrono::steady_clock::now();
 
         return std::chrono::duration_cast<std::chrono::milliseconds>(timePoint.time_since_epoch())
+            .count();
+    }
+    inline static long long GetCurrentTimeInMicrosecond()
+    {
+        std::chrono::time_point<std::chrono::steady_clock> timePoint =
+            std::chrono::steady_clock::now();
+
+        return std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch())
             .count();
     }
 };
