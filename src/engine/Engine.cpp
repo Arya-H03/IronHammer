@@ -1,28 +1,28 @@
 #include "Engine.h"
 
-#include "assets/AssetManager.h"
 #include "core/utils/Debug.h"
+#include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
-#include "ecs/component/Components.hpp"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "scene/BaseScene.h"
 #include "scene/GameScene.h"
 #include "scene/SceneManager.h"
-#include "core/utils/Random.hpp"
+
+#include <cassert>
+#include <cstdint>
+#include <imgui-SFML.h>
+#include <memory>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/WindowEnums.hpp>
-#include <cstdint>
-#include <imgui-SFML.h>
-#include <cassert>
-#include <memory>
 
 Engine::Engine()
-    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld), m_inputSystem(m_window)
+    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()),
+      m_renderSystem(m_currentWorld), m_inputSystem(m_window)
 {
     Init();
 }
@@ -37,13 +37,16 @@ bool Engine::GetIsPlayModePaused() const
 
     return m_sceneManager.GetCurrentScenePtr()->GetScenePaused();
 }
-EngineMode Engine::GetEngineMode() const { return m_engineMode; }
-Vect2<uint16_t> Engine::GetWindowSize() const { return m_windowSize; }
-World* Engine::GetCurrentWorld() const { return m_currentWorld; }
-sf::RenderWindow& Engine::GetRenderWindow() { return m_window; }
-RenderSystem& Engine::GetRenderSystem() { return m_renderSystem; }
-SceneManager& Engine::GetSceneManager() { return m_sceneManager; }
-InputSystem& Engine::GetInputSystem() { return m_inputSystem; }
+
+EngineMode             Engine::GetEngineMode() const { return m_engineMode; }
+Vect2<uint16_t>        Engine::GetWindowSize() const { return m_windowSize; }
+World*                 Engine::GetCurrentWorld() const { return m_currentWorld; }
+size_t                 Engine::GetFrameLimit() const { return m_frameLimit; }
+float                  Engine::GetTargetFrameTime() const { return m_targetFrameTime; }
+sf::RenderWindow&      Engine::GetRenderWindow() { return m_window; }
+RenderSystem&          Engine::GetRenderSystem() { return m_renderSystem; }
+SceneManager&          Engine::GetSceneManager() { return m_sceneManager; }
+InputSystem&           Engine::GetInputSystem() { return m_inputSystem; }
 EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTemplateManager; }
 
 void Engine::Init()
@@ -63,7 +66,8 @@ void Engine::Init()
     // size_t count = 5;
     // for (size_t i = 0; i < count; ++i)
     // {
-    //     Vect2f startPos { Random::Float(100, m_windowSize.x - 100), Random::Float(100, m_windowSize.y - 100) };
+    //     Vect2f startPos { Random::Float(100, m_windowSize.x - 100), Random::Float(100,
+    //     m_windowSize.y - 100) };
 
     //     Vect2f startVel { Random::Float(-90, 90), Random::Float(-90, 90) };
 
@@ -75,7 +79,8 @@ void Engine::Init()
     //         CMovement(speed),
     //         CRigidBody(startVel, radius, 0.1f, true),
     //         CCollider({ radius, radius }, { 0, 0 }, false),
-    //         CSprite("Square", Vect2f(radius, radius), sf::IntRect({ 0, 0 }, { 256, 256 }), Random::Color()));
+    //         CSprite("Square", Vect2f(radius, radius), sf::IntRect({ 0, 0 }, { 256, 256 }),
+    //         Random::Color()));
     // }
 }
 
@@ -135,16 +140,15 @@ void Engine::LoadEditorSceneData()
     m_sceneManager.LoadScene(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 
-void Engine::LoadTempSceneData() { m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json"); }
-
-float Engine::BeginFrame()
+void Engine::LoadTempSceneData()
 {
-    float dt = m_clock.restart().asSeconds();
+    m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json");
+}
 
-    ImGui::SFML::Update(m_window, sf::seconds(dt));
+void Engine::BeginFrame()
+{
+    ImGui::SFML::Update(m_window, sf::seconds(m_clock.restart().asSeconds()));
     m_inputSystem.PollEvents();
-
-    return dt;
 }
 
 void Engine::UpdateRuntime()
@@ -152,7 +156,7 @@ void Engine::UpdateRuntime()
     m_currentWorld->UpdateWorld();
 
     if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
-        m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame,m_currentWorld, m_inputSystem);
+        m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame, m_currentWorld, m_inputSystem);
 }
 
 void Engine::RenderFrame()
