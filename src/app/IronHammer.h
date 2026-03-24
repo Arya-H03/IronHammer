@@ -2,6 +2,7 @@
 
 #include "editor/Editor.h"
 #include "engine/Engine.h"
+#include "Tracy.hpp"
 
 
 class IronHammer
@@ -15,15 +16,18 @@ public:
 
     void Run()
     {
-
         while (m_engine.GetRenderWindow().isOpen())
         {
+            ZoneScoped;
+
             m_engine.BeginFrame();
             m_engine.UpdateRuntime();
             m_editor.Update();
             m_engine.RenderFrame();
             Debug::FlushLogs();
             m_engine.EndFrame();
+
+            FrameMark;
         }
 
         Debug::ShutdownLoggerThread();

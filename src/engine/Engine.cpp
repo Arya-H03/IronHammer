@@ -49,7 +49,7 @@ EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTempl
 
 void Engine::Init()
 {
-    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer");
+    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer",sf::Style::None);
     //m_window.setFramerateLimit(m_frameRateHandler.GetTargetFrameRate());
     m_window.setKeyRepeatEnabled(false);
 

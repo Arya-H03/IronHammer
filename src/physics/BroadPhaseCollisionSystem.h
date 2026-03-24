@@ -1,33 +1,31 @@
 #pragma once
-#include <SFML/Graphics/Color.hpp>
-#include <cmath>
-#include <cstdint>
-#include <unordered_set>
-#include <vector>
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/system/ISystem.h"
+#include "ecs/World.hpp"
 
-struct Cell
-{
-    Vect2<int> coord;
-    Vect2f pos;
+#include <cmath>
+#include <cstdint>
+#include <SFML/Graphics/Color.hpp>
+#include <unordered_set>
+#include <vector>
+
+struct Cell {
+    Vect2<int>          coord;
+    Vect2f              pos;
     std::vector<Entity> overlapingEntities;
 
     Cell() = default;
-    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) { }
+    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) {}
 };
 
-struct PotentialCollisionPair
-{
+struct PotentialCollisionPair {
     Entity e1, e2;
 
     bool operator==(const PotentialCollisionPair& otherPair) const { return e1 == otherPair.e1 && e2 == otherPair.e2; }
 };
 
-struct PotentialPairHash
-{
+struct PotentialPairHash {
     size_t operator()(const PotentialCollisionPair& pair) const
     {
         return std::hash<uint32_t>()(pair.e1.id) ^ (std::hash<uint32_t>()(pair.e2.id) << 1);
@@ -38,23 +36,23 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 {
     friend class CollisionDebugger;
 
-  private:
-
-    const float m_cellSize = 4;
+private:
+    const float m_cellSize   = 32;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
+
     uint16_t m_cellPerRow, m_cellPerCol;
 
-    Vect2<uint16_t> m_windowSize;
-    std::vector<Cell> m_grid;
+    Vect2<uint16_t>     m_windowSize;
+    std::vector<Cell>   m_grid;
     std::vector<Entity> m_gridDisplayEntities;
 
     std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
-    std::vector<PotentialCollisionPair> m_uniquePotentialPairsVector;
+    std::vector<PotentialCollisionPair>                           m_uniquePotentialPairsVector;
 
     Query* m_broadPhaseQuery;
 
     // Flags
-    bool m_canDisplayGrid = false;
+    bool m_canDisplayGrid   = false;
     bool m_canHighlightGrid = false;
 
     void PopulateGrid(World* worldPtr);
@@ -62,8 +60,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     void FillCellsWithOverlappingEntities(World* worldPtr);
     void FindUniqueCollisionPairs();
 
-  public:
-
+public:
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 

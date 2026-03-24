@@ -68,6 +68,10 @@
     {
       "name": "sanitize",
       "configurePreset": "sanitize"
+    },
+    {
+      "name": "debug-prof",
+      "configurePreset": "debug-prof"
     }
   ]
 }

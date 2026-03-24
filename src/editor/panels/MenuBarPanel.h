@@ -101,7 +101,7 @@ public:
         const float buttonSize = 15.0f;
         const float spacing    = ImGui::GetStyle().ItemSpacing.x;
 
-        if (std::abs((int)FrameRateHandler::GetCurrentFrameRate() - (int)lastFrameFPS) > 1)
+        if (std::abs((int)FrameRateHandler::GetCurrentFrameRate() - (int)lastFrameFPS) > 4)
         {
             lastFrameFPS = FrameRateHandler::GetCurrentFrameRate();
         }

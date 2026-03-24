@@ -12,7 +12,7 @@
   },
   "Enemy": {},
   "Movement": {
-    "speed": 2.0
+    "speed": 200.0
   },
   "RigidBody": {
     "bounciness": 0.10000000149011612,
