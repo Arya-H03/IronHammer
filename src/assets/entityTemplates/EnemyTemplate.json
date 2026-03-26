@@ -1,6 +1,8 @@
 {
   "Collider": {
     "isTrigger": false,
+    "layer": 4,
+    "mask": 4294967290,
     "offset": {
       "x": 0.0,
       "y": 0.0
@@ -25,9 +27,9 @@
   },
   "Sprite": {
     "color": [
-      55,
-      90,
-      161,
+      255,
+      255,
+      255,
       255
     ],
     "size": [

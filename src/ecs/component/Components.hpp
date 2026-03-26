@@ -1,46 +1,59 @@
 #pragma once
+#include "assets/AssetManager.h"
+#include "core/utils/Vect2.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/entity/EntityInspectorHelper.h"
+#include "imgui.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <nlohmann/json.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
-#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <string>
-#include <nlohmann/json.hpp>
-#include "assets/AssetManager.h"
-#include "ecs/entity/EntityInspectorHelper.h"
-#include "core/utils/Vect2.hpp"
-#include "imgui.h"
-#include "ecs/component/ComponentRegistry.hpp"
 
 using namespace EntityInspectorHelpers;
 using Json = nlohmann::json;
 
+enum class Layer : uint32_t {
+
+    Default = 1 << 0,
+    Tower   = 1 << 1,
+    Enemy   = 1 << 2,
+    Bullet  = 1 << 3
+};
+
+static constexpr Layer       layerValues[] = {Layer::Default, Layer::Tower, Layer::Enemy, Layer::Bullet};
+static constexpr const char* layerNames[]  = {"Default", "Tower", "Enemy", "Bullet"};
+static constexpr size_t      layerCount    = sizeof(layerValues) / sizeof(layerValues[0]);
+
 struct CTransform
 {
-    Vect2f position = Vect2f(0, 0);
-    Vect2f scale = Vect2f(1, 1);
-    float rotation = 0.f;
-    static constexpr const char* name = "Transform";
+    Vect2f                       position = Vect2f(0, 0);
+    Vect2f                       scale    = Vect2f(1, 1);
+    float                        rotation = 0.f;
+    static constexpr const char* name     = "Transform";
 
     CTransform() = default;
-    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) { }
+    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) {}
     REGISTER_COMPONENT(CTransform);
 
     void Reset()
     {
         position = Vect2f(0, 0);
-        scale = Vect2f(1, 1);
+        scale    = Vect2f(1, 1);
         rotation = 0.f;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CTransform>("Transform", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CTransform>("Transform", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CTransformTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Position");
                 EntityInspectorHelpers::DragFloat2("##PosX", &position.x, "##PosY", &position.y, 0.1f, isDirty);
                 TableNextField("Scale");
@@ -55,37 +68,35 @@ struct CTransform
 
 inline void to_json(Json& json, const CTransform& c)
 {
-    json = { { "position", { { "x", c.position.x }, { "y", c.position.y } } },
-        { "scale", { { "x", c.scale.x }, { "y", c.scale.y } } },
-        { "rotation", c.rotation } };
+    json = {{"position", {{"x", c.position.x}, {"y", c.position.y}}},
+            {"scale", {{"x", c.scale.x}, {"y", c.scale.y}}},
+            {"rotation", c.rotation}};
 }
 
 inline void from_json(const Json& json, CTransform& c)
 {
     c.position.x = json["position"].value("x", 0.f);
     c.position.y = json["position"].value("y", 0.f);
-    c.scale.x = json["scale"].value("x", 1.f);
-    c.scale.y = json["scale"].value("y", 1.f);
-    c.rotation = json["rotation"];
+    c.scale.x    = json["scale"].value("x", 1.f);
+    c.scale.y    = json["scale"].value("y", 1.f);
+    c.rotation   = json["rotation"];
 }
 
 struct CMovement
 {
-    float speed = 0.f;
-    static constexpr const char* name = "Movement";
+    float                        speed = 0.f;
+    static constexpr const char* name  = "Movement";
 
     CMovement() = default;
-    CMovement(float spd) : speed(spd) { }
+    CMovement(float spd) : speed(spd) {}
     REGISTER_COMPONENT(CMovement);
 
     void Reset() { speed = 0.f; }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CMovement>("Movement", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CMovement>("Movement", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CMovementTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Speed");
                 EntityInspectorHelpers::DragFloatWithLimits("##MoveSpeed", &speed, 0.1f, 0.f, 10000.f, isDirty);
                 ImGui::EndTable();
@@ -94,16 +105,16 @@ struct CMovement
     }
 };
 
-inline void to_json(Json& j, const CMovement& c) { j = { { "speed", c.speed } }; }
+inline void to_json(Json& j, const CMovement& c) { j = {{"speed", c.speed}}; }
 inline void from_json(const Json& j, CMovement& c) { c.speed = j.value("speed", 0.f); }
 
 struct CSprite
 {
-    const sf::Texture* texture = nullptr;
-    std::string textureName = "";
-    Vect2f size = Vect2f(32, 32);
-    sf::IntRect textureRect = sf::IntRect({ 0, 0 }, { 32, 32 });
-    sf::Color color = sf::Color::White;
+    const sf::Texture* texture     = nullptr;
+    std::string        textureName = "";
+    Vect2f             size        = Vect2f(32, 32);
+    sf::IntRect        textureRect = sf::IntRect({0, 0}, {32, 32});
+    sf::Color          color       = sf::Color::White;
 
     static constexpr const char* name = "Sprite";
 
@@ -119,18 +130,16 @@ struct CSprite
     void Reset()
     {
         textureName = "";
-        texture = nullptr;
-        size = Vect2f(32, 32);
-        textureRect = sf::IntRect({ 0, 0 }, { 32, 32 });
-        color = sf::Color::White;
+        texture     = nullptr;
+        size        = Vect2f(32, 32);
+        textureRect = sf::IntRect({0, 0}, {32, 32});
+        color       = sf::Color::White;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CSprite>("Sprite", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CSprite>("Sprite", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Texture");
                 EntityInspectorHelpers::InputText("##TextureName", textureName, isDirty);
                 TableNextField("Size");
@@ -145,36 +154,35 @@ struct CSprite
 
 inline void to_json(Json& j, const CSprite& c)
 {
-    j = Json::object();
+    j                = Json::object();
     j["textureName"] = c.textureName;
-    j["size"] = { c.size.x, c.size.y };
-    j["textureRect"] = {
-        c.textureRect.position.x, c.textureRect.position.y, c.textureRect.size.x, c.textureRect.size.y
-    };
-    j["color"] = { c.color.r, c.color.g, c.color.b, c.color.a };
+    j["size"]        = {c.size.x, c.size.y};
+    j["textureRect"] = {c.textureRect.position.x, c.textureRect.position.y, c.textureRect.size.x, c.textureRect.size.y};
+    j["color"]       = {c.color.r, c.color.g, c.color.b, c.color.a};
 }
 
 inline void from_json(const Json& j, CSprite& c)
 {
     c.textureName = j.value("textureName", "");
-    c.texture = c.textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(c.textureName);
-    auto sizeArr = j.value("size", std::vector<float> { 32.f, 32.f });
-    c.size = Vect2f(sizeArr[0], sizeArr[1]);
+    c.texture     = c.textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(c.textureName);
+    auto sizeArr  = j.value("size", std::vector<float>{32.f, 32.f});
+    c.size        = Vect2f(sizeArr[0], sizeArr[1]);
 
-    auto texRect = j.value("textureRect", std::vector<int> { 0, 0, 32, 32 });
-    c.textureRect = sf::IntRect({ texRect[0], texRect[1] }, { texRect[2], texRect[3] });
+    auto texRect  = j.value("textureRect", std::vector<int>{0, 0, 32, 32});
+    c.textureRect = sf::IntRect({texRect[0], texRect[1]}, {texRect[2], texRect[3]});
 
-    auto col = j.value("color", std::vector<uint8_t> { 255, 255, 255, 255 });
-    c.color = sf::Color(col[0], col[1], col[2], col[3]);
+    auto col = j.value("color", std::vector<uint8_t>{255, 255, 255, 255});
+    c.color  = sf::Color(col[0], col[1], col[2], col[3]);
 }
 
 struct CShape
 {
-    size_t points = 3;
-    sf::Color fillColor = sf::Color::White;    // sf::Color() == Black, mismatched Reset()
-    sf::Color outlineColor = sf::Color::White; // same
-    float radius = 10.f;
-    float outlineThickness = 1.f;
+    size_t    points           = 3;
+    sf::Color fillColor        = sf::Color::White; // sf::Color() == Black, mismatched Reset()
+    sf::Color outlineColor     = sf::Color::White; // same
+    float     radius           = 10.f;
+    float     outlineThickness = 1.f;
+
     static constexpr const char* name = "Shape";
 
     CShape() = default;
@@ -186,26 +194,24 @@ struct CShape
 
     void Reset()
     {
-        points = 3;
-        radius = 10.f;
+        points           = 3;
+        radius           = 10.f;
         outlineThickness = 1.f;
-        fillColor = sf::Color::White;
-        outlineColor = sf::Color::White;
+        fillColor        = sf::Color::White;
+        outlineColor     = sf::Color::White;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CShape>("Shape", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CShape>("Shape", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Points");
                 EntityInspectorHelpers::DragScalar("##Points", &points, isDirty);
                 TableNextField("Radius");
                 EntityInspectorHelpers::DragFloatWithLimits("##ShapeRadius", &radius, 0.1f, 0.f, 100.f, isDirty);
                 TableNextField("Outline Thickness");
-                EntityInspectorHelpers::DragFloatWithLimits(
-                    "##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f, isDirty);
+                EntityInspectorHelpers::DragFloatWithLimits("##ShapeThickness", &outlineThickness, 0.1f, 0.f, 100.f,
+                                                            isDirty);
                 TableNextField("Fill Color");
                 EntityInspectorHelpers::ColorEdit4("##ShapeFill", fillColor, isDirty);
                 TableNextField("Outline Color");
@@ -218,63 +224,111 @@ struct CShape
 
 inline void to_json(Json& j, const CShape& c)
 {
-    j = { { "points", c.points },
-        { "radius", c.radius },
-        { "outlineThickness", c.outlineThickness },
-        { "fillColor", { c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a } },
-        { "outlineColor", { c.outlineColor.r, c.outlineColor.g, c.outlineColor.b, c.outlineColor.a } } };
+    j = {{"points", c.points},
+         {"radius", c.radius},
+         {"outlineThickness", c.outlineThickness},
+         {"fillColor", {c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a}},
+         {"outlineColor", {c.outlineColor.r, c.outlineColor.g, c.outlineColor.b, c.outlineColor.a}}};
 }
 
 inline void from_json(const Json& j, CShape& c)
 {
-    c.points = j.value("points", 3);
-    c.radius = j.value("radius", 10.f);
+    c.points           = j.value("points", 3);
+    c.radius           = j.value("radius", 10.f);
     c.outlineThickness = j.value("outlineThickness", 1.f);
 
-    auto fill = j.value("fillColor", std::vector<uint8_t> { 255, 255, 255, 255 });
+    auto fill   = j.value("fillColor", std::vector<uint8_t>{255, 255, 255, 255});
     c.fillColor = sf::Color(fill[0], fill[1], fill[2], fill[3]);
 
-    auto outline = j.value("outlineColor", std::vector<uint8_t> { 255, 255, 255, 255 });
+    auto outline   = j.value("outlineColor", std::vector<uint8_t>{255, 255, 255, 255});
     c.outlineColor = sf::Color(outline[0], outline[1], outline[2], outline[3]);
 }
 
 struct CCollider
 {
-    Vect2f size = Vect2f(32, 32);
+    Vect2f size     = Vect2f(32, 32);
     Vect2f halfSize = Vect2f(16, 16);
-    Vect2f offset = Vect2f(0, 0);
+    Vect2f offset   = Vect2f(0, 0);
+
+    Layer    layer = Layer::Default;
+    uint32_t mask  = ~0u;
+
     bool isTrigger = false;
+
     static constexpr const char* name = "Collider";
 
     CCollider() = default;
-    CCollider(const Vect2f& sz, const Vect2f& off, bool trigger = false)
-        : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), isTrigger(trigger)
+    CCollider(const Vect2f& sz, const Vect2f& off, Layer layer = Layer::Default, uint32_t mask = ~0u, bool trigger = false)
+        : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), layer(layer), mask(mask), isTrigger(trigger)
     {
     }
     REGISTER_COMPONENT(CCollider);
 
     void Reset()
     {
-        size = Vect2f(32, 32);
-        halfSize = Vect2f(16, 16);
-        offset = Vect2f(0, 0);
+        size      = Vect2f(32, 32);
+        halfSize  = Vect2f(16, 16);
+        offset    = Vect2f(0, 0);
+        layer     = Layer::Default;
+        mask      = ~0u;
         isTrigger = false;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CCollider>("Collider", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CCollider>("Collider", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Size");
-                EntityInspectorHelpers::DragFloat2(
-                    "##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1f, isDirty);
-                halfSize = { size.x * 0.5f, size.y * 0.5f };
+                EntityInspectorHelpers::DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1f, isDirty);
+                halfSize = {size.x * 0.5f, size.y * 0.5f};
 
                 TableNextField("Offset");
-                EntityInspectorHelpers::DragFloat2(
-                    "##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y, 0.1f, isDirty);
+                EntityInspectorHelpers::DragFloat2("##ColliderOffsetX", &offset.x, "##ColliderOffsetY", &offset.y, 0.1f,
+                                                   isDirty);
+                TableNextField("Layer");
+
+                const char* currentLayerName = "Unknown";
+                for (size_t i = 0; i < layerCount; i++) {
+                    if (layerValues[i] == layer) {
+                        currentLayerName = layerNames[i];
+                        break;
+                    }
+                }
+
+                EntityInspectorHelpers::ComboBoxSingleSelect(
+                    "##LayerComboBox", currentLayerName, layerNames, layerCount,
+                    [this](size_t selectedIndex) { layer = layerValues[selectedIndex]; }, isDirty);
+
+                TableNextField("Mask");
+
+                size_t      selectedCount      = 0;
+                const char* selectedOptionName = "None";
+                bool        selectedOptions[layerCount];
+                for (size_t i = 0; i < layerCount; i++) {
+                    if ((mask & static_cast<uint32_t>(layerValues[i])) != 0) {
+                        selectedOptions[i] = true;
+                        selectedCount++;
+                        selectedOptionName = layerNames[i];
+                    }
+                    else {
+                        selectedOptions[i] = false;
+                    }
+                }
+
+                if (selectedCount >= 2) selectedOptionName = "Multiple";
+
+                EntityInspectorHelpers::ComboBoxMultipleSelect(
+                    "##MasKComboBox", selectedOptionName, layerNames, layerCount, selectedOptions,
+                    [this](size_t selectedIndex) {
+                        if ((mask & static_cast<uint32_t>(layerValues[selectedIndex])) == 0) {
+                            mask |= static_cast<uint32_t>(layerValues[selectedIndex]);
+                        }
+                        else {
+                            mask &= ~static_cast<uint32_t>(layerValues[selectedIndex]);
+                        }
+                    },
+                    isDirty);
+
                 TableNextField("Is Trigger");
                 EntityInspectorHelpers::Checkbox("##ColliderTrigger", &isTrigger, isDirty);
                 ImGui::EndTable();
@@ -285,42 +339,45 @@ struct CCollider
 
 inline void to_json(Json& j, const CCollider& c)
 {
-    j = { { "size", { { "x", c.size.x }, { "y", c.size.y } } },
-        { "offset", { { "x", c.offset.x }, { "y", c.offset.y } } },
-        { "isTrigger", c.isTrigger } };
+    j = {{"size", {{"x", c.size.x}, {"y", c.size.y}}},
+         {"offset", {{"x", c.offset.x}, {"y", c.offset.y}}},
+         {"layer", static_cast<uint32_t>(c.layer)},
+         {"mask", c.mask},
+         {"isTrigger", c.isTrigger}};
 }
 
 inline void from_json(const Json& j, CCollider& c)
 {
-    c.size.x = j["size"].value("x", 1.f);
-    c.size.y = j["size"].value("y", 1.f);
-    c.offset.x = j["offset"].value("x", 0.f);
-    c.offset.y = j["offset"].value("y", 0.f);
+    c.size.x    = j["size"].value("x", 1.f);
+    c.size.y    = j["size"].value("y", 1.f);
+    c.offset.x  = j["offset"].value("x", 0.f);
+    c.offset.y  = j["offset"].value("y", 0.f);
+    c.layer     = static_cast<Layer>(j.value("layer", static_cast<uint32_t>(Layer::Default)));
+    c.mask      = j.value("mask", ~0u);
     c.isTrigger = j.value("isTrigger", false);
-    c.halfSize = { c.size.x * 0.5f, c.size.y * 0.5f };
+    c.halfSize  = {c.size.x * 0.5f, c.size.y * 0.5f};
 }
 
 struct CRigidBody
 {
-    Vect2f velocity = Vect2f(0, 0);
+    Vect2f velocity         = Vect2f(0, 0);
     Vect2f previousPosition = Vect2f(0, 0);
-    float mass = 1.f;
-    float inverseMass = 1.f;
-    float bounciness = 0.5f;
-    bool isStatic = false;
+    float  mass             = 1.f;
+    float  inverseMass      = 1.f;
+    float  bounciness       = 0.5f;
+    bool   isStatic         = false;
+
     static constexpr const char* name = "RigidBody";
 
     CRigidBody() = default;
     CRigidBody(const Vect2f& vel, float m, float bounce, bool stat)
         : velocity(vel), mass(m), bounciness(bounce), isStatic(stat)
     {
-        if (isStatic)
-        {
-            mass = 0;
+        if (isStatic) {
+            mass        = 0;
             inverseMass = 0;
         }
-        else
-        {
+        else {
             inverseMass = 1.0f / mass;
         }
     }
@@ -328,25 +385,23 @@ struct CRigidBody
 
     void Reset()
     {
-        velocity = Vect2f(0, 0);
+        velocity         = Vect2f(0, 0);
         previousPosition = Vect2f(0, 0);
-        mass = 1.f;
-        inverseMass = 1.f;
-        bounciness = 0.5f;
-        isStatic = false;
+        mass             = 1.f;
+        inverseMass      = 1.f;
+        bounciness       = 0.5f;
+        isStatic         = false;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CRigidBody>("RigidBody", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CRigidBody>("RigidBody", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Velocity");
                 EntityInspectorHelpers::DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y, 0.1f, isDirty);
                 TableNextField("Previous Position");
-                EntityInspectorHelpers::DragFloat2(
-                    "##PreviousPosX", &previousPosition.x, "##PreviousPosY", &previousPosition.y, 0.1f, isDirty);
+                EntityInspectorHelpers::DragFloat2("##PreviousPosX", &previousPosition.x, "##PreviousPosY",
+                                                   &previousPosition.y, 0.1f, isDirty);
                 TableNextField("Mass");
                 EntityInspectorHelpers::DragFloatWithLimits("##RBMass", &mass, 0.1f, 0.f, 10000.f, isDirty);
                 TableNextField("Bounciness");
@@ -361,38 +416,36 @@ struct CRigidBody
 
 inline void to_json(Json& j, const CRigidBody& c)
 {
-    j = { { "velocity", { { "x", c.velocity.x }, { "y", c.velocity.y } } },
-        { "mass", c.mass },
-        { "bounciness", c.bounciness },
-        { "isStatic", c.isStatic } };
+    j = {{"velocity", {{"x", c.velocity.x}, {"y", c.velocity.y}}},
+         {"mass", c.mass},
+         {"bounciness", c.bounciness},
+         {"isStatic", c.isStatic}};
 }
 
 inline void from_json(const Json& j, CRigidBody& c)
 {
     c.velocity.x = j["velocity"].value("x", 0.f);
     c.velocity.y = j["velocity"].value("y", 0.f);
-    c.mass = j.value("mass", 1.f);
+    c.mass       = j.value("mass", 1.f);
     c.bounciness = j.value("bounciness", 0.5f);
-    c.isStatic = j.value("isStatic", false);
+    c.isStatic   = j.value("isStatic", false);
 
-    if (c.isStatic)
-    {
-        c.mass = 0;
+    if (c.isStatic) {
+        c.mass        = 0;
         c.inverseMass = 0.f;
     }
-    else
-    {
+    else {
         c.inverseMass = 1.f / c.mass;
     }
 }
 
 struct CText
 {
-    std::string content = "";
-    sf::Color textColor = sf::Color::White;
-    Vect2f offset = Vect2f(0, 0);
-    float fontSize = 12.f;
-    static constexpr const char* name = "Text";
+    std::string                  content   = "";
+    sf::Color                    textColor = sf::Color::White;
+    Vect2f                       offset    = Vect2f(0, 0);
+    float                        fontSize  = 12.f;
+    static constexpr const char* name      = "Text";
 
     CText() = default;
     CText(const std::string& txt, const sf::Color& color, const Vect2f& off, float size)
@@ -403,25 +456,22 @@ struct CText
 
     void Reset()
     {
-        content = "";
+        content   = "";
         textColor = sf::Color::White;
-        offset = Vect2f(0, 0);
-        fontSize = 12.f;
+        offset    = Vect2f(0, 0);
+        fontSize  = 12.f;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CText>("Text", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty))
-        {
-            if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit))
-            {
+        if (ComponentHeader<CText>("Text", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+            if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Content");
                 EntityInspectorHelpers::InputText("##TextContent", content, isDirty);
                 TableNextField("Font Size");
                 EntityInspectorHelpers::DragFloatWithLimits("##TextSize", &fontSize, 1.f, 1.f, 200.f, isDirty);
                 TableNextField("Offset");
-                EntityInspectorHelpers::DragFloat2(
-                    "##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y, 0.1f, isDirty);
+                EntityInspectorHelpers::DragFloat2("##TextOffsetX", &offset.x, "##TextOffsetY", &offset.y, 0.1f, isDirty);
                 TableNextField("Text Color");
                 EntityInspectorHelpers::ColorEdit4("##TextColor", textColor, isDirty);
                 ImGui::EndTable();
@@ -432,20 +482,20 @@ struct CText
 
 inline void to_json(Json& j, const CText& c)
 {
-    j = { { "content", c.content },
-        { "fontSize", c.fontSize },
-        { "offset", { { "x", c.offset.x }, { "y", c.offset.y } } },
-        { "textColor", { c.textColor.r, c.textColor.g, c.textColor.b, c.textColor.a } } };
+    j = {{"content", c.content},
+         {"fontSize", c.fontSize},
+         {"offset", {{"x", c.offset.x}, {"y", c.offset.y}}},
+         {"textColor", {c.textColor.r, c.textColor.g, c.textColor.b, c.textColor.a}}};
 }
 
 inline void from_json(const Json& j, CText& c)
 {
-    c.content = j.value("content", std::string { "" });
+    c.content  = j.value("content", std::string{""});
     c.fontSize = j.value("fontSize", 12.f);
     c.offset.x = j["offset"].value("x", 0.f);
     c.offset.y = j["offset"].value("y", 0.f);
 
-    auto col = j.value("textColor", std::vector<uint8_t> { 255, 255, 255, 255 });
+    auto col    = j.value("textColor", std::vector<uint8_t>{255, 255, 255, 255});
     c.textColor = sf::Color(col[0], col[1], col[2], col[3]);
 }
 
@@ -456,7 +506,7 @@ struct CNotDrawable
     CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
 
-    void Reset(){};
+    void Reset() {};
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
@@ -465,7 +515,7 @@ struct CNotDrawable
 };
 
 inline void to_json(Json& j, const CNotDrawable&) { j = Json::object(); }
-inline void from_json(const Json&, CNotDrawable&) { }
+inline void from_json(const Json&, CNotDrawable&) {}
 
 struct CTower
 {
@@ -474,7 +524,7 @@ struct CTower
     CTower() = default;
     REGISTER_COMPONENT(CTower);
 
-    void Reset(){};
+    void Reset() {};
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
@@ -483,7 +533,7 @@ struct CTower
 };
 
 inline void to_json(Json& j, const CTower&) { j = Json::object(); }
-inline void from_json(const Json&, CTower&) { }
+inline void from_json(const Json&, CTower&) {}
 
 struct CEnemy
 {
@@ -492,7 +542,7 @@ struct CEnemy
     CEnemy() = default;
     REGISTER_COMPONENT(CEnemy);
 
-    void Reset(){};
+    void Reset() {};
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
@@ -501,4 +551,4 @@ struct CEnemy
 };
 
 inline void to_json(Json& j, const CEnemy&) { j = Json::object(); }
-inline void from_json(const Json&, CEnemy&) { }
+inline void from_json(const Json&, CEnemy&) {}

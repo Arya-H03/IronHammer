@@ -3,13 +3,15 @@
     {
       "Collider": {
         "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967286,
         "offset": {
           "x": 0.0,
           "y": 0.0
         },
         "size": {
-          "x": 200.0,
-          "y": 200.0
+          "x": 50.0,
+          "y": 50.0
         }
       },
       "Movement": {
@@ -26,14 +28,14 @@
       },
       "Sprite": {
         "color": [
-          0,
           255,
-          236,
+          181,
+          16,
           255
         ],
         "size": [
-          100.0,
-          100.0
+          50.0,
+          50.0
         ],
         "textureName": "Square",
         "textureRect": [
@@ -43,67 +45,10 @@
           256
         ]
       },
-      "Tower": {},
       "Transform": {
         "position": {
-          "x": 231.0,
-          "y": 569.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 2.0,
-          "y": 2.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 100.0,
-          "y": 100.0
-        }
-      },
-      "Movement": {
-        "speed": 20.0
-      },
-      "RigidBody": {
-        "bounciness": 1.0,
-        "isStatic": false,
-        "mass": 1000.0,
-        "velocity": {
-          "x": 6.5,
-          "y": 12.5
-        }
-      },
-      "Sprite": {
-        "color": [
-          255,
-          162,
-          0,
-          255
-        ],
-        "size": [
-          100.0,
-          100.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Tower": {},
-      "Transform": {
-        "position": {
-          "x": 191.0,
-          "y": 126.0
+          "x": 318.0,
+          "y": 263.0
         },
         "rotation": 0.0,
         "scale": {
@@ -115,6 +60,355 @@
     {
       "Collider": {
         "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967286,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 50.0,
+          "y": 50.0
+        }
+      },
+      "Movement": {
+        "speed": 0.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          181,
+          16,
+          255
+        ],
+        "size": [
+          50.0,
+          50.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Tower": {},
+      "Transform": {
+        "position": {
+          "x": 254.0,
+          "y": 493.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967286,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 50.0,
+          "y": 50.0
+        }
+      },
+      "Movement": {
+        "speed": 0.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          181,
+          16,
+          255
+        ],
+        "size": [
+          50.0,
+          50.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 715.0,
+          "y": 336.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 4,
+        "mask": 4294967290,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 32.0,
+          "y": 32.0
+        }
+      },
+      "Enemy": {},
+      "Movement": {
+        "speed": 200.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": false,
+        "mass": 10.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "size": [
+          32.0,
+          32.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 330.0,
+          "y": 563.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 4,
+        "mask": 4294967290,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 32.0,
+          "y": 32.0
+        }
+      },
+      "Enemy": {},
+      "Movement": {
+        "speed": 200.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": false,
+        "mass": 10.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "size": [
+          32.0,
+          32.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 542.0,
+          "y": 458.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 4,
+        "mask": 4294967290,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 32.0,
+          "y": 32.0
+        }
+      },
+      "Enemy": {},
+      "Movement": {
+        "speed": 200.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": false,
+        "mass": 10.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "size": [
+          32.0,
+          32.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 144.0,
+          "y": 245.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 4,
+        "mask": 4294967290,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 32.0,
+          "y": 32.0
+        }
+      },
+      "Enemy": {},
+      "Movement": {
+        "speed": 200.0
+      },
+      "RigidBody": {
+        "bounciness": 0.10000000149011612,
+        "isStatic": false,
+        "mass": 10.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "size": [
+          32.0,
+          32.0
+        ],
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          256,
+          256
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 499.0,
+          "y": 285.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967295,
         "offset": {
           "x": 0.0,
           "y": 0.0
@@ -158,512 +452,8 @@
       "Tower": {},
       "Transform": {
         "position": {
-          "x": 697.0,
-          "y": 608.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 768.0,
-          "y": 96.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 528.0,
-          "y": 96.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 864.0,
-          "y": 384.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 670.0,
-          "y": 343.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 480.0,
-          "y": 240.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 624.0,
-          "y": 192.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 960.0,
-          "y": 336.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 672.0,
-          "y": 240.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 32.0,
-          "y": 32.0
-        }
-      },
-      "Enemy": {},
-      "Movement": {
-        "speed": 200.0
-      },
-      "RigidBody": {
-        "bounciness": 0.10000000149011612,
-        "isStatic": false,
-        "mass": 10.0,
-        "velocity": {
-          "x": 10.0,
-          "y": 10.0
-        }
-      },
-      "Sprite": {
-        "color": [
-          55,
-          90,
-          161,
-          255
-        ],
-        "size": [
-          32.0,
-          32.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Transform": {
-        "position": {
-          "x": 816.0,
-          "y": 240.0
+          "x": 134.0,
+          "y": 624.0
         },
         "rotation": 0.0,
         "scale": {

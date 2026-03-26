@@ -78,7 +78,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
                         Vect2f vel = closestEnemyTransform->position - towerTransform.position;
                         m_worldPtr->CreateEntityNoReturn(
                             CTransform(towerTransform.position, {1, 1}, 0), CMovement(150), CRigidBody(vel, 1, 0.1f, false),
-                            CCollider({25, 25}, {0, 0}, false),
+                            CCollider({25, 25}, {0, 0},Layer::Default, ~0u, false),
                             CSprite("Square", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 
                         currentTime = 0;
@@ -104,7 +104,7 @@ void GameScene::SpawnTestEntities()
 
         m_worldPtr->CreateEntityNoReturn(
             CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody(startVel, mass, bounce, false),
-            CCollider({radius, radius}, {0, 0}, false),
+            CCollider({radius, radius}, {0, 0},Layer::Default, ~0u, false),
             CSprite("Square", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
     }
 }

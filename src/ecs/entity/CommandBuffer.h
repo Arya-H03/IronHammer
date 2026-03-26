@@ -11,6 +11,13 @@
 #include <utility>
 #include <vector>
 
+// Future Optimization:
+// Could Implement a Small Buffer Optimization for
+// Template commands that store component data via void*
+// Have a char inlineBuffer [64] allgined to alignas(std::max_align_t)
+// Ensure Move constructor then moves this buffer upon vector reallocation
+// Delete Copy constructor
+
 class CommandBuffer
 {
 private:
