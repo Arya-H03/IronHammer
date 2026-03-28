@@ -18,8 +18,8 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider>>();
     PopulateGrid(worldPtr);
 
-    SetCanDisplayGrid(worldPtr, true);
-    SetCanHighlightGrid(worldPtr, true);
+    // SetCanDisplayGrid(worldPtr, true);
+    // SetCanHighlightGrid(worldPtr, true);
 }
 
 void BroadPhaseCollisionSystem::PopulateGrid(World* worldPtr)

@@ -6,27 +6,26 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <thread>
 
 class FrameRateHandler
 {
 private:
-    static inline size_t m_targetFrameRate  = 0; // 0 for unlimited
+    static inline size_t m_targetFrameRate  = 120; // 0 for unlimited
     static inline size_t m_currentFrameRate = 0;
     static inline size_t m_currentFrame     = 0;
 
-    long long m_currentFrameStartTime = 0; // in milliseconds
+    long long m_currentFrameStartTime = 0; // in microsecond
 
     void WaitByThreadToSleep()
     {
         if (m_targetFrameRate == 0) return;
 
-        long long elapsedTime     = Time::GetCurrentTimeInMillisecond() - m_currentFrameStartTime;
+        long long elapsedTime     = Time::GetCurrentTimeInMicrosecond() - m_currentFrameStartTime;
         long long targetFrameTime = 1000000 / m_targetFrameRate;
-        if (elapsedTime < targetFrameTime)
-        {
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(std::max(0LL, targetFrameTime - elapsedTime)));
+        if (elapsedTime < targetFrameTime) {
+            std::this_thread::sleep_for(std::chrono::microseconds(std::max(0LL, targetFrameTime - elapsedTime)));
         }
     }
 
@@ -36,14 +35,12 @@ private:
 
         long long targetFrameTime = 1000000 / m_targetFrameRate;
         long long targetTime      = m_currentFrameStartTime + targetFrameTime;
-        while (Time::GetCurrentTimeInMillisecond() < targetTime)
-        {
-        }
+        while (Time::GetCurrentTimeInMicrosecond() < targetTime) {}
     }
 
 public:
     static size_t GetTargetFrameRate() { return m_targetFrameRate; }
-    static void SetTargetFrameRate(size_t targetFrameRate) { m_targetFrameRate = targetFrameRate; }
+    static void   SetTargetFrameRate(size_t targetFrameRate) { m_targetFrameRate = targetFrameRate; }
     static size_t GetCurrentFrameRate() { return m_currentFrameRate; }
     static size_t GetCurrentFrame() { return m_currentFrame; }
 
@@ -52,6 +49,7 @@ public:
     void OnFrameEnd()
     {
         WaitBySpinning();
+        // WaitByThreadToSleep();
 
         long long now            = Time::GetCurrentTimeInMicrosecond();
         long long totalFrameTime = now - m_currentFrameStartTime;
