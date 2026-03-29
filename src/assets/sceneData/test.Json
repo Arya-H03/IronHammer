@@ -45,6 +45,7 @@
           256
         ]
       },
+      "Tower": {},
       "Transform": {
         "position": {
           "x": 318.0,
@@ -160,6 +161,7 @@
           256
         ]
       },
+      "Tower": {},
       "Transform": {
         "position": {
           "x": 715.0,
@@ -396,64 +398,6 @@
         "position": {
           "x": 499.0,
           "y": 285.0
-        },
-        "rotation": 0.0,
-        "scale": {
-          "x": 1.0,
-          "y": 1.0
-        }
-      }
-    },
-    {
-      "Collider": {
-        "isTrigger": false,
-        "layer": 2,
-        "mask": 4294967295,
-        "offset": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "size": {
-          "x": 100.0,
-          "y": 100.0
-        }
-      },
-      "Movement": {
-        "speed": 20.0
-      },
-      "RigidBody": {
-        "bounciness": 1.0,
-        "isStatic": false,
-        "mass": 1000.0,
-        "velocity": {
-          "x": 6.5,
-          "y": 12.5
-        }
-      },
-      "Sprite": {
-        "color": [
-          0,
-          255,
-          85,
-          255
-        ],
-        "size": [
-          100.0,
-          100.0
-        ],
-        "textureName": "Square",
-        "textureRect": [
-          0,
-          0,
-          256,
-          256
-        ]
-      },
-      "Tower": {},
-      "Transform": {
-        "position": {
-          "x": 134.0,
-          "y": 624.0
         },
         "rotation": 0.0,
         "scale": {

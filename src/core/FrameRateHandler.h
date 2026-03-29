@@ -6,7 +6,6 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <thread>
 
 class FrameRateHandler

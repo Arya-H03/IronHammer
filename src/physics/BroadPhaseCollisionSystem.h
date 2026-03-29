@@ -3,33 +3,22 @@
 #include "ecs/common/ECSCommon.h"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
+#include "physics/CollisionCommon.h"
 
 #include <cmath>
 #include <cstdint>
 #include <SFML/Graphics/Color.hpp>
-#include <unordered_set>
 #include <vector>
+#include <unordered_set>
 
-struct Cell {
+struct Cell
+{
     Vect2<int>          coord;
     Vect2f              pos;
     std::vector<Entity> overlapingEntities;
 
     Cell() = default;
     Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) {}
-};
-
-struct PotentialCollisionPair {
-    Entity e1, e2;
-
-    bool operator==(const PotentialCollisionPair& otherPair) const { return e1 == otherPair.e1 && e2 == otherPair.e2; }
-};
-
-struct PotentialPairHash {
-    size_t operator()(const PotentialCollisionPair& pair) const
-    {
-        return std::hash<uint32_t>()(pair.e1.id) ^ (std::hash<uint32_t>()(pair.e2.id) << 1);
-    }
 };
 
 class BroadPhaseCollisionSystem : public ISetupSystem
@@ -46,8 +35,8 @@ private:
     std::vector<Cell>   m_grid;
     std::vector<Entity> m_gridDisplayEntities;
 
-    std::unordered_set<PotentialCollisionPair, PotentialPairHash> m_uniquePotentialPairsSet;
-    std::vector<PotentialCollisionPair>                           m_uniquePotentialPairsVector;
+    std::unordered_set<CollisionPair, CollisionPairHash> m_uniquePotentialPairsSet;
+    std::vector<CollisionPair>                           m_uniquePotentialPairsVector;
 
     Query* m_broadPhaseQuery;
 
@@ -64,7 +53,7 @@ public:
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 
-    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
+    std::vector<CollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;

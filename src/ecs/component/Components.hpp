@@ -1,6 +1,7 @@
 #pragma once
 #include "assets/AssetManager.h"
 #include "core/utils/Vect2.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityInspectorHelper.h"
 #include "imgui.h"
@@ -552,3 +553,84 @@ struct CEnemy
 
 inline void to_json(Json& j, const CEnemy&) { j = Json::object(); }
 inline void from_json(const Json&, CEnemy&) {}
+
+struct CCollisionEnter
+{
+    Entity entity1;
+    Entity entity2;
+
+    static constexpr const char* name = "CollisionEnter";
+
+    CCollisionEnter() = default;
+    CCollisionEnter(Entity a, Entity b) : entity1(a), entity2(b) {}
+
+    REGISTER_COMPONENT(CCollisionEnter);
+
+    void Reset()
+    {
+        entity1 = {};
+        entity2 = {};
+    };
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        ComponentHeader<CCollisionEnter>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+    }
+};
+
+inline void to_json(Json& j, const CCollisionEnter&) { j = Json::object(); }
+inline void from_json(const Json&, CCollisionEnter&) {}
+
+struct CCollisionExit
+{
+    Entity entity1;
+    Entity entity2;
+
+    static constexpr const char* name = "CollisionExit";
+
+    CCollisionExit() = default;
+    CCollisionExit(Entity a, Entity b) : entity1(a), entity2(b) {}
+
+    REGISTER_COMPONENT(CCollisionExit);
+
+    void Reset()
+    {
+        entity1 = {};
+        entity2 = {};
+    };
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        ComponentHeader<CCollisionExit>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+    }
+};
+
+inline void to_json(Json& j, const CCollisionExit&) { j = Json::object(); }
+inline void from_json(const Json&, CCollisionExit&) {}
+
+struct CCollisionStay
+{
+    Entity entity1;
+    Entity entity2;
+
+    static constexpr const char* name = "CollisionStay";
+
+    CCollisionStay() = default;
+    CCollisionStay(Entity a, Entity b) : entity1(a), entity2(b) {}
+
+    REGISTER_COMPONENT(CCollisionStay);
+
+    void Reset()
+    {
+        entity1 = {};
+        entity2 = {};
+    };
+
+    void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        ComponentHeader<CCollisionStay>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+    }
+};
+
+inline void to_json(Json& j, const CCollisionStay&) { j = Json::object(); }
+inline void from_json(const Json&, CCollisionStay&) {}

@@ -2,10 +2,12 @@
 
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
+#include "physics/CollisionCommon.h"
 #include "Tracy.hpp"
 
 #include <cstdint>
 #include <cstdlib>
+#include <utility>
 
 void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2)
 {
@@ -83,6 +85,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2
                             }
                         }
                         m_collisionDataVector.emplace_back(e1, e2, normal, penetration);
+                        m_currentFramePairs.emplace(CollisionPair(e1, e2));
                     }
                 }
             }
@@ -91,12 +94,12 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2
 }
 
 std::vector<CollisionData>&
-NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World*                                     worldPtr,
-                                                           const std::vector<PotentialCollisionPair>& potentialPairs)
+NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPair>& potentialPairs)
 {
     {
         // ZoneScopedN("NarrowPhaseSystem/ProccessPotentialCollisonPairs");
         m_collisionDataVector.clear();
+        m_currentFramePairs.clear();
 
         for (auto& potentialPair : potentialPairs) {
             Entity e1 = potentialPair.e1;
@@ -107,6 +110,19 @@ NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World*               
                 AABBCheck(worldPtr, e1, e2);
             }
         }
+
+        for (auto& collisionPair : m_previousFramePairs) {
+            if (m_currentFramePairs.contains(collisionPair)) {
+                worldPtr->CreateEntityNoReturn(CCollisionStay(collisionPair.e1, collisionPair.e2));
+            }
+            else worldPtr->CreateEntityNoReturn(CCollisionExit(collisionPair.e1, collisionPair.e2));
+        }
+        for (auto& collisionPair : m_currentFramePairs) {
+            if (!m_previousFramePairs.contains(collisionPair)) {
+                worldPtr->CreateEntityNoReturn(CCollisionEnter(collisionPair.e1, collisionPair.e2));
+            }
+        }
+        std::swap(m_previousFramePairs, m_currentFramePairs);
 
         return m_collisionDataVector;
     }

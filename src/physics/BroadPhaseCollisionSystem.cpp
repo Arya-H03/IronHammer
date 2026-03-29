@@ -82,11 +82,11 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
             size_t  count = m_grid[i].overlapingEntities.size();
             CShape* shape = worldPtr->TryGetComponent<CShape>(m_gridDisplayEntities[i]);
             if (!shape) continue;
-            if (count >= 2) {
-                shape->fillColor = Colors::RustRed_SFML;
-            } else if (count == 1) {
+            if (count >= 2) { shape->fillColor = Colors::RustRed_SFML; }
+            else if (count == 1) {
                 shape->fillColor = Colors::HazardYellow_SFML;
-            } else {
+            }
+            else {
                 shape->fillColor = Colors::DarkSteel_SFML;
             }
         }
@@ -102,9 +102,7 @@ void BroadPhaseCollisionSystem::FindUniqueCollisionPairs()
             for (size_t j = i + 1; j < count; ++j) {
                 Entity e1 = cell.overlapingEntities[i];
                 Entity e2 = cell.overlapingEntities[j];
-
-                if (e1.id > e2.id) std::swap(e1, e2);
-                m_uniquePotentialPairsSet.insert({e1, e2});
+                m_uniquePotentialPairsSet.insert(CollisionPair(e1, e2));
             }
         }
     }
@@ -124,7 +122,8 @@ void BroadPhaseCollisionSystem::SetCanDisplayGrid(World* worldPtr, bool val)
     if (val == true) {
         for (auto& entity : m_gridDisplayEntities) { worldPtr->RemoveFromEntity<CNotDrawable>(entity); }
         SetCanHighlightGrid(worldPtr, true);
-    } else {
+    }
+    else {
         for (auto& entity : m_gridDisplayEntities) { worldPtr->AddToEntity(entity, CNotDrawable{}); }
 
         SetCanHighlightGrid(worldPtr, false);
@@ -141,7 +140,7 @@ void BroadPhaseCollisionSystem::SetCanHighlightGrid(World* worldPtr, bool val)
     }
 }
 
-std::vector<PotentialCollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
+std::vector<CollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
 {
     ClearAllCells();
     {
