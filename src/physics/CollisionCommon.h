@@ -27,7 +27,7 @@ struct CollisionPairHash
     }
 };
 
-struct CollisionData
+struct CollisionCorrectionData
 {
     Entity e1, e2;
     Vect2f normal;

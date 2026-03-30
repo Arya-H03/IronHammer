@@ -103,18 +103,18 @@ class CollisionDebugger
     void NarrowPhaseGui() const
     {
         ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-        ImGui::Text("Total Collison Count: %zu", m_narrowPhaseCollision.m_collisionDataVector.size());
+        ImGui::Text("Total Collison Count: %zu", m_narrowPhaseCollision.m_collisionPenetrationData.size());
         ImGui::PopStyleColor();
         ImGui::Separator();
 
         ImGuiListClipper clipper;
-        clipper.Begin((int) m_narrowPhaseCollision.m_collisionDataVector.size());
+        clipper.Begin((int) m_narrowPhaseCollision.m_collisionPenetrationData.size());
 
         while (clipper.Step())
         {
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
             {
-                CollisionData pair = m_narrowPhaseCollision.m_collisionDataVector[i];
+                CollisionCorrectionData pair = m_narrowPhaseCollision.m_collisionPenetrationData[i];
                 ImGui::Text("Entity %i", pair.e1.id);
                 ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
                 ImGui::SameLine();

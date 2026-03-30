@@ -3,7 +3,7 @@
 #include "ecs/component/Components.hpp"
 #include "Tracy.hpp"
 
-void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     {
         ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
@@ -26,7 +26,7 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     {
         ZoneScopedN("CollisionResolutionSystem/ResolveCollisionImpluse");
@@ -57,7 +57,7 @@ void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::ve
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     ResolveCollisionOverlaps(worldPtr, collisionDataVector);
     ResolveCollisionImpluse(worldPtr, collisionDataVector);

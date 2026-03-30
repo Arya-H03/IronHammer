@@ -8,6 +8,7 @@
 #include "editor/Viewport.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionDebugger.h"
+#include "physics/CollisionEventSystem.h"
 #include "physics/CollisionResolutionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
 #include "Tracy.hpp"
@@ -23,15 +24,13 @@ class CollisionSystem : public ISetupSystem
 private:
     Vect2<uint16_t> m_windowSize;
 
+    CollisionEventSystem       m_collsionEventSystem;
     BroadPhaseCollisionSystem  m_broadPhaseCollisionSystem;
     NarrowPhaseCollisionSystem m_narrowPhaseCollisionSystem;
     CollisionResolutionSystem  m_collisionResolutionSystem;
     CollisionDebugger          m_collisionDebugger;
 
     Query* m_collisionQuery;
-    Query* m_enterCollisionQuery;
-    Query* m_stayCollisionQuery;
-    Query* m_exitCollisionQuery;
 
     void CheckForScreenBorderCollision()
     {
@@ -72,43 +71,20 @@ private:
         }
     }
 
-    void ClearCollisionEvents(World* worldPtr)
-    {
-        for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
-
-        for (auto& archetype : m_stayCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
-
-        for (auto& archetype : m_exitCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
-    }
-
 public:
     const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
 
     void SetupSystem(World* worldPtr) override
     {
-        m_collisionQuery      = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
-        m_enterCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
-        m_stayCollisionQuery  = worldPtr->Query<RequiredComponents<CCollisionStay>>();
-        m_exitCollisionQuery  = worldPtr->Query<RequiredComponents<CCollisionExit>>();
-
+        m_collisionQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
+        m_collsionEventSystem.SetupSystem(worldPtr);
     }
 
     CollisionSystem(Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem({1500, 1500}),
-          m_collisionDebugger(m_broadPhaseCollisionSystem, m_narrowPhaseCollisionSystem)
+          m_collisionDebugger(m_broadPhaseCollisionSystem, m_narrowPhaseCollisionSystem),
+          m_narrowPhaseCollisionSystem(m_collsionEventSystem)
     {
     }
 
@@ -116,27 +92,14 @@ public:
     {
         ZoneScoped;
 
-        ClearCollisionEvents(worldPtr);
+        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
+
         CheckForScreenBorderCollision();
 
         auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
         auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
         m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
+        m_collsionEventSystem.HandleCollisionEvents(worldPtr);
 
-        for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                CCollisionEnter* collisionEnterRow = chunk.GetComponentRow<CCollisionEnter>();
-                for (size_t i = 0; i < chunk.size; ++i) {
-                    CCollisionEnter& collisionEnter = collisionEnterRow[i];
-                    if ((worldPtr->HasComponent<CTower>(collisionEnter.entity1) &&
-                         worldPtr->HasComponent<CEnemy>(collisionEnter.entity2)) ||
-                        (worldPtr->HasComponent<CEnemy>(collisionEnter.entity1) &&
-                         worldPtr->HasComponent<CTower>(collisionEnter.entity2))) {
-                        worldPtr->DestroyEntity(collisionEnter.entity1);
-                        worldPtr->DestroyEntity(collisionEnter.entity2);
-                    }
-                }
-            }
-        }
     }
 };

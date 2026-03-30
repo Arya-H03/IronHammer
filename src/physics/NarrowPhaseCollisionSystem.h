@@ -1,29 +1,30 @@
 #pragma once
 #include "ecs/common/ECSCommon.h"
+#include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionCommon.h"
+#include "physics/CollisionEventSystem.h"
 
 #include <cstdlib>
-#include <unordered_set>
 #include <vector>
-
 
 class NarrowPhaseCollisionSystem
 {
     friend class CollisionDebugger;
 
 private:
-    std::vector<CollisionData> m_collisionDataVector;
+    CollisionEventSystem& m_collisionEventSystem;
 
-    std::unordered_set<CollisionPair, CollisionPairHash> m_previousFramePairs;
-    std::unordered_set<CollisionPair, CollisionPairHash> m_currentFramePairs;
+    std::vector<CollisionCorrectionData> m_collisionPenetrationData;
 
-    // Axis Aligned Bounding Box
+    bool CanColliderContact(CCollider* collider1, CCollider* collider2);
+    // Axis Aligned Bounding Box Check
     void AABBCheck(World* worldPtr, Entity e1, Entity e2);
 
 public:
-    NarrowPhaseCollisionSystem() = default;
-    std::vector<CollisionData>& ProccessPotentialCollisonPairs(World*                            worldPtr,
-                                                               const std::vector<CollisionPair>& potentialPairs);
+    NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem) {}
+
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World*                            worldPtr,
+                                                                         const std::vector<CollisionPair>& potentialPairs);
 };

@@ -52,7 +52,9 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 
     static float currentTime = 0;
 
-    if (currentTime >= cd) {
+    // Lemao refactor later
+    // Probably a BFS or a simple 1D loop
+    if (currentTime >= cd){
         for (auto& archetype : m_towerQuery->GetMatchingArchetypes()) {
             for (auto& chunk : archetype->GetChunks()) {
                 CTransform* towerTransformRow = chunk.GetComponentRow<CTransform>();
@@ -78,7 +80,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
                         Vect2f vel = closestEnemyTransform->position - towerTransform.position;
                         m_worldPtr->CreateEntityNoReturn(
                             CTransform(towerTransform.position, {1, 1}, 0), CMovement(150), CRigidBody(vel, 1, 0.1f, false),
-                            CCollider({25, 25}, {0, 0},Layer::Default, ~0u, false),
+                            CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
                             CSprite("Square", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 
                         currentTime = 0;
@@ -88,6 +90,24 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         }
     }
     currentTime += Time::DeltaTime();
+       
+    // for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
+    //     for (auto& chunk : archetype->GetChunks()) {
+    //         CCollisionEnter* collisionEnterRow = chunk.GetComponentRow<CCollisionEnter>();
+    //         for (size_t i = 0; i < chunk.size; ++i) {
+    //             CCollisionEnter& collisionEnter = collisionEnterRow[i];
+
+    //             Entity e1 = collisionEnter.entity1;
+    //             Entity e2 = collisionEnter.entity2;
+
+    //             if ((worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2)) ||
+    //                 (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2))) {
+    //                 worldPtr->DestroyEntity(e1);
+    //                 worldPtr->DestroyEntity(e2);
+    //             }
+    //         }
+    //     }
+    // }
 }
 void GameScene::SpawnTestEntities()
 {
@@ -104,7 +124,7 @@ void GameScene::SpawnTestEntities()
 
         m_worldPtr->CreateEntityNoReturn(
             CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody(startVel, mass, bounce, false),
-            CCollider({radius, radius}, {0, 0},Layer::Default, ~0u, false),
+            CCollider({radius, radius}, {0, 0}, Layer::Default, ~0u, false),
             CSprite("Square", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
     }
 }

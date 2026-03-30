@@ -8,7 +8,7 @@ class CollisionResolutionSystem
 
     CollisionResolutionSystem() = default;
 
-    void ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
-    void ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
-    void ResolveCollisions(World* worldPtr, std::vector<CollisionData>& collisionDataVector);
+    void ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
+    void ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
+    void ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
 };
