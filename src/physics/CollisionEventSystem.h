@@ -55,22 +55,8 @@ public:
     {
         m_currentFramePairs.clear();
 
-        for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
-
-        for (auto& archetype : m_stayCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
-
-        for (auto& archetype : m_exitCollisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                for (size_t i = 0; i < chunk.size; ++i) { worldPtr->DestroyEntity(chunk.entities[i]); }
-            }
-        }
+        m_enterCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
+        m_exitCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
+        m_stayCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
     }
 };

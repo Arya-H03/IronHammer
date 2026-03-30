@@ -35,40 +35,28 @@ private:
     void CheckForScreenBorderCollision()
     {
         ZoneScopedN("CollisionSystem/CheckForScreenBorderCollision");
-        for (auto& archetype : m_collisionQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                auto transformCompRow = chunk.GetComponentRow<CTransform>();
-                auto rigidBodyCompRow = chunk.GetComponentRow<CRigidBody>();
-                auto colliderCompRow  = chunk.GetComponentRow<CCollider>();
 
-                for (size_t i = 0; i < chunk.size; ++i) {
-                    CTransform& transformComp = transformCompRow[i];
-                    CRigidBody& rigidBodyComp = rigidBodyCompRow[i];
-                    CCollider&  colliderComp  = colliderCompRow[i];
-
-                    if (transformComp.position.y + colliderComp.offset.y - colliderComp.halfSize.y <= 0) {
-                        transformComp.position.y = colliderComp.halfSize.y - colliderComp.offset.y;
-                        rigidBodyComp.velocity.y *= -1;
-                    }
-                    else if (transformComp.position.y + colliderComp.offset.y + colliderComp.halfSize.y >=
-                             Viewport::GetSize().y) {
-                        transformComp.position.y = Viewport::GetSize().y - colliderComp.halfSize.y - colliderComp.offset.y;
-                        rigidBodyComp.velocity.y *= -1;
-                    }
-
-                    if (transformComp.position.x + colliderComp.offset.x - colliderComp.halfSize.x <= 0) {
-                        transformComp.position.x = colliderComp.halfSize.x - colliderComp.offset.x;
-                        rigidBodyComp.velocity.x *= -1;
-                    }
-
-                    else if (transformComp.position.x + colliderComp.offset.x + colliderComp.halfSize.x >=
-                             Viewport::GetSize().x) {
-                        transformComp.position.x = Viewport::GetSize().x - colliderComp.halfSize.x - colliderComp.offset.x;
-                        rigidBodyComp.velocity.x *= -1;
-                    }
-                }
+        m_collisionQuery->ForEach<CTransform, CRigidBody, CCollider>([](CTransform& transformComp, CRigidBody& rigidBodyComp,
+                                                                        CCollider& colliderComp) {
+            if (transformComp.position.y + colliderComp.offset.y - colliderComp.halfSize.y <= 0) {
+                transformComp.position.y = colliderComp.halfSize.y - colliderComp.offset.y;
+                rigidBodyComp.velocity.y *= -1;
             }
-        }
+            else if (transformComp.position.y + colliderComp.offset.y + colliderComp.halfSize.y >= Viewport::GetSize().y) {
+                transformComp.position.y = Viewport::GetSize().y - colliderComp.halfSize.y - colliderComp.offset.y;
+                rigidBodyComp.velocity.y *= -1;
+            }
+
+            if (transformComp.position.x + colliderComp.offset.x - colliderComp.halfSize.x <= 0) {
+                transformComp.position.x = colliderComp.halfSize.x - colliderComp.offset.x;
+                rigidBodyComp.velocity.x *= -1;
+            }
+
+            else if (transformComp.position.x + colliderComp.offset.x + colliderComp.halfSize.x >= Viewport::GetSize().x) {
+                transformComp.position.x = Viewport::GetSize().x - colliderComp.halfSize.x - colliderComp.offset.x;
+                rigidBodyComp.velocity.x *= -1;
+            }
+        });
     }
 
 public:
@@ -100,6 +88,5 @@ public:
         auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
         m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
         m_collsionEventSystem.HandleCollisionEvents(worldPtr);
-
     }
 };

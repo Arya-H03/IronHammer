@@ -1,13 +1,15 @@
 #pragma once
 
-#include <vector>
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 
+#include <tuple>
+#include <vector>
+
 struct QueryKey
 {
-    ComponentSignatureMask requiredMask {};
-    ComponentSignatureMask excludedMask {};
+    ComponentSignatureMask requiredMask{};
+    ComponentSignatureMask excludedMask{};
 
     bool operator==(const QueryKey& other) const
     {
@@ -27,25 +29,47 @@ struct QueryKeyHash
 
 class Query
 {
-  private:
-
-    QueryKey m_key;
+private:
+    QueryKey                m_key;
     std::vector<Archetype*> m_matchingArchetypes;
 
-  public:
+public:
+    Query(const QueryKey& key) : m_key(key) {}
 
-    Query(const QueryKey& key) : m_key(key) { }
-
-    const QueryKey& GetKey() const { return m_key; }
-    const std::vector<Archetype*>& GetMatchingArchetypes() const { return m_matchingArchetypes; }
+    const QueryKey&                GetKey() const { return m_key; }
 
     void TryAddArchetype(Archetype& archetype)
     {
         const auto& signature = archetype.GetComponentSignature();
 
-        if (((m_key.requiredMask & signature) == m_key.requiredMask) && ((m_key.excludedMask & signature) == 0))
-        {
+        if (((m_key.requiredMask & signature) == m_key.requiredMask) && ((m_key.excludedMask & signature) == 0)) {
             m_matchingArchetypes.push_back(&archetype);
+        }
+    }
+
+    template <typename... Components, typename Func>
+    void ForEach(Func&& func)
+    {
+        for (auto& archetype : m_matchingArchetypes) {
+            for (auto& chunk : archetype->GetChunks()) {
+                auto componentRows = std::make_tuple(chunk.GetComponentRow<Components>()...);
+                for (size_t i = 0; i < chunk.size; ++i) {
+                    std::apply([&](auto*... rows) { func(rows[i]...); }, componentRows);
+                }
+            }
+        }
+    }
+
+    template <typename... Components, typename Func>
+    void ForEachWithEntity(Func&& func)
+    {
+        for (auto& archetype : m_matchingArchetypes) {
+            for (auto& chunk : archetype->GetChunks()) {
+                auto componentRows = std::make_tuple(chunk.GetComponentRow<Components>()...);
+                for (size_t i = 0; i < chunk.size; ++i) {
+                    std::apply([&](auto*... rows) { func(chunk.entities[i], rows[i]...); }, componentRows);
+                }
+            }
         }
     }
 };

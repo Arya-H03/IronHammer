@@ -52,30 +52,21 @@ void BroadPhaseCollisionSystem::ClearAllCells()
 
 void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr)
 {
-    for (auto& archetype : m_broadPhaseQuery->GetMatchingArchetypes()) {
-        for (auto& chunk : archetype->GetChunks()) {
-            auto colliderCompRow  = chunk.GetComponentRow<CCollider>();
-            auto transformCompRow = chunk.GetComponentRow<CTransform>();
+    m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform>(
+        [&](Entity entity, CCollider& colliderComp,CTransform& transformComp) {
+            Vect2<int> topLeftCoord =
+                ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
+            Vect2<int> bottomRightCoord =
+                ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Ceil();
 
-            for (size_t i = 0; i < chunk.size; ++i) {
-                CCollider&  colliderComp  = colliderCompRow[i];
-                CTransform& transformComp = transformCompRow[i];
-
-                Vect2<int> topLeftCoord =
-                    ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
-                Vect2<int> bottomRightCoord =
-                    ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Ceil();
-
-                for (size_t r = topLeftCoord.y; r < bottomRightCoord.y; ++r) {
-                    for (size_t c = topLeftCoord.x; c < bottomRightCoord.x; ++c) {
-                        if (r < 0 || r >= m_cellPerCol || c < 0 || c >= m_cellPerRow) continue;
-                        size_t index = r * m_cellPerRow + c;
-                        m_grid[index].overlapingEntities.push_back(chunk.entities[i]);
-                    }
+            for (size_t r = topLeftCoord.y; r < bottomRightCoord.y; ++r) {
+                for (size_t c = topLeftCoord.x; c < bottomRightCoord.x; ++c) {
+                    if (r < 0 || r >= m_cellPerCol || c < 0 || c >= m_cellPerRow) continue;
+                    size_t index = r * m_cellPerRow + c;
+                    m_grid[index].overlapingEntities.push_back(entity);
                 }
             }
-        }
-    }
+        });
 
     if (m_canHighlightGrid) {
         for (size_t i = 0; i < m_grid.size(); ++i) {

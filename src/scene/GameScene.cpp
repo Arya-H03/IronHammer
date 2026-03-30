@@ -54,43 +54,32 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 
     // Lemao refactor later
     // Probably a BFS or a simple 1D loop
-    if (currentTime >= cd){
-        for (auto& archetype : m_towerQuery->GetMatchingArchetypes()) {
-            for (auto& chunk : archetype->GetChunks()) {
-                CTransform* towerTransformRow = chunk.GetComponentRow<CTransform>();
-                for (size_t i = 0; i < chunk.size; ++i) {
-                    CTransform& towerTransform = towerTransformRow[i];
+    if (currentTime >= cd) {
+        m_towerQuery->ForEach<CTransform>([&](CTransform& towerTransform) {
+            CTransform* closestEnemyTransform;
+            size_t      closestDistance = SIZE_MAX;
 
-                    CTransform* closestEnemyTransform;
-                    size_t      closestDistance = SIZE_MAX;
-                    for (auto& archetype : m_enemyQuery->GetMatchingArchetypes()) {
-                        for (auto& chunk : archetype->GetChunks()) {
-                            CTransform* enemyTransformRow = chunk.GetComponentRow<CTransform>();
-                            for (size_t j = 0; j < chunk.size; ++j) {
-                                CTransform& enemyTransform = enemyTransformRow[j];
-                                float       dist           = towerTransform.position.Distance(enemyTransform.position);
-                                if (dist < closestDistance) {
-                                    closestDistance       = dist;
-                                    closestEnemyTransform = &enemyTransform;
-                                }
-                            }
-                        }
-                    }
-                    if (closestEnemyTransform) {
-                        Vect2f vel = closestEnemyTransform->position - towerTransform.position;
-                        m_worldPtr->CreateEntityNoReturn(
-                            CTransform(towerTransform.position, {1, 1}, 0), CMovement(150), CRigidBody(vel, 1, 0.1f, false),
-                            CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
-                            CSprite("Square", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
-
-                        currentTime = 0;
-                    }
+            m_enemyQuery->ForEach<CTransform>([&](CTransform& enemyTransform) {
+                float dist = towerTransform.position.Distance(enemyTransform.position);
+                if (dist < closestDistance) {
+                    closestDistance       = dist;
+                    closestEnemyTransform = &enemyTransform;
                 }
+            });
+
+            if (closestEnemyTransform) {
+                Vect2f vel = closestEnemyTransform->position - towerTransform.position;
+                m_worldPtr->CreateEntityNoReturn(
+                    CTransform(towerTransform.position, {1, 1}, 0), CMovement(150), CRigidBody(vel, 1, 0.1f, false),
+                    CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
+                    CSprite("Square", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+
+                currentTime = 0;
             }
-        }
+        });
     }
     currentTime += Time::DeltaTime();
-       
+
     // for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
     //     for (auto& chunk : archetype->GetChunks()) {
     //         CCollisionEnter* collisionEnterRow = chunk.GetComponentRow<CCollisionEnter>();
