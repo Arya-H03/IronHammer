@@ -16,11 +16,11 @@
 #include <vector>
 
 // Forward declare
-class ArchetypeDebugger;
+class WorldDebugger;
 
 class Archetype
 {
-    friend class ArchetypeDebugger;
+    friend class WorldDebugger;
 
 private:
     std::vector<ArchetypeChunk> m_chunks;

@@ -17,9 +17,6 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 {
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider>>();
     PopulateGrid(worldPtr);
-
-    // SetCanDisplayGrid(worldPtr, true);
-    // SetCanHighlightGrid(worldPtr, true);
 }
 
 void BroadPhaseCollisionSystem::PopulateGrid(World* worldPtr)
@@ -53,7 +50,7 @@ void BroadPhaseCollisionSystem::ClearAllCells()
 void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr)
 {
     m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform>(
-        [&](Entity entity, CCollider& colliderComp,CTransform& transformComp) {
+        [&](Entity entity, CCollider& colliderComp, CTransform& transformComp) {
             Vect2<int> topLeftCoord =
                 ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
             Vect2<int> bottomRightCoord =

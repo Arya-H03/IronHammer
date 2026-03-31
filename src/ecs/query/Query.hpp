@@ -36,7 +36,7 @@ private:
 public:
     Query(const QueryKey& key) : m_key(key) {}
 
-    const QueryKey&                GetKey() const { return m_key; }
+    const QueryKey& GetKey() const { return m_key; }
 
     void TryAddArchetype(Archetype& archetype)
     {

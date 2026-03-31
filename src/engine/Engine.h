@@ -13,12 +13,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 
-enum class EngineMode
-{
-    None,
-    Edit,
-    Play
-};
+enum class EngineMode { None, Edit, Play, Both };
 
 class Engine
 {
@@ -37,7 +32,7 @@ private:
     World*                 m_currentWorld;
 
     FrameRateHandler      m_frameRateHandler;
-    RenderSystem          m_renderSystem;
+    RenderingSystem          m_renderSystem;
     InputSystem           m_inputSystem;
     SceneManager          m_sceneManager;
     EntityTemplateManager m_entityTemplateManager;
@@ -58,7 +53,7 @@ public:
     float           GetTargetFrameTime() const;
 
     sf::RenderWindow&      GetRenderWindow();
-    RenderSystem&          GetRenderSystem();
+    RenderingSystem&          GetRenderSystem();
     SceneManager&          GetSceneManager();
     InputSystem&           GetInputSystem();
     EntityTemplateManager& GetEntityTemplateManager();

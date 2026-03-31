@@ -4,6 +4,7 @@
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
+#include "editor/debuggers/SystemDebuggerHub.h"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "scene/BaseScene.h"
@@ -21,16 +22,15 @@
 #include <SFML/Window/WindowEnums.hpp>
 
 Engine::Engine()
-    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()),
-      m_renderSystem(m_currentWorld), m_inputSystem(m_window)
+    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld),
+      m_inputSystem(m_window)
 {
     Init();
 }
 
 bool Engine::GetIsPlayModePaused() const
 {
-    if (!m_sceneManager.GetCurrentScenePtr())
-    {
+    if (!m_sceneManager.GetCurrentScenePtr()) {
         LOG_WARNING("Tried to GetIsPlayModePaused when there is not currentScene");
         return false;
     }
@@ -42,14 +42,14 @@ EngineMode             Engine::GetEngineMode() const { return m_engineMode; }
 Vect2<uint16_t>        Engine::GetWindowSize() const { return m_windowSize; }
 World*                 Engine::GetCurrentWorld() const { return m_currentWorld; }
 sf::RenderWindow&      Engine::GetRenderWindow() { return m_window; }
-RenderSystem&          Engine::GetRenderSystem() { return m_renderSystem; }
+RenderingSystem&          Engine::GetRenderSystem() { return m_renderSystem; }
 SceneManager&          Engine::GetSceneManager() { return m_sceneManager; }
 InputSystem&           Engine::GetInputSystem() { return m_inputSystem; }
 EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTemplateManager; }
 
 void Engine::Init()
 {
-    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer",sf::Style::None);
+    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer", sf::Style::None);
     m_window.setKeyRepeatEnabled(false);
 
     bool ok = ImGui::SFML::Init(m_window);
@@ -75,6 +75,7 @@ void Engine::EnterPlayMode()
     LoadTempSceneData();
 
     m_currentWorld = m_tempWorld.get();
+    SystemDebuggerHub::Get().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
@@ -86,6 +87,7 @@ void Engine::EnterPlayMode()
 void Engine::ExitPlayMode()
 {
     m_currentWorld = m_editorWorld.get();
+    SystemDebuggerHub::Get().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);
@@ -96,12 +98,8 @@ void Engine::ExitPlayMode()
 
 void Engine::TogglePlayMode()
 {
-    if (m_engineMode == EngineMode::Edit)
-    {
-        EnterPlayMode();
-    }
-    else if (m_engineMode == EngineMode::Play)
-    {
+    if (m_engineMode == EngineMode::Edit) { EnterPlayMode(); }
+    else if (m_engineMode == EngineMode::Play) {
         ExitPlayMode();
     }
 }
@@ -117,10 +115,7 @@ void Engine::LoadEditorSceneData()
     m_sceneManager.LoadScene(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 
-void Engine::LoadTempSceneData()
-{
-    m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json");
-}
+void Engine::LoadTempSceneData() { m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json"); }
 
 void Engine::BeginFrame()
 {

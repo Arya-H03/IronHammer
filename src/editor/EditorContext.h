@@ -8,7 +8,6 @@
 #include "ecs/World.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
 #include "ecs/entity/EntityInspector.h"
-#include "ecs/archetype/ArchetypeDebugger.hpp"
 #include "editor/EditorConfig.h"
 
 struct EditorContext
@@ -21,12 +20,11 @@ struct EditorContext
     bool isPlayModePaused = false;
 
     // Sync once
-    RenderSystem* renderSystem = nullptr;
+    RenderingSystem* renderSystem = nullptr;
     InputSystem* inputSystem = nullptr;
     EntityTemplateManager* entityTemplateManager = nullptr;
 
     EntityInspector inspector;
-    ArchetypeDebugger archetypeDebugger;
     EditorConfig::Layout layout;
     EditorGridSystem editorGrid;
 

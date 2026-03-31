@@ -6,6 +6,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
+#include "editor/debuggers/SystemDebuggerHub.h"
 #include "Tracy.hpp"
 
 #include <cmath>
@@ -19,15 +20,18 @@
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/Vector2.hpp>
 
-RenderSystem::RenderSystem(World* world)
+RenderingSystem::RenderingSystem(World* world)
     : shapeQuery(world->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>()),
       textQuery(world->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>()),
       colliderQuery(world->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>()),
       spriteQuery(world->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
+    SystemDebuggerHub::Get().GetRenderignSystemDebugger().RegisterRenderingSystem(this);
 }
 
-void RenderSystem::SetupSystem(World* newWorldPtr)
+RenderingSystem::~RenderingSystem() { SystemDebuggerHub::Get().GetRenderignSystemDebugger().UnRegisterRenderingSystem(); }
+
+void RenderingSystem::SetupSystem(World* newWorldPtr)
 {
     shapeQuery    = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
     textQuery     = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
@@ -35,7 +39,7 @@ void RenderSystem::SetupSystem(World* newWorldPtr)
     spriteQuery   = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
-size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
+size_t RenderingSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
 {
     const float  innerRadius = cshape.radius - cshape.outlineThickness;
     const float  outerRadius = cshape.radius;
@@ -75,7 +79,7 @@ size_t RenderSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf:
     return verticesAdded;
 }
 
-size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch)
+size_t RenderingSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch)
 {
     const float halfWidth  = ccollider.size.x * 0.5f;
     const float halfHeight = ccollider.size.y * 0.5f;
@@ -102,7 +106,7 @@ size_t RenderSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctrans
     return 8;
 }
 
-void RenderSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch)
+void RenderingSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch)
 {
     ZoneScopedN("Add Sprite to Batch");
 
@@ -145,7 +149,7 @@ void RenderSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ct
     batch.append(sf::Vertex(bottomLeft, csprite.color, uvBottomLeft));
 }
 
-void RenderSystem::RenderSprites(sf::RenderTarget& renderTarget)
+void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
 {
     static sf::VertexArray batch(sf::PrimitiveType::Triangles);
     batch.clear();
@@ -174,7 +178,7 @@ void RenderSystem::RenderSprites(sf::RenderTarget& renderTarget)
     renderTarget.draw(batch, currentTexture);
 }
 
-void RenderSystem::RenderShapes(sf::RenderTarget& renderTarget)
+void RenderingSystem::RenderShapes(sf::RenderTarget& renderTarget)
 {
     static sf::VertexArray batch(sf::PrimitiveType::Triangles);
     batch.clear();
@@ -197,7 +201,7 @@ void RenderSystem::RenderShapes(sf::RenderTarget& renderTarget)
     if (verticesInBatch > 0) renderTarget.draw(batch);
 }
 
-void RenderSystem::RenderColliders(sf::RenderTarget& renderTarget)
+void RenderingSystem::RenderColliders(sf::RenderTarget& renderTarget)
 {
     sf::VertexArray batch(sf::PrimitiveType::Lines);
 
@@ -217,7 +221,7 @@ void RenderSystem::RenderColliders(sf::RenderTarget& renderTarget)
     if (verticesInBatch > 0) renderTarget.draw(batch);
 }
 
-void RenderSystem::RenderText(sf::RenderTarget& renderTarget)
+void RenderingSystem::RenderText(sf::RenderTarget& renderTarget)
 {
     textQuery->ForEach<CText, CTransform>([&](CText& textComp, CTransform& transformComp) {
         sf::Text text(FontManager::GetFont());
@@ -230,7 +234,7 @@ void RenderSystem::RenderText(sf::RenderTarget& renderTarget)
     });
 }
 
-void RenderSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
+void RenderingSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
 {
 
     {

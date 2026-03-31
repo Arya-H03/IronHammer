@@ -1,19 +1,18 @@
 #pragma once
 #include "core/utils/Debug.h"
 #include "imgui.h"
-#include <SFML/Graphics/Texture.hpp>
+
 #include <memory>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <string>
 
 class AssetManager
 {
-  private:
-
+private:
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> m_textures;
 
-  public:
-
+public:
     AssetManager()
     {
         // This is for testing
@@ -28,6 +27,11 @@ class AssetManager
         CreateTexture("UpArrowFlat", "assets/up-arrow-flat.png");
     }
 
+    AssetManager(const AssetManager&)                = delete;
+    AssetManager& operator=(const AssetManager&)     = delete;
+    AssetManager(AssetManager&&) noexcept            = delete;
+    AssetManager& operator=(AssetManager&&) noexcept = delete;
+
     static AssetManager& Instance()
     {
         static AssetManager instance;
@@ -36,16 +40,14 @@ class AssetManager
 
     void CreateTexture(const std::string& name, const std::string& filePath)
     {
-        if (m_textures.contains(name))
-        {
+        if (m_textures.contains(name)) {
             LOG_ERROR("Texture already exists: " + name);
             return;
         }
 
         std::unique_ptr<sf::Texture> texture = std::make_unique<sf::Texture>();
 
-        if (!texture->loadFromFile(filePath))
-        {
+        if (!texture->loadFromFile(filePath)) {
             LOG_ERROR("Could not load texture: " + filePath);
             return;
         }
@@ -56,8 +58,7 @@ class AssetManager
     sf::Texture* LoadTexture(const std::string& name)
     {
         auto it = m_textures.find(name);
-        if (it == m_textures.end())
-        {
+        if (it == m_textures.end()) {
             LOG_ERROR("Could not file texture: " + name);
             return nullptr;
         }
@@ -67,8 +68,7 @@ class AssetManager
     ImTextureID GetTextureID(const std::string& name)
     {
         auto it = m_textures.find(name);
-        if (it == m_textures.end())
-        {
+        if (it == m_textures.end()) {
             LOG_ERROR("Could not file texture: " + name);
             return -1;
         }

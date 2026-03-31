@@ -44,7 +44,8 @@ public:
     template <typename... Components>
     Entity CreateEntityWithReturn(Components&&... components)
     {
-        return m_commandBuffer.CreateEntityFromComponentsWithReturn(m_entityManager, std::forward<Components>(components)...);
+        return m_commandBuffer.CreateEntityFromComponentsWithReturn(m_entityManager,
+                                                                    std::forward<Components>(components)...);
     }
 
     template <typename... Components>

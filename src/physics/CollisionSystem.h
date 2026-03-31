@@ -5,9 +5,9 @@
 #include "ecs/query/Query.hpp"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
+#include "editor/debuggers/SystemDebuggerHub.h"
 #include "editor/Viewport.h"
 #include "physics/BroadPhaseCollisionSystem.h"
-#include "physics/CollisionDebugger.h"
 #include "physics/CollisionEventSystem.h"
 #include "physics/CollisionResolutionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
@@ -28,7 +28,6 @@ private:
     BroadPhaseCollisionSystem  m_broadPhaseCollisionSystem;
     NarrowPhaseCollisionSystem m_narrowPhaseCollisionSystem;
     CollisionResolutionSystem  m_collisionResolutionSystem;
-    CollisionDebugger          m_collisionDebugger;
 
     Query* m_collisionQuery;
 
@@ -60,8 +59,6 @@ private:
     }
 
 public:
-    const CollisionDebugger& GetCollsionDebugger() const { return m_collisionDebugger; }
-
     void SetupSystem(World* worldPtr) override
     {
         m_collisionQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
@@ -71,10 +68,12 @@ public:
 
     CollisionSystem(Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem({1500, 1500}),
-          m_collisionDebugger(m_broadPhaseCollisionSystem, m_narrowPhaseCollisionSystem),
           m_narrowPhaseCollisionSystem(m_collsionEventSystem)
     {
+        SystemDebuggerHub::Get().GetCollsionDebugger().RegisterCollisionSystem(this);
     }
+
+    ~CollisionSystem() { SystemDebuggerHub::Get().GetCollsionDebugger().UnRegisterCollsionSystem(); }
 
     void HandleCollisionSystem(World* worldPtr)
     {
