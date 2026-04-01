@@ -1,8 +1,9 @@
 #pragma once
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
-#include "ecs/component/Components.hpp"
 #include "ecs/query/Query.hpp"
+#include "rendering/RenderingComponents.hpp"
+#include "core/CoreComponents.hpp"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
 #include "editor/Viewport.h"

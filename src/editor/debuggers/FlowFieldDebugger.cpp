@@ -2,10 +2,10 @@
 
 #include "core/utils/Colors.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
 #include "engine/Engine.h"
 #include "pathfinding/FlowFieldSystem.h"
+#include "rendering/RenderingComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <string>
@@ -59,10 +59,10 @@ void FlowFieldDebugger::CreateVisualGrid(World* worldPtr)
     for (size_t i = 0; i < m_visualCells.capacity(); ++i) {
         const FlowCell& flowCell = flowCells[i];
 
-        m_visualCells.push_back(worldPtr->CreateEntityWithReturn(
-            CTransform{flowCell.worldPosition, Vect2f(1, 1), 0},
-            CShape(4, Colors::DarkSteel_SFML, sf::Color(255, 255, 255, 100), cellRadius, 2),
-            CText(std::to_string(flowCell.baseCost + flowCell.dynamiqueCost), sf::Color::White,
-                  Vect2f{cellRadius / 3, cellRadius / 3}, 12)));
+        m_visualCells.push_back(
+            worldPtr->CreateEntityWithReturn(CTransform{flowCell.worldPosition, Vect2f(1, 1), 0},
+                                             CShape(4, Colors::DarkSteel_SFML, sf::Color(255, 255, 255, 100), cellRadius, 2),
+                                             CText(std::to_string(flowCell.baseCost + flowCell.dynamiqueCost),
+                                                   sf::Color::White, Vect2f{cellRadius / 3, cellRadius / 3}, 12)));
     }
 }

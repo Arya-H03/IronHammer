@@ -1,10 +1,8 @@
 #include "RenderSystem.h"
 
 #include "assets/AssetManager.h"
-#include "assets/FontManager.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "Tracy.hpp"

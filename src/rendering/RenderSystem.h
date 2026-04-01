@@ -1,7 +1,9 @@
 #pragma once
 
-#include "ecs/component/Components.hpp"
 #include "ecs/system/ISystem.h"
+#include "rendering/RenderingComponents.hpp"
+#include "core/CoreComponents.hpp"
+#include "physics/PhysicsComponents.hpp"
 #include "ecs/World.hpp"
 
 #include <cstddef>

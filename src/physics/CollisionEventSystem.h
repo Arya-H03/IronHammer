@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ecs/common/ECSCommon.h"
-#include "ecs/component/Components.hpp"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
 #include "physics/CollisionCommon.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <unordered_set>
 

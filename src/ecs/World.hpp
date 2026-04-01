@@ -5,7 +5,6 @@
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/component/Components.hpp"
 #include "ecs/entity/CommandBuffer.h"
 #include "ecs/entity/EntityManager.hpp"
 

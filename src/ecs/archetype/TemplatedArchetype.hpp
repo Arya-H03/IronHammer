@@ -1,6 +1,5 @@
 #pragma once
 #include <imgui.h>
-#include <iostream>
 #include <tuple>
 #include <vector>
 #include "ecs/component/ComponentRegistry.hpp"

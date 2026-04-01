@@ -1,14 +1,11 @@
 #include "GameScene.h"
 
-#include "core/utils/Debug.h"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
 #include "editor/Viewport.h"
+#include "game/GameComponents.hpp"
 #include "input/InputSystem.h"
-#include "nlohmann/json.hpp"
 
 #include <cstdint>
 #include <string>

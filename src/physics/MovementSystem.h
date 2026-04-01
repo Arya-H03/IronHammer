@@ -1,8 +1,8 @@
 #pragma once
-#include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/Components.hpp"
+#include "core/CoreComponents.hpp"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
+#include "physics/PhysicsComponents.hpp"
 #include "Tracy.hpp"
 
 class MovementSystem : public ISetupSystem

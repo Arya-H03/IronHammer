@@ -9,7 +9,6 @@
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/component/Components.hpp"
 #include "editor/EditorContext.h"
 #include "editor/Viewport.h"
 #include "editor/ViewportGizmo.h"

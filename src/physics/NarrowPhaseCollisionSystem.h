@@ -1,10 +1,10 @@
 #pragma once
 #include "ecs/common/ECSCommon.h"
-#include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionCommon.h"
 #include "physics/CollisionEventSystem.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <cstdlib>
 #include <vector>

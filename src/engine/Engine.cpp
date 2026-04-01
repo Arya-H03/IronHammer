@@ -42,7 +42,7 @@ EngineMode             Engine::GetEngineMode() const { return m_engineMode; }
 Vect2<uint16_t>        Engine::GetWindowSize() const { return m_windowSize; }
 World*                 Engine::GetCurrentWorld() const { return m_currentWorld; }
 sf::RenderWindow&      Engine::GetRenderWindow() { return m_window; }
-RenderingSystem&          Engine::GetRenderSystem() { return m_renderSystem; }
+RenderingSystem&       Engine::GetRenderSystem() { return m_renderSystem; }
 SceneManager&          Engine::GetSceneManager() { return m_sceneManager; }
 InputSystem&           Engine::GetInputSystem() { return m_inputSystem; }
 EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTemplateManager; }

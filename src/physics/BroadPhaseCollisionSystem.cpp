@@ -1,7 +1,9 @@
 #include "BroadPhaseCollisionSystem.h"
 
+#include "core/CoreComponents.hpp"
 #include "core/utils/Colors.h"
-#include "ecs/component/Components.hpp"
+#include "physics/PhysicsComponents.hpp"
+#include "rendering/RenderingComponents.hpp"
 #include "Tracy.hpp"
 
 #include <SFML/Graphics/Color.hpp>

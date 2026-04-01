@@ -1,7 +1,6 @@
 #pragma once
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
-#include "ecs/component/Components.hpp"
 #include "editor/EditorContext.h"
 #include "gui/LogWindow.hpp"
 #include "imgui-SFML.h"

@@ -1,7 +1,6 @@
 #pragma once
 #include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/component/Components.hpp"
 #include "ecs/query/Query.hpp"
 #include "ecs/system/ISystem.h"
 #include "ecs/World.hpp"
@@ -11,6 +10,7 @@
 #include "physics/CollisionEventSystem.h"
 #include "physics/CollisionResolutionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
+#include "physics/PhysicsComponents.hpp"
 #include "Tracy.hpp"
 
 #include <cstdint>

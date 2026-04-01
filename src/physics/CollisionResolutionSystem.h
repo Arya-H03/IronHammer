@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "ecs/World.hpp"
-#include "physics/NarrowPhaseCollisionSystem.h"
+#include "physics/CollisionCommon.h"
 class CollisionResolutionSystem
 {
   public:
