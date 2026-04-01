@@ -26,10 +26,10 @@ RenderingSystem::RenderingSystem(World* world)
       colliderQuery(world->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>()),
       spriteQuery(world->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
 {
-    SystemDebuggerHub::Get().GetRenderignSystemDebugger().RegisterRenderingSystem(this);
+    SystemDebuggerHub::Instance().GetRenderignSystemDebugger().RegisterRenderingSystem(this);
 }
 
-RenderingSystem::~RenderingSystem() { SystemDebuggerHub::Get().GetRenderignSystemDebugger().UnRegisterRenderingSystem(); }
+RenderingSystem::~RenderingSystem() { SystemDebuggerHub::Instance().GetRenderignSystemDebugger().UnRegisterRenderingSystem(); }
 
 void RenderingSystem::SetupSystem(World* newWorldPtr)
 {

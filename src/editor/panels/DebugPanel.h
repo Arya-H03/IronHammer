@@ -33,7 +33,7 @@ public:
 
         if (ImGui::BeginTabBar("DebugTabs")) {
 
-            for (auto& tab : SystemDebuggerHub::Get().GetDebugTabs()) {
+            for (auto& tab : SystemDebuggerHub::Instance().GetDebugTabs()) {
                 if (tab->GetDisplayMode() == m_editorContext.engineMode || tab->GetDisplayMode() == EngineMode::Both) {
                     tab->DrawTab(context);
                 }

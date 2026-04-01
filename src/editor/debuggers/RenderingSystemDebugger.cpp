@@ -4,6 +4,7 @@
 
 RenderingSystemDebugger::RenderingSystemDebugger() { m_displayMode = EngineMode::Both; }
 
+// Fix me: No reason to have flags in render system for a debugger, simple move the functionalities over
 void RenderingSystemDebugger::DrawTab(DebugTabContext& context)
 {
 

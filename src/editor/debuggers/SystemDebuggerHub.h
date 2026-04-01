@@ -2,6 +2,7 @@
 
 #include "editor/debuggers/CollisionDebugger.h"
 #include "editor/debuggers/EditorDebugger.h"
+#include "editor/debuggers/FlowFieldDebugger.h"
 #include "editor/debuggers/IDebugTab.h"
 #include "editor/debuggers/RenderingSystemDebugger.h"
 #include "editor/debuggers/WorldDebugger.h"
@@ -15,6 +16,7 @@ private:
     WorldDebugger           m_worldDebugger;
     RenderingSystemDebugger m_renderingSystemDebugger;
     EditorDebugger          m_editorDebugger;
+    FlowFieldDebugger       m_flowFieldDebugger;
 
     std::vector<IDebugTab*> m_debugTabs;
 
@@ -24,6 +26,7 @@ private:
         m_debugTabs.push_back(&m_renderingSystemDebugger);
         m_debugTabs.push_back(&m_editorDebugger);
         m_debugTabs.push_back(&m_collisionDebugger);
+        m_debugTabs.push_back(&m_flowFieldDebugger);
     }
 
 public:
@@ -32,7 +35,7 @@ public:
     SystemDebuggerHub(SystemDebuggerHub&&) noexcept            = delete;
     SystemDebuggerHub& operator=(SystemDebuggerHub&&) noexcept = delete;
 
-    static SystemDebuggerHub& Get()
+    static SystemDebuggerHub& Instance()
     {
         static SystemDebuggerHub instance;
         return instance;
@@ -44,4 +47,5 @@ public:
     WorldDebugger&           GetWorldDebugger() { return m_worldDebugger; }
     RenderingSystemDebugger& GetRenderignSystemDebugger() { return m_renderingSystemDebugger; }
     EditorDebugger&          GetEditorDebugger() { return m_editorDebugger; }
+    FlowFieldDebugger&       GetFlowFieldDebugger() { return m_flowFieldDebugger; }
 };

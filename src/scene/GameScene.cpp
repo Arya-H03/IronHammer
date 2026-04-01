@@ -23,6 +23,7 @@ void GameScene::OnStartPlay(World* worldPtr)
 
     m_movementSystem.SetupSystem(worldPtr);
     m_collisionSystem.SetupSystem(worldPtr);
+    m_flowFieldSystem.SetupSystem(worldPtr);
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
 

@@ -75,7 +75,7 @@ void Engine::EnterPlayMode()
     LoadTempSceneData();
 
     m_currentWorld = m_tempWorld.get();
-    SystemDebuggerHub::Get().GetWorldDebugger().RegisterWorld(m_currentWorld);
+    SystemDebuggerHub::Instance().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
@@ -87,7 +87,7 @@ void Engine::EnterPlayMode()
 void Engine::ExitPlayMode()
 {
     m_currentWorld = m_editorWorld.get();
-    SystemDebuggerHub::Get().GetWorldDebugger().RegisterWorld(m_currentWorld);
+    SystemDebuggerHub::Instance().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);

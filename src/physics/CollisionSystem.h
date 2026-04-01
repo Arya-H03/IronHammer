@@ -70,10 +70,10 @@ public:
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem({1500, 1500}),
           m_narrowPhaseCollisionSystem(m_collsionEventSystem)
     {
-        SystemDebuggerHub::Get().GetCollsionDebugger().RegisterCollisionSystem(this);
+        SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);
     }
 
-    ~CollisionSystem() { SystemDebuggerHub::Get().GetCollsionDebugger().UnRegisterCollsionSystem(); }
+    ~CollisionSystem() { SystemDebuggerHub::Instance().GetCollsionDebugger().UnRegisterCollsionSystem(); }
 
     void HandleCollisionSystem(World* worldPtr)
     {

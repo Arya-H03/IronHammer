@@ -2,6 +2,7 @@
 
 #include "ecs/query/Query.hpp"
 #include "ecs/World.hpp"
+#include "pathfinding/FlowFieldSystem.h"
 #include "physics/CollisionSystem.h"
 #include "physics/MovementSystem.h"
 #include "scene/BaseScene.h"
@@ -11,6 +12,7 @@ class GameScene : public BaseScene
 private:
     MovementSystem  m_movementSystem;
     CollisionSystem m_collisionSystem;
+    FlowFieldSystem m_flowFieldSystem;
 
     Query* m_towerQuery;
     Query* m_enemyQuery;

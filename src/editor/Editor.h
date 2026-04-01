@@ -35,7 +35,7 @@ private:
 public:
     Editor(Engine& engine) : m_editorContext(engine), m_gui(m_editorContext)
     {
-        SystemDebuggerHub::Get().GetEditorDebugger().RegisterEditor(this);
+        SystemDebuggerHub::Instance().GetEditorDebugger().RegisterEditor(this);
 
         m_gui.ApplyGuiTheme();
 
@@ -64,7 +64,7 @@ public:
                                          [&]() { m_editorContext.viewPortGizmMode = GismoMode::Scale; });
     }
 
-    ~Editor() { SystemDebuggerHub::Get().GetEditorDebugger().UnRegisterEditor(); }
+    ~Editor() { SystemDebuggerHub::Instance().GetEditorDebugger().UnRegisterEditor(); }
 
     void Update()
     {
