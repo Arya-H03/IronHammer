@@ -3,6 +3,7 @@
 #include <cassert>
 #include <string>
 
+// Deprecated
 class FontManager
 {
   private:

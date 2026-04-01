@@ -36,7 +36,7 @@ void BroadPhaseCollisionSystem::PopulateGrid(World* worldPtr)
                 CTransform(pos, Vect2f(1, 1), 0),
                 CShape(4, Colors::DarkSteel_SFML, sf::Color(255, 255, 255, 100), m_cellRadius, 2),
                 CText(std::to_string(coord.x) + ", " + std::to_string(coord.y), sf::Color::White,
-                      Vect2f(m_cellRadius / 3, m_cellRadius / 3), 18),
+                      Vect2f(m_cellRadius / 3, m_cellRadius / 3), 15),
                 CNotDrawable{});
         }
     }

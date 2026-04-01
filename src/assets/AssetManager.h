@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <string>
 
@@ -11,6 +12,7 @@ class AssetManager
 {
 private:
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> m_textures;
+    std::unordered_map<std::string, std::unique_ptr<sf::Font>>    m_fonts;
 
 public:
     AssetManager()
@@ -25,6 +27,8 @@ public:
         CreateTexture("UpArrowSharp", "assets/up-arrow-sharp.png");
         CreateTexture("RightArrowFlat", "assets/right-arrow-flat.png");
         CreateTexture("UpArrowFlat", "assets/up-arrow-flat.png");
+
+        CreateFont("Default", "assets/font.otf");
     }
 
     AssetManager(const AssetManager&)                = delete;
@@ -59,7 +63,7 @@ public:
     {
         auto it = m_textures.find(name);
         if (it == m_textures.end()) {
-            LOG_ERROR("Could not file texture: " + name);
+            LOG_ERROR("Could not find texture: " + name);
             return nullptr;
         }
         return it->second.get();
@@ -69,10 +73,37 @@ public:
     {
         auto it = m_textures.find(name);
         if (it == m_textures.end()) {
-            LOG_ERROR("Could not file texture: " + name);
+            LOG_ERROR("Could not find texture: " + name);
             return -1;
         }
         return it->second.get()->getNativeHandle();
+    }
+
+    void CreateFont(const std::string& name, const std::string& filePath)
+    {
+        if (m_fonts.contains(name)) {
+            LOG_ERROR("Font already exists: " + name);
+            return;
+        }
+
+        std::unique_ptr<sf::Font> font = std::make_unique<sf::Font>();
+
+        if (!font->openFromFile(filePath)) {
+            LOG_ERROR("Could not load font: " + filePath);
+            return;
+        }
+
+        m_fonts.emplace(name, std::move(font));
+    }
+
+    sf::Font* LoadFont(const std::string& name)
+    {
+        auto it = m_fonts.find(name);
+        if (it == m_fonts.end()) {
+            LOG_ERROR("Could not find font: " + name);
+            return nullptr;
+        }
+        return it->second.get();
     }
 
     void Clear() { m_textures.clear(); }

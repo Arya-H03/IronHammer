@@ -23,13 +23,14 @@ class EditorGridSystem : ISetupSystem
 
 private:
     std::vector<EditorGridCell> m_cells;
-    sf::Color                   m_gridColor   = sf::Color(255, 255, 255, 40);
-    int                         m_cellSize    = 32;
-    const int                   m_gridPadding = 2;
-    uint16_t                    m_gridCols;
-    uint16_t                    m_gridRows;
-    bool                        m_canShowGrid   = true;
-    bool                        m_canSnapToGrid = false;
+
+    sf::Color m_gridColor   = sf::Color(255, 255, 255, 40);
+    int       m_cellSize    = 32;
+    const int m_gridPadding = 2;
+    uint16_t  m_gridCols;
+    uint16_t  m_gridRows;
+    bool      m_canShowGrid   = true;
+    bool      m_canSnapToGrid = false;
 
     Query* m_selectableEntityQuery;
 

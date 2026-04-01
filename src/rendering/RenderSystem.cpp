@@ -1,8 +1,8 @@
 #include "RenderSystem.h"
 
+#include "assets/AssetManager.h"
 #include "assets/FontManager.h"
 #include "core/utils/Colors.h"
-#include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/Components.hpp"
 #include "ecs/World.hpp"
@@ -221,10 +221,12 @@ void RenderingSystem::RenderColliders(sf::RenderTarget& renderTarget)
     if (verticesInBatch > 0) renderTarget.draw(batch);
 }
 
+
+// Fix me: Texts render upside down
 void RenderingSystem::RenderText(sf::RenderTarget& renderTarget)
 {
     textQuery->ForEach<CText, CTransform>([&](CText& textComp, CTransform& transformComp) {
-        sf::Text text(FontManager::GetFont());
+        sf::Text text{*AssetManager::Instance().LoadFont("Default")};
         text.setString(textComp.content);
         text.setFillColor(textComp.textColor);
         text.setCharacterSize(textComp.fontSize);
@@ -248,12 +250,11 @@ void RenderingSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
     }
 
     {
-        ZoneScopedN("Render Text");
-        if (m_canDrawText) RenderText(renderTarget);
-    }
-
-    {
         ZoneScopedN("Render Sprites");
         if (m_canDrawSprites) RenderSprites(renderTarget);
+    }
+    {
+        ZoneScopedN("Render Text");
+        if (m_canDrawText) RenderText(renderTarget);
     }
 }
