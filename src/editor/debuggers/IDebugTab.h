@@ -16,5 +16,6 @@ protected:
 public:
     EngineMode   GetDisplayMode() const { return m_displayMode; }
     virtual void DrawTab(DebugTabContext& context) = 0;
+    virtual void ResetDebugger(){};
     virtual ~IDebugTab(){};
 };

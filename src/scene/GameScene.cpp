@@ -32,6 +32,8 @@ void GameScene::OnExitPlay(World* worldPtr)
     m_isPlaying = false;
     m_worldPtr  = nullptr;
     m_isPaused  = false;
+
+    SystemDebuggerHub::Instance().GetFlowFieldDebugger().ResetDebugger();
 }
 
 void GameScene::OnChangeTo(World* worldPtr) {}

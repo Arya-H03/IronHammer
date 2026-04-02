@@ -22,6 +22,7 @@ public:
     FlowFieldDebugger();
 
     void DrawTab(DebugTabContext& context) override;
+    void ResetDebugger()override;
 
     void RegisterFlowField(FlowFieldSystem* flowFieldSystem, World* worldPtr);
     void UnRegisterFlowField();

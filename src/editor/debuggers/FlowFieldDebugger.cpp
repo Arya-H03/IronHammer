@@ -26,6 +26,8 @@ void FlowFieldDebugger::DrawTab(DebugTabContext& context)
     };
 }
 
+void FlowFieldDebugger::ResetDebugger() { m_visualCells.clear(); }
+
 void FlowFieldDebugger::ShowFlowField(World* worldPtr)
 {
     for (auto& cell : m_visualCells) { worldPtr->RemoveFromEntity<CNotDrawable>(cell); }
