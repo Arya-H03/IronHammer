@@ -1,9 +1,12 @@
 #pragma once
 
+#include "core/reflection/ComponentReflection.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityInspectorHelper.h"
+
+#include <cstdint>
 
 using namespace EntityInspectorHelpers;
 using Json = nlohmann::json;
@@ -20,16 +23,17 @@ static constexpr Layer       layerValues[] = {Layer::Default, Layer::Tower, Laye
 static constexpr const char* layerNames[]  = {"Default", "Tower", "Enemy", "Bullet"};
 static constexpr size_t      layerCount    = sizeof(layerValues) / sizeof(layerValues[0]);
 
+inline void to_json(Json& json, const Layer& layer) { json = static_cast<uint32_t>(layer); }
+inline void from_json(const Json& json, Layer& layer) { layer = static_cast<Layer>(json.get<uint32_t>()); }
+
 struct CCollider
 {
-    Vect2f size     = Vect2f(32, 32);
-    Vect2f halfSize = Vect2f(16, 16);
-    Vect2f offset   = Vect2f(0, 0);
-
-    Layer    layer = Layer::Default;
-    uint32_t mask  = ~0u;
-
-    bool isTrigger = false;
+    Vect2f   size      = Vect2f(32, 32);
+    Vect2f   halfSize  = Vect2f(16, 16);
+    Vect2f   offset    = Vect2f(0, 0);
+    Layer    layer     = Layer::Default;
+    uint32_t mask      = ~0u;
+    bool     isTrigger = false;
 
     static constexpr const char* name = "Collider";
 
@@ -38,21 +42,14 @@ struct CCollider
         : size(sz), halfSize(sz.x * 0.5f, sz.y * 0.5f), offset(off), layer(layer), mask(mask), isTrigger(trigger)
     {
     }
+
     REGISTER_COMPONENT(CCollider);
 
-    void Reset()
-    {
-        size      = Vect2f(32, 32);
-        halfSize  = Vect2f(16, 16);
-        offset    = Vect2f(0, 0);
-        layer     = Layer::Default;
-        mask      = ~0u;
-        isTrigger = false;
-    }
+    void OnAfterDeserialize() { halfSize = Vect2f{size.x * 0.5f, size.y * 0.5f}; }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CCollider>("Collider", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+        if (ComponentHeader<CCollider>("Collider", ptr, RemoveComponentCallback, [this] { *this = CCollider{}; }, isDirty)) {
             if (ImGui::BeginTable("CColliderTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Size");
                 EntityInspectorHelpers::DragFloat2("##ColliderWidth", &size.x, "##ColliderHeight", &size.y, 0.1f, isDirty);
@@ -113,26 +110,13 @@ struct CCollider
     }
 };
 
-inline void to_json(Json& j, const CCollider& c)
+template <>
+struct Reflect<CCollider>
 {
-    j = {{"size", {{"x", c.size.x}, {"y", c.size.y}}},
-         {"offset", {{"x", c.offset.x}, {"y", c.offset.y}}},
-         {"layer", static_cast<uint32_t>(c.layer)},
-         {"mask", c.mask},
-         {"isTrigger", c.isTrigger}};
-}
-
-inline void from_json(const Json& j, CCollider& c)
-{
-    c.size.x    = j["size"].value("x", 1.f);
-    c.size.y    = j["size"].value("y", 1.f);
-    c.offset.x  = j["offset"].value("x", 0.f);
-    c.offset.y  = j["offset"].value("y", 0.f);
-    c.layer     = static_cast<Layer>(j.value("layer", static_cast<uint32_t>(Layer::Default)));
-    c.mask      = j.value("mask", ~0u);
-    c.isTrigger = j.value("isTrigger", false);
-    c.halfSize  = {c.size.x * 0.5f, c.size.y * 0.5f};
-}
+    static constexpr auto fields = std::make_tuple(
+        std::pair{"size", &CCollider::size}, std::pair{"offset", &CCollider::offset}, std::pair{"layer", &CCollider::layer},
+        std::pair{"mask", &CCollider::mask}, std::pair{"isTrigger", &CCollider::isTrigger});
+};
 
 struct CRigidBody
 {
@@ -159,19 +143,19 @@ struct CRigidBody
     }
     REGISTER_COMPONENT(CRigidBody);
 
-    void Reset()
+    void OnAfterDeserialize()
     {
-        velocity         = Vect2f(0, 0);
-        previousPosition = Vect2f(0, 0);
-        mass             = 1.f;
-        inverseMass      = 1.f;
-        bounciness       = 0.5f;
-        isStatic         = false;
+        if (isStatic) {
+            mass        = 0;
+            inverseMass = 0.f;
+        }
+        else inverseMass = 1.f / mass;
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CRigidBody>("RigidBody", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+        if (ComponentHeader<CRigidBody>(
+                "RigidBody", ptr, RemoveComponentCallback, [this] { *this = CRigidBody{}; }, isDirty)) {
             if (ImGui::BeginTable("CRigidBodyTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Velocity");
                 EntityInspectorHelpers::DragFloat2("##RBVelX", &velocity.x, "##RBVelY", &velocity.y, 0.1f, isDirty);
@@ -190,30 +174,13 @@ struct CRigidBody
     }
 };
 
-inline void to_json(Json& j, const CRigidBody& c)
+template <>
+struct Reflect<CRigidBody>
 {
-    j = {{"velocity", {{"x", c.velocity.x}, {"y", c.velocity.y}}},
-         {"mass", c.mass},
-         {"bounciness", c.bounciness},
-         {"isStatic", c.isStatic}};
-}
-
-inline void from_json(const Json& j, CRigidBody& c)
-{
-    c.velocity.x = j["velocity"].value("x", 0.f);
-    c.velocity.y = j["velocity"].value("y", 0.f);
-    c.mass       = j.value("mass", 1.f);
-    c.bounciness = j.value("bounciness", 0.5f);
-    c.isStatic   = j.value("isStatic", false);
-
-    if (c.isStatic) {
-        c.mass        = 0;
-        c.inverseMass = 0.f;
-    }
-    else {
-        c.inverseMass = 1.f / c.mass;
-    }
-}
+    static constexpr auto fields =
+        std::make_tuple(std::pair{"velocity", &CRigidBody::velocity}, std::pair{"mass", &CRigidBody::mass},
+                        std::pair{"bounciness", &CRigidBody::bounciness}, std::pair{"isStatic", &CRigidBody::isStatic});
+};
 
 struct CCollisionEnter
 {
@@ -227,20 +194,17 @@ struct CCollisionEnter
 
     REGISTER_COMPONENT(CCollisionEnter);
 
-    void Reset()
-    {
-        entity1 = {};
-        entity2 = {};
-    };
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CCollisionEnter>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CCollisionEnter>(name, ptr, RemoveComponentCallback, [this] { *this = CCollisionEnter{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CCollisionEnter&) { j = Json::object(); }
-inline void from_json(const Json&, CCollisionEnter&) {}
+template <>
+struct Reflect<CCollisionEnter>
+{
+    static constexpr auto fields = std::make_tuple();
+};
 
 struct CCollisionExit
 {
@@ -254,20 +218,17 @@ struct CCollisionExit
 
     REGISTER_COMPONENT(CCollisionExit);
 
-    void Reset()
-    {
-        entity1 = {};
-        entity2 = {};
-    };
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CCollisionExit>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CCollisionExit>(name, ptr, RemoveComponentCallback, [this] { *this = CCollisionExit{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CCollisionExit&) { j = Json::object(); }
-inline void from_json(const Json&, CCollisionExit&) {}
+template <>
+struct Reflect<CCollisionExit>
+{
+    static constexpr auto fields = std::make_tuple();
+};
 
 struct CCollisionStay
 {
@@ -281,17 +242,14 @@ struct CCollisionStay
 
     REGISTER_COMPONENT(CCollisionStay);
 
-    void Reset()
-    {
-        entity1 = {};
-        entity2 = {};
-    };
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CCollisionStay>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CCollisionStay>(name, ptr, RemoveComponentCallback, [this] { *this = CCollisionStay{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CCollisionStay&) { j = Json::object(); }
-inline void from_json(const Json&, CCollisionStay&) {}
+template <>
+struct Reflect<CCollisionStay>
+{
+    static constexpr auto fields = std::make_tuple();
+};

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "assets/AssetManager.h"
+#include "core/reflection/ComponentReflection.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityInspectorHelper.h"
 
 #include <cstddef>
-#include <cstdint>
-#include <nlohmann/json.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
@@ -17,15 +16,14 @@
 #include <string>
 
 using namespace EntityInspectorHelpers;
-using Json = nlohmann::json;
 
 struct CSprite
 {
-    const sf::Texture* texture     = nullptr;
-    std::string        textureName = "";
-    Vect2f             size        = Vect2f(32, 32);
     sf::IntRect        textureRect = sf::IntRect({0, 0}, {32, 32});
     sf::Color          color       = sf::Color::White;
+    const sf::Texture* texturePtr  = nullptr;
+    std::string        textureName = "";
+    Vect2f             size        = Vect2f(32, 32);
 
     static constexpr const char* name = "Sprite";
 
@@ -33,23 +31,19 @@ struct CSprite
     CSprite(const std::string& texName, Vect2f sz, sf::IntRect texRect, sf::Color col = sf::Color::White)
         : textureName(texName), size(sz), textureRect(texRect), color(col)
     {
-        texture = AssetManager::Instance().LoadTexture(textureName);
+        texturePtr = AssetManager::Instance().LoadTexture(textureName);
     }
 
     REGISTER_COMPONENT(CSprite);
 
-    void Reset()
+    void OnAfterDeserialize()
     {
-        textureName = "";
-        texture     = nullptr;
-        size        = Vect2f(32, 32);
-        textureRect = sf::IntRect({0, 0}, {32, 32});
-        color       = sf::Color::White;
+        texturePtr = textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(textureName);
     }
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CSprite>("Sprite", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+        if (ComponentHeader<CSprite>("Sprite", ptr, RemoveComponentCallback, [this] { *this = CSprite{}; }, isDirty)) {
             if (ImGui::BeginTable("CSpriteTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Texture");
                 EntityInspectorHelpers::InputText("##TextureName", textureName, isDirty);
@@ -63,28 +57,13 @@ struct CSprite
     }
 };
 
-inline void to_json(Json& j, const CSprite& c)
+template <>
+struct Reflect<CSprite>
 {
-    j                = Json::object();
-    j["textureName"] = c.textureName;
-    j["size"]        = {c.size.x, c.size.y};
-    j["textureRect"] = {c.textureRect.position.x, c.textureRect.position.y, c.textureRect.size.x, c.textureRect.size.y};
-    j["color"]       = {c.color.r, c.color.g, c.color.b, c.color.a};
-}
-
-inline void from_json(const Json& j, CSprite& c)
-{
-    c.textureName = j.value("textureName", "");
-    c.texture     = c.textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(c.textureName);
-    auto sizeArr  = j.value("size", std::vector<float>{32.f, 32.f});
-    c.size        = Vect2f(sizeArr[0], sizeArr[1]);
-
-    auto texRect  = j.value("textureRect", std::vector<int>{0, 0, 32, 32});
-    c.textureRect = sf::IntRect({texRect[0], texRect[1]}, {texRect[2], texRect[3]});
-
-    auto col = j.value("color", std::vector<uint8_t>{255, 255, 255, 255});
-    c.color  = sf::Color(col[0], col[1], col[2], col[3]);
-}
+    static constexpr auto fields =
+        std::make_tuple(std::pair{"textureName", &CSprite::textureName}, std::pair{"size", &CSprite::size},
+                        std::pair{"textureRect", &CSprite::textureRect}, std::pair{"color", &CSprite::color});
+};
 
 struct CShape
 {
@@ -101,20 +80,12 @@ struct CShape
         : points(pts), fillColor(fill), outlineColor(outline), radius(rad), outlineThickness(thickness)
     {
     }
-    REGISTER_COMPONENT(CShape);
 
-    void Reset()
-    {
-        points           = 3;
-        radius           = 10.f;
-        outlineThickness = 1.f;
-        fillColor        = sf::Color::White;
-        outlineColor     = sf::Color::White;
-    }
+    REGISTER_COMPONENT(CShape);
 
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CShape>("Shape", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+        if (ComponentHeader<CShape>("Shape", ptr, RemoveComponentCallback, [this] { *this = CShape{}; }, isDirty)) {
             if (ImGui::BeginTable("CShapeTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Points");
                 EntityInspectorHelpers::DragScalar("##Points", &points, isDirty);
@@ -133,35 +104,23 @@ struct CShape
     }
 };
 
-inline void to_json(Json& j, const CShape& c)
+template <>
+struct Reflect<CShape>
 {
-    j = {{"points", c.points},
-         {"radius", c.radius},
-         {"outlineThickness", c.outlineThickness},
-         {"fillColor", {c.fillColor.r, c.fillColor.g, c.fillColor.b, c.fillColor.a}},
-         {"outlineColor", {c.outlineColor.r, c.outlineColor.g, c.outlineColor.b, c.outlineColor.a}}};
-}
-
-inline void from_json(const Json& j, CShape& c)
-{
-    c.points           = j.value("points", 3);
-    c.radius           = j.value("radius", 10.f);
-    c.outlineThickness = j.value("outlineThickness", 1.f);
-
-    auto fill   = j.value("fillColor", std::vector<uint8_t>{255, 255, 255, 255});
-    c.fillColor = sf::Color(fill[0], fill[1], fill[2], fill[3]);
-
-    auto outline   = j.value("outlineColor", std::vector<uint8_t>{255, 255, 255, 255});
-    c.outlineColor = sf::Color(outline[0], outline[1], outline[2], outline[3]);
-}
+    static constexpr auto fields =
+        std::make_tuple(std::pair{"points", &CShape::points}, std::pair{"radius", &CShape::radius},
+                        std::pair{"outlineThickness", &CShape::outlineThickness}, std::pair{"fillColor", &CShape::fillColor},
+                        std::pair{"outlineColor", &CShape::outlineColor});
+};
 
 struct CText
 {
-    std::string                  content   = "";
-    sf::Color                    textColor = sf::Color::White;
-    Vect2f                       offset    = Vect2f(0, 0);
-    float                        fontSize  = 12.f;
-    static constexpr const char* name      = "Text";
+    std::string content   = "";
+    sf::Color   textColor = sf::Color::White;
+    Vect2f      offset    = Vect2f(0, 0);
+    float       fontSize  = 12.f;
+
+    static constexpr const char* name = "Text";
 
     CText() = default;
     CText(const std::string& txt, const sf::Color& color, const Vect2f& off, float size)
@@ -170,17 +129,9 @@ struct CText
     }
     REGISTER_COMPONENT(CText);
 
-    void Reset()
-    {
-        content   = "";
-        textColor = sf::Color::White;
-        offset    = Vect2f(0, 0);
-        fontSize  = 12.f;
-    }
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        if (ComponentHeader<CText>("Text", ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty)) {
+        if (ComponentHeader<CText>("Text", ptr, RemoveComponentCallback, [this] { *this = CText{}; }, isDirty)) {
             if (ImGui::BeginTable("CTextTable", 2, ImGuiTableFlags_SizingFixedFit)) {
                 TableNextField("Content");
                 EntityInspectorHelpers::InputText("##TextContent", content, isDirty);
@@ -196,24 +147,13 @@ struct CText
     }
 };
 
-inline void to_json(Json& j, const CText& c)
+template <>
+struct Reflect<CText>
 {
-    j = {{"content", c.content},
-         {"fontSize", c.fontSize},
-         {"offset", {{"x", c.offset.x}, {"y", c.offset.y}}},
-         {"textColor", {c.textColor.r, c.textColor.g, c.textColor.b, c.textColor.a}}};
-}
-
-inline void from_json(const Json& j, CText& c)
-{
-    c.content  = j.value("content", std::string{""});
-    c.fontSize = j.value("fontSize", 12.f);
-    c.offset.x = j["offset"].value("x", 0.f);
-    c.offset.y = j["offset"].value("y", 0.f);
-
-    auto col    = j.value("textColor", std::vector<uint8_t>{255, 255, 255, 255});
-    c.textColor = sf::Color(col[0], col[1], col[2], col[3]);
-}
+    static constexpr auto fields =
+        std::make_tuple(std::pair{"content", &CText::content}, std::pair{"fontSize", &CText::fontSize},
+                        std::pair{"offset", &CText::offset}, std::pair{"textColor", &CText::textColor});
+};
 
 struct CNotDrawable
 {
@@ -222,13 +162,14 @@ struct CNotDrawable
     CNotDrawable() = default;
     REGISTER_COMPONENT(CNotDrawable);
 
-    void Reset() {};
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CNotDrawable>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CNotDrawable>(name, ptr, RemoveComponentCallback, [this] { *this = CNotDrawable{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CNotDrawable&) { j = Json::object(); }
-inline void from_json(const Json&, CNotDrawable&) {}
+template <>
+struct Reflect<CNotDrawable>
+{
+    static constexpr auto fields = std::make_tuple();
+};

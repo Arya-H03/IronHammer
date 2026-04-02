@@ -1,6 +1,8 @@
 #pragma once
 
+#include "core/CoreComponents.hpp"
 #include "core/utils/Debug.h"
+#include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "editor/Gizmo.h"
@@ -62,6 +64,7 @@ public:
                                          [&]() { m_editorContext.viewPortGizmMode = GismoMode::Position; });
         m_inputManager.CreateInputAction("GizmoScaleMode", sf::Keyboard::Key::E, InputTrigger::Pressed,
                                          [&]() { m_editorContext.viewPortGizmMode = GismoMode::Scale; });
+
     }
 
     ~Editor() { SystemDebuggerHub::Instance().GetEditorDebugger().UnRegisterEditor(); }

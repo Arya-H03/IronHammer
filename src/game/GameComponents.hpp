@@ -1,11 +1,10 @@
 #pragma once
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/EntityInspectorHelper.h"
+#include "core/reflection/ComponentReflection.h"
 
-#include <nlohmann/json.hpp>
 
 using namespace EntityInspectorHelpers;
-using Json = nlohmann::json;
 
 struct CTower
 {
@@ -14,16 +13,17 @@ struct CTower
     CTower() = default;
     REGISTER_COMPONENT(CTower);
 
-    void Reset() {};
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CTower>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CTower>(name, ptr, RemoveComponentCallback, [this] { *this = CTower{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CTower&) { j = Json::object(); }
-inline void from_json(const Json&, CTower&) {}
+template <>
+struct Reflect<CTower>
+{
+    static constexpr auto fields = std::make_tuple();
+};
 
 struct CEnemy
 {
@@ -32,13 +32,14 @@ struct CEnemy
     CEnemy() = default;
     REGISTER_COMPONENT(CEnemy);
 
-    void Reset() {};
-
     void GuiInspectorDisplay(void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
     {
-        ComponentHeader<CEnemy>(name, ptr, RemoveComponentCallback, [this] { Reset(); }, isDirty);
+        ComponentHeader<CEnemy>(name, ptr, RemoveComponentCallback, [this] { *this = CEnemy{}; }, isDirty);
     }
 };
 
-inline void to_json(Json& j, const CEnemy&) { j = Json::object(); }
-inline void from_json(const Json&, CEnemy&) {}
+template <>
+struct Reflect<CEnemy>
+{
+    static constexpr auto fields = std::make_tuple();
+};

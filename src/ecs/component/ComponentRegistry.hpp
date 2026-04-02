@@ -1,47 +1,53 @@
 #pragma once
-#include <algorithm>
-#include <functional>
-#include <imgui.h>
-#include <cstddef>
-#include <cstring>
-#include <cassert>
-#include <string>
-#include <vector>
-#include <nlohmann/json.hpp>
+#include "core/reflection/ComponentReflection.h"
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
 #include "nlohmann/json_fwd.hpp"
 
-using DisplayComponentFn = void (*)(void*, const std::function<void()>&, bool*);
-using MoveComponentFn = void (*)(void*, void*, size_t, size_t);
-using SerializeComponentFn = void (*)(nlohmann::json&, void*);
-using DeSerializeComponentFn = void* (*) (nlohmann::json&);
-using EmplaceComponentFn = void (*)(void*, void*, size_t);
-using DefaultConstructComponentFn = void* (*) ();
-using DestroyComponentFn = void (*)(void*);
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstring>
+#include <functional>
+#include <imgui.h>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+using Json = nlohmann::json;
+
+using DisplayComponentFn          = void (*)(void*, const std::function<void()>&, bool*);
+using MoveComponentFn             = void (*)(void*, void*, size_t, size_t);
+using SerializeComponentFn        = void (*)(nlohmann::json&, void*);
+using DeSerializeComponentFn      = void* (*)(nlohmann::json&);
+using EmplaceComponentFn          = void (*)(void*, void*, size_t);
+using DefaultConstructComponentFn = void* (*)();
+using DestroyComponentFn          = void (*)(void*);
 
 struct ComponentInfo
 {
-    ComponentId id;
-    size_t size;
-    const char* name;
-    DisplayComponentFn DisplayComponent;
-    MoveComponentFn MoveComponent;
-    SerializeComponentFn SerializeComponent;
-    DeSerializeComponentFn DeSerializeComponent;
-    EmplaceComponentFn EmplaceComponent;
+    ComponentId                 id;
+    size_t                      size;
+    const char*                 name;
+    DisplayComponentFn          DisplayComponent;
+    MoveComponentFn             MoveComponent;
+    SerializeComponentFn        SerializeComponent;
+    DeSerializeComponentFn      DeSerializeComponent;
+    EmplaceComponentFn          EmplaceComponent;
     DefaultConstructComponentFn DefaultConstructComponent;
-    DestroyComponentFn DestroyComponent;
+    DestroyComponentFn          DestroyComponent;
 };
 struct PendingComponent
 {
     const ComponentInfo* componentInfoPtr = nullptr;
+
     void* componentDataPtr = nullptr;
 
     PendingComponent() = default;
-    PendingComponent(const ComponentInfo* info, void* data) : componentInfoPtr(info), componentDataPtr(data) { }
+    PendingComponent(const ComponentInfo* info, void* data) : componentInfoPtr(info), componentDataPtr(data) {}
 
-    PendingComponent(PendingComponent&& other) noexcept : componentInfoPtr(other.componentInfoPtr), componentDataPtr(other.componentDataPtr)
+    PendingComponent(PendingComponent&& other) noexcept
+        : componentInfoPtr(other.componentInfoPtr), componentDataPtr(other.componentDataPtr)
     {
         other.componentDataPtr = nullptr;
         other.componentInfoPtr = nullptr;
@@ -49,8 +55,7 @@ struct PendingComponent
 
     PendingComponent& operator=(PendingComponent&& other) noexcept
     {
-        if (this != &other)
-        {
+        if (this != &other) {
             if (componentInfoPtr) componentInfoPtr->DestroyComponent(componentDataPtr);
 
             componentInfoPtr = other.componentInfoPtr;
@@ -62,7 +67,7 @@ struct PendingComponent
         return *this;
     }
 
-    PendingComponent(const PendingComponent&) = delete;
+    PendingComponent(const PendingComponent&)            = delete;
     PendingComponent& operator=(const PendingComponent&) = delete;
 
     ~PendingComponent()
@@ -73,8 +78,7 @@ struct PendingComponent
 
 class ComponentRegistry
 {
-  private:
-
+private:
     inline static std::vector<ComponentInfo> componentInfos;
 
     ComponentRegistry() = delete;
@@ -99,82 +103,84 @@ class ComponentRegistry
         component.GuiInspectorDisplay();
     }
 
-  public:
-
+public:
     inline static const std::vector<ComponentInfo>& GetComponentInfos() { return componentInfos; }
+
     static const char* GetComponentNameById(ComponentId id) { return componentInfos[id].name; }
 
-    template <typename ComponentType>
+    template <typename Component>
     static void RegisterComponent()
     {
         ComponentInfo newComponentInfo;
 
-        newComponentInfo.id = GetOrMakeComponentId<ComponentType>();
+        newComponentInfo.id = GetOrMakeComponentId<Component>();
         assert(newComponentInfo.id < MaxComponents);
-        newComponentInfo.name = ComponentType::name;
-        newComponentInfo.size = sizeof(ComponentType);
-        newComponentInfo.DisplayComponent = [](void* ptr, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
-        {
-            ComponentType* component = reinterpret_cast<ComponentType*>(ptr);
-            component->GuiInspectorDisplay(ptr, RemoveComponentCallback, isDirty);
-        };
-        newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex)
-        {
-            ComponentType* srcArray = reinterpret_cast<ComponentType*>(src);
-            ComponentType* dstArray = reinterpret_cast<ComponentType*>(dst);
 
-            if constexpr (std::is_trivially_copyable_v<ComponentType>)
-            {
+        newComponentInfo.name = Component::name;
+        newComponentInfo.size = sizeof(Component);
+
+        newComponentInfo.DisplayComponent = [](void* ptr, const std::function<void()>& RemoveComponentCallback,
+                                               bool* isDirty = nullptr) {
+            Component* component = reinterpret_cast<Component*>(ptr);
+            // if constexpr (requires { component->GuiInspectorDisplay(); }) {
+            component->GuiInspectorDisplay(ptr, RemoveComponentCallback, isDirty);
+            //}
+        };
+
+        newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex) {
+            Component* srcArray = reinterpret_cast<Component*>(src);
+            Component* dstArray = reinterpret_cast<Component*>(dst);
+
+            if constexpr (std::is_trivially_copyable_v<Component>) {
                 // For trivial types, memcpy is safe and faster
-                std::memcpy(&dstArray[dstIndex], &srcArray[srcIndex], sizeof(ComponentType));
+                std::memcpy(&dstArray[dstIndex], &srcArray[srcIndex], sizeof(Component));
             }
-            else
-            {
+            else {
                 // For non trivial types, use move constructor
-                new (&dstArray[dstIndex]) ComponentType(std::move(srcArray[srcIndex]));
+                new (&dstArray[dstIndex]) Component(std::move(srcArray[srcIndex]));
                 // srcArray[srcIndex].~T();
             }
         };
-        newComponentInfo.SerializeComponent = [](nlohmann::json& json, void* ptr)
-        {
-            ComponentType* componentPtr = reinterpret_cast<ComponentType*>(ptr);
-            json[ComponentType::name] = *componentPtr;
+        newComponentInfo.SerializeComponent = [](Json& entityJson, void* ptr) {
+            Component*       componentPtr  = reinterpret_cast<Component*>(ptr);
+            Json&            componentJson = entityJson[Component::name];
+            SerializeVisitor visitor{componentJson};
+            ReflectVisit(*componentPtr, visitor);
         };
-        newComponentInfo.DeSerializeComponent = [](nlohmann::json& json) -> void*
-        {
-            if (!json.contains(ComponentType::name))
-            {
+        newComponentInfo.DeSerializeComponent = [](Json& entityJson) -> void* {
+            if (!entityJson.contains(Component::name)) {
                 LOG_WARNING("Tried to deserialize json that doesn't contain required component");
                 return nullptr;
             }
 
-            ComponentType component {};
-            from_json(json[ComponentType::name], component);
+            Component          component{};
+            Json&              componentJson = entityJson[Component::name];
+            DeSerializeVisitor visitor{componentJson};
+            ReflectVisit(component, visitor);
+
+            if constexpr (requires { component.OnAfterDeserialize(); }) { component.OnAfterDeserialize(); }
 
             // It will be funny to forget to delete this later
-            return new ComponentType(std::move(component));
+            return new Component(std::move(component));
         };
 
-        newComponentInfo.EmplaceComponent = [](void* arrayPtr, void* componentPtr, size_t index)
-        {
-            ComponentType* array = reinterpret_cast<ComponentType*>(arrayPtr);
-            ComponentType* source = reinterpret_cast<ComponentType*>(componentPtr);
+        newComponentInfo.EmplaceComponent = [](void* arrayPtr, void* componentPtr, size_t index) {
+            Component* array  = reinterpret_cast<Component*>(arrayPtr);
+            Component* source = reinterpret_cast<Component*>(componentPtr);
 
             // It will be moved into allocator, no need to delete manually.
-            new (&array[index]) ComponentType(std::move(*source));
+            new (&array[index]) Component(std::move(*source));
         };
 
-        newComponentInfo.DestroyComponent = [](void* componentPtr)
-        {
-            ComponentType* component = reinterpret_cast<ComponentType*>(componentPtr);
-            component->~ComponentType();
+        newComponentInfo.DestroyComponent = [](void* componentPtr) {
+            Component* component = reinterpret_cast<Component*>(componentPtr);
+            component->~Component();
             operator delete(component);
         };
 
-        newComponentInfo.DefaultConstructComponent = []() -> void*
-        {
+        newComponentInfo.DefaultConstructComponent = []() -> void* {
             // It will be funny to forget to delete this later
-            return new ComponentType();
+            return new Component();
         };
 
         if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
@@ -190,8 +196,7 @@ class ComponentRegistry
 
     static const ComponentInfo* GetComponentInfoPtrByName(const std::string name)
     {
-        for (const auto& componentInfo : componentInfos)
-        {
+        for (const auto& componentInfo : componentInfos) {
             if (componentInfo.name && name == componentInfo.name) return &componentInfo;
         }
         return nullptr;
@@ -208,10 +213,7 @@ class ComponentRegistry
     static ComponentSignatureMask MakeSignatureMask(std::vector<PendingComponent>& pendingComponents)
     {
         ComponentSignatureMask signature;
-        for (const auto& component : pendingComponents)
-        {
-            signature.set(component.componentInfoPtr->id);
-        }
+        for (const auto& component : pendingComponents) { signature.set(component.componentInfoPtr->id); }
         return signature;
     }
 
@@ -219,19 +221,16 @@ class ComponentRegistry
     {
         std::vector<PendingComponent> pendingComponents;
 
-        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
-        {
-            const std::string componentName = it.key();
+        for (auto it = entityJson.begin(); it != entityJson.end(); ++it) {
+            const std::string    componentName = it.key();
             const ComponentInfo* componentInfo = ComponentRegistry::GetComponentInfoPtrByName(componentName);
-            if (!componentInfo)
-            {
+            if (!componentInfo) {
                 LOG_WARNING("Unknown component during deserialization: " + componentName);
                 continue;
             }
 
             void* componentPtr = componentInfo->DeSerializeComponent(entityJson);
-            if (!componentPtr)
-            {
+            if (!componentPtr) {
                 LOG_WARNING("Failed to deserialize component: " + componentName);
                 continue;
             }
@@ -245,8 +244,7 @@ class ComponentRegistry
     {
         std::string name = GetComponentNameByType<Component>();
 
-        for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
-        {
+        for (auto it = entityJson.begin(); it != entityJson.end(); ++it) {
             if (it.key() != name) continue;
 
             const ComponentInfo* info = ComponentRegistry::GetComponentInfoPtrByName(name);
@@ -263,10 +261,8 @@ class ComponentRegistry
     template <typename T>
     static T* GetComponentFromPendings(const std::vector<PendingComponent>& pendingComponent)
     {
-        for (auto& component : pendingComponent)
-        {
-            if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
-            {
+        for (auto& component : pendingComponent) {
+            if (component.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>()) {
                 T* componentPtr = reinterpret_cast<T*>(component.componentDataPtr);
                 return componentPtr;
             }
@@ -278,8 +274,7 @@ class ComponentRegistry
     static T* GetComponentFromPending(const PendingComponent& pendingComponent)
     {
         if (!pendingComponent.componentDataPtr || !pendingComponent.componentInfoPtr) return nullptr;
-        if (pendingComponent.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>())
-        {
+        if (pendingComponent.componentInfoPtr->id == ComponentRegistry::GetComponentID<T>()) {
             T* componentPtr = reinterpret_cast<T*>(pendingComponent.componentDataPtr);
             return componentPtr;
         }

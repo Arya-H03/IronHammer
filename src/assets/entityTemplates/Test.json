@@ -1,25 +1,24 @@
 {
   "Collider": {
     "isTrigger": false,
-    "layer": 4,
-    "mask": 4294967290,
+    "layer": 1,
+    "mask": 4294967295,
     "offset": {
       "x": 0.0,
       "y": 0.0
     },
     "size": {
-      "x": 32.0,
-      "y": 32.0
+      "x": 100.0,
+      "y": 100.0
     }
   },
-  "Enemy": {},
   "Movement": {
-    "speed": 200.0
+    "speed": 10.0
   },
   "RigidBody": {
-    "bounciness": 0.10000000149011612,
+    "bounciness": 0.5,
     "isStatic": false,
-    "mass": 10.0,
+    "mass": 1.0,
     "velocity": {
       "x": 10.0,
       "y": 10.0
@@ -28,26 +27,26 @@
   "Sprite": {
     "color": [
       255,
-      255,
-      255,
+      237,
+      0,
       255
     ],
-    "size": [
-      32.0,
-      32.0
-    ],
+    "size": {
+      "x": 100.0,
+      "y": 100.0
+    },
     "textureName": "Square",
     "textureRect": [
       0,
       0,
-      256,
-      256
+      32,
+      32
     ]
   },
   "Transform": {
     "position": {
-      "x": 0.0,
-      "y": 0.0
+      "x": 561.0,
+      "y": 462.0
     },
     "rotation": 0.0,
     "scale": {

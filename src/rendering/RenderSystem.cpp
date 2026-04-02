@@ -156,10 +156,10 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
 
     spriteQuery->ForEach<CSprite, CTransform>([&](CSprite& csprite, CTransform& ctransform) {
         // Batch
-        if (currentTexture != csprite.texture) {
+        if (currentTexture != csprite.texturePtr) {
             renderTarget.draw(batch, currentTexture);
             batch.clear();
-            currentTexture = csprite.texture;
+            currentTexture = csprite.texturePtr;
         }
 
         AddSpriteToBatch(csprite, ctransform, batch);
