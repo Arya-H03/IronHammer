@@ -1,0 +1,57 @@
+{
+  "Collider": {
+    "isTrigger": false,
+    "layer": 1,
+    "mask": 4294967295,
+    "offset": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "size": {
+      "x": 100.0,
+      "y": 100.0
+    }
+  },
+  "Movement": {
+    "speed": 10.0
+  },
+  "RigidBody": {
+    "bounciness": 0.5,
+    "isStatic": false,
+    "mass": 1.0,
+    "velocity": {
+      "x": 10.0,
+      "y": 10.0
+    }
+  },
+  "Sprite": {
+    "color": [
+      0,
+      255,
+      51,
+      255
+    ],
+    "size": {
+      "x": 100.0,
+      "y": 100.0
+    },
+    "textureName": "Square",
+    "textureRect": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  "Transform": {
+    "position": {
+      "x": 399.0,
+      "y": 408.0
+    },
+    "rotation": 0.0,
+    "scale": {
+      "x": 1.0,
+      "y": 1.0
+    }
+  }
+}

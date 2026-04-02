@@ -3,7 +3,7 @@
 #include "core/utils/Colors.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
-#include "ecs/entity/EntityInspectorHelper.h"
+#include "editor/entityInspector/EntityInspectorHelper.h"
 #include "ecs/World.hpp"
 #include "engine/Engine.h"
 #include "imgui.h"

@@ -7,7 +7,7 @@
 #include "engine/Engine.h"
 #include "ecs/World.hpp"
 #include "ecs/entity/EntityTemplateManager.h"
-#include "ecs/entity/EntityInspector.h"
+#include "editor/entityInspector/EntityInspector.h"
 #include "editor/EditorConfig.h"
 
 struct EditorContext

@@ -1,6 +1,5 @@
 #pragma once
 #include "assets/AssetManager.h"
-#include "core/utils/Colors.h"
 #include "imgui.h"
 
 #include <cstdint>
@@ -15,7 +14,7 @@ inline float inputFieldWidth = 100;
 inline float colorFieldWidth = 225;
 
 template <typename T>
-inline bool ComponentHeader(const char* label, void* ptr, const std::function<void()>& RemoveComponentCallback,
+inline bool ComponentHeader(const char* label, T* ptr, const std::function<void()>& RemoveComponentCallback,
                             const std::function<void()>& ResetCallback, bool* isDirty = nullptr)
 {
     std::ostringstream oss;

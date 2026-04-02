@@ -3,6 +3,7 @@
 #include "core/utils/Debug.h"
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/World.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "input/InputSystem.h"
@@ -55,6 +56,9 @@ void Engine::Init()
     bool ok = ImGui::SFML::Init(m_window);
     assert(ok && "ImGui failed to initialize");
 
+    ComponentRegistry::RegisterAllComponents();
+
+    m_entityTemplateManager.LoadAllEntityTemplates();
     LoadEditorSceneData();
 
     m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize));

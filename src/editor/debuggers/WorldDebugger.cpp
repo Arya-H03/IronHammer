@@ -2,7 +2,7 @@
 
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
-#include "ecs/entity/EntityInspector.h"
+#include "editor/entityInspector/EntityInspector.h"
 #include "ecs/World.hpp"
 #include "engine/Engine.h"
 

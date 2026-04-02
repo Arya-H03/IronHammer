@@ -33,7 +33,7 @@ private:
     const float                                                      m_iconTexturePadding = 0.8f;
 
 public:
-    EntityTemplateManager() { LoadAllEntityTemplates(); }
+    EntityTemplateManager() = default;
 
     const std::unordered_map<std::string, std::unique_ptr<EntityTemplate>>& GetEntityTemplates() const
     {

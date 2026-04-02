@@ -1,8 +1,17 @@
 #pragma once
+#include "core/CoreComponents.hpp"
 #include "core/reflection/ComponentReflection.h"
 #include "core/utils/Debug.h"
 #include "ecs/common/ECSCommon.h"
+#include "editor/entityInspector/componentGui/ComponentGui.h"
+#include "editor/entityInspector/componentGui/CoreComponentsGui.h"
+#include "editor/entityInspector/componentGui/GameComponentsGui.h"
+#include "editor/entityInspector/componentGui/PhysicsComponentsGui.h"
+#include "editor/entityInspector/componentGui/RenderingComponentsGui.h"
+#include "game/GameComponents.hpp"
 #include "nlohmann/json_fwd.hpp"
+#include "physics/PhysicsComponents.hpp"
+#include "rendering/RenderingComponents.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -96,18 +105,6 @@ private:
         return id;
     }
 
-    template <typename ComponentType>
-    static void DrawDebugGUI(void* ptr)
-    {
-        ComponentType& component = *reinterpret_cast<ComponentType*>(ptr);
-        component.GuiInspectorDisplay();
-    }
-
-public:
-    inline static const std::vector<ComponentInfo>& GetComponentInfos() { return componentInfos; }
-
-    static const char* GetComponentNameById(ComponentId id) { return componentInfos[id].name; }
-
     template <typename Component>
     static void RegisterComponent()
     {
@@ -121,10 +118,8 @@ public:
 
         newComponentInfo.DisplayComponent = [](void* ptr, const std::function<void()>& RemoveComponentCallback,
                                                bool* isDirty = nullptr) {
-            Component* component = reinterpret_cast<Component*>(ptr);
-            // if constexpr (requires { component->GuiInspectorDisplay(); }) {
-            component->GuiInspectorDisplay(ptr, RemoveComponentCallback, isDirty);
-            //}
+            Component* component = static_cast<Component*>(ptr);
+            ComponentInspectorGui<Component>::Display(*component, RemoveComponentCallback, isDirty);
         };
 
         newComponentInfo.MoveComponent = [](void* src, void* dst, size_t srcIndex, size_t dstIndex) {
@@ -187,6 +182,27 @@ public:
         componentInfos[newComponentInfo.id] = newComponentInfo;
     }
 
+public:
+    inline static const std::vector<ComponentInfo>& GetComponentInfos() { return componentInfos; }
+
+    static const char* GetComponentNameById(ComponentId id) { return componentInfos[id].name; }
+
+    static void RegisterAllComponents()
+    {
+        RegisterComponent<CTransform>();
+        RegisterComponent<CMovement>();
+        RegisterComponent<CCollider>();
+        RegisterComponent<CRigidBody>();
+        RegisterComponent<CCollisionEnter>();
+        RegisterComponent<CCollisionExit>();
+        RegisterComponent<CCollisionStay>();
+        RegisterComponent<CSprite>();
+        RegisterComponent<CShape>();
+        RegisterComponent<CNotDrawable>();
+        RegisterComponent<CText>();
+        RegisterComponent<CTower>();
+        RegisterComponent<CEnemy>();
+    }
     template <typename ComponentType>
     static ComponentId GetComponentID()
     {
@@ -281,6 +297,9 @@ public:
 
         return nullptr;
     }
+
+    static const ComponentInfo& GetComponentInfoById(ComponentId id) { return componentInfos[id]; }
+
     // Deprecated
     template <typename ComponentType>
     static const char* GetComponentNameByType(const ComponentType& component)
@@ -295,14 +314,4 @@ public:
         ComponentId id = GetComponentID<ComponentType>();
         return componentInfos[id].name;
     }
-
-    static const ComponentInfo& GetComponentInfoById(ComponentId id) { return componentInfos[id]; }
 };
-
-template <typename ComponentType>
-struct ComponentAutoRegister
-{
-    ComponentAutoRegister() { ComponentRegistry::RegisterComponent<ComponentType>(); }
-};
-
-#define REGISTER_COMPONENT(TYPE) inline static ComponentAutoRegister<TYPE> autoRegister_##TYPE;
