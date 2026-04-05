@@ -109,6 +109,7 @@ public:
         if (!ValidateEntity(entity)) return nullptr;
         EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
         Archetype&             archetype      = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        if(!archetype.HasComponent<Component>()) return nullptr;
         return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
     }
 

@@ -25,9 +25,9 @@ class Archetype
 private:
     std::vector<ArchetypeChunk> m_chunks;
 
-    std::vector<TypeErasedBlockAllocator> m_allocators; // dens
-    uint16_t m_densIds[MaxComponents];                  // dens Ids : Give Allocator Index -> Get ComponentId
-    uint16_t m_sparse[MaxComponents];                   // sparse   : Give ComponentId     -> Get Allocator Index
+    std::vector<TypeErasedBlockAllocator> m_allocators;             // dens
+    uint16_t                              m_densIds[MaxComponents]; // dens Ids : Give Allocator Index -> Get ComponentId
+    uint16_t                              m_sparse[MaxComponents];  // sparse   : Give ComponentId     -> Get Allocator Index
 
     ArchetypeId            m_archetypeId;
     ComponentSignatureMask m_componentSignature;
@@ -67,10 +67,7 @@ public:
     const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
     ComponentSignatureMask             GetComponentSignature() const { return m_componentSignature; }
 
-    bool HasComponent(ComponentId id) const
-    {
-        return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
-    }
+    bool HasComponent(ComponentId id) const { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
 
     Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -85,8 +82,8 @@ public:
         bool isIndexInChunkValid = entityLocation.indexInChunk < m_chunks[entityLocation.chunkIndex].size;
 #ifndef NDEBUG
         if (!isChunkIndexValid)
-            LOG_WARNING(std::format("Invalid chunk index: {} | Should be at most {}", entityLocation.chunkIndex,
-                                    m_chunks.size()));
+            LOG_WARNING(
+                std::format("Invalid chunk index: {} | Should be at most {}", entityLocation.chunkIndex, m_chunks.size()));
         if (!isIndexInChunkValid)
             LOG_WARNING(std::format("Invalid index in chunk: {} | Should be at most {}", entityLocation.indexInChunk,
                                     m_chunks[entityLocation.indexInChunk].size));
@@ -123,7 +120,7 @@ public:
         if (id >= MaxComponents) return nullptr;
 
         uint16_t denseIndex = m_sparse[id];
-        assert(denseIndex < m_allocators.size() && "Invalid index in m_allocators[index]");
+        assert(denseIndex < m_allocators.size() && "Tried to access a component not in the archetype");
 
         if (entityLocation.chunkIndex >= m_chunks.size()) return nullptr;
 
