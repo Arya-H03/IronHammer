@@ -79,6 +79,10 @@ void Engine::EnterPlayMode()
     LoadTempSceneData();
 
     m_currentWorld = m_tempWorld.get();
+    ///////Update to create all entities from scene data///////
+    m_currentWorld->UpdateWorld();
+    //////////////////////////////////////////////////////////
+
     SystemDebuggerHub::Instance().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
     m_renderSystem.SetupSystem(m_currentWorld);

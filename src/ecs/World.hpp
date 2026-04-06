@@ -99,12 +99,15 @@ public:
     Json SerializeEntity(EntityStorageLocation entityLocation) { return m_entityManager.SerializeEntity(entityLocation); }
     Json SerializeWorld() { return m_entityManager.SerializeAllEntites(); }
 
+    // Deserialize completes on next frame
     void DeserializeWorld(Json worldJson)
     {
         for (auto& entityJson : worldJson["entities"]) {
             std::vector<PendingComponent> pendingComponents =
                 ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityJson);
+
             m_commandBuffer.CreateEntityFromTemplate(m_entityManager, std::move(pendingComponents));
         }
     }
+
 };
