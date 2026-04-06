@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <cmath>
@@ -72,7 +73,7 @@ class ViewportPanel
         }
 
         Viewport::UpdateViewportImage(ImGui::GetCursorScreenPos(), drawSize);
-        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize);
+        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize, ImVec2(0,1),ImVec2(1,0));
 
         if (ImGui::BeginDragDropTarget())
         {

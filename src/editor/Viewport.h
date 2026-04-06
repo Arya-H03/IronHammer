@@ -49,7 +49,7 @@ class Viewport
         if (x < 0 || y < 0 || x > m_size.x || y > m_size.y) return { -1.0f, -1.0f };
 
         // flip Y because render texture
-        y = m_size.y - y;
+       // y = m_size.y - y;
 
         return { x, y };
     }
@@ -78,7 +78,7 @@ class Viewport
 
         return ImVec2(
                m_viewportImagePos.x + (float)texturePixel.x * scaleX,
-               m_viewportImagePos.y + m_viewportImageDrawSize.y - (float)texturePixel.y * scaleY  // Y flip
+               m_viewportImagePos.y +  (float)texturePixel.y * scaleY  // Y flip
            );
     }
 };
