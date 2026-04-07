@@ -24,6 +24,7 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
 
+    m_flowFieldSystem.UpdateFlowField(worldPtr);
     SpawnTestEntities();
 }
 
@@ -45,6 +46,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     if (m_isPaused) return;
 
     m_inputManager.Update(inputSystem);
+    m_flowFieldSystem.UpdateFlowAgents();
     m_movementSystem.HandleMovementSystem();
     m_collisionSystem.HandleCollisionSystem(worldPtr);
 

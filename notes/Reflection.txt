@@ -1,0 +1,33 @@
+             Simulating Reflection in C++
+                                                                            ─────────────────────────────────────────────────────────────────────────
+
+                                                                            template <>
+                                                                            struct Reflect<Component> ← one definition per type
+                                                                            {
+                                                                                static constexpr auto fields = std::make_tuple(
+                                                                                    std::pair{ "field1",  &Component::field1  },
+                                                                                    std::pair{ "field2",  &Component::field2  },
+                                                                                    std::pair{ "field3",  &Component::field3  }
+                                                                                );                        │
+                                                                            };                            │  member pointer stores which
+                                                                                                          │  field, not where in memory yet
+                                                                                                          ▼
+                                                                                    ReflectVisit( component, visitor )
+                                                                                    │
+                                                                                    │   std::apply unpacks the tuple
+                                                                                    │   fold expression calls Field() once per pair
+                                                                                    │
+                                                                                    ├──  visitor.Field( "field1",  component.*&Component::field1 )
+                                                                                    ├──  visitor.Field( "field2",  component.*&Component::field2 )
+                                                                                    └──  visitor.Field( "field3",  component.*&Component::field3 )
+                                                                                                        │
+                                                                                        overload resolution picks the right Field() at compile time
+                                                                                                        │
+                                                                                        ┌────────────────────────────────┐
+                                                                                        ▼                                ▼
+                                                                                SerializeVisitor                 DeserializeVisitor
+                                                                                json[name] = value               value = json[name]
+                                                                                        │                                │
+                                                                                        ▼                                ▼
+                                                                                    JSON file                          Component{}
+                                                                            ─────────────────────────────────────────────────────────────────────────

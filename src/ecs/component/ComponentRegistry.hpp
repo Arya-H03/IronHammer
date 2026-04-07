@@ -118,7 +118,7 @@ private:
 
         newComponentInfo.DisplayComponent = [](void* ptr, const std::function<void()>& RemoveComponentCallback,
                                                bool* isDirty = nullptr) {
-            Component* component = static_cast<Component*>(ptr);
+            Component* component = reinterpret_cast<Component*>(ptr);
             ComponentInspectorGui<Component>::Display(*component, RemoveComponentCallback, isDirty);
         };
 
@@ -202,7 +202,11 @@ public:
         RegisterComponent<CText>();
         RegisterComponent<CTower>();
         RegisterComponent<CEnemy>();
+        RegisterComponent<CFlowFieldObstacle>();
+        RegisterComponent<CFlowFieldTarget>();
+        RegisterComponent<CFlowFieldAgent>();
     }
+
     template <typename ComponentType>
     static ComponentId GetComponentID()
     {

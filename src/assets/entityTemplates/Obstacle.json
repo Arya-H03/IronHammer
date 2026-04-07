@@ -8,18 +8,15 @@
       "y": 0.0
     },
     "size": {
-      "x": 100.0,
-      "y": 100.0
+      "x": 200.0,
+      "y": 200.0
     }
   },
-  "FlowObstacle": null,
-  "Movement": {
-    "speed": 10.0
-  },
+  "FlowFieldObstacle": null,
   "RigidBody": {
     "bounciness": 0.5,
-    "isStatic": false,
-    "mass": 1.0,
+    "isStatic": true,
+    "mass": 0.0,
     "velocity": {
       "x": 10.0,
       "y": 10.0
@@ -27,14 +24,14 @@
   },
   "Sprite": {
     "color": [
-      255,
-      237,
-      0,
+      210,
+      97,
+      9,
       255
     ],
     "size": {
-      "x": 100.0,
-      "y": 100.0
+      "x": 200.0,
+      "y": 200.0
     },
     "textureName": "Square",
     "textureRect": [
@@ -46,8 +43,8 @@
   },
   "Transform": {
     "position": {
-      "x": 561.0,
-      "y": 462.0
+      "x": 702.0,
+      "y": 381.0
     },
     "rotation": 0.0,
     "scale": {

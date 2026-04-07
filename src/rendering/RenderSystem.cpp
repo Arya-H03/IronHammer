@@ -7,6 +7,7 @@
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "Tracy.hpp"
 
+#include <SFML/System/Angle.hpp>
 #include <cmath>
 #include <imgui-SFML.h>
 #include <SFML/Graphics/Color.hpp>

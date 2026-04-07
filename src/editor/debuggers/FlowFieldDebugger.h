@@ -25,5 +25,6 @@ public:
     void ResetDebugger()override;
 
     void RegisterFlowField(FlowFieldSystem* flowFieldSystem, World* worldPtr);
+    void UpdateFlowFieldVisualCells(World* worldPtr);
     void UnRegisterFlowField();
 };

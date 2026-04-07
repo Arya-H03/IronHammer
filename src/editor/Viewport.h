@@ -2,31 +2,30 @@
 
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
+
+#include <cstdint>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <cstdint>
 class Viewport
 {
-  private:
-
-    inline static Vect2f m_position { 0.f, 0.f };
-    inline static Vect2<uint16_t> m_size { 0, 0 };
+private:
+    inline static Vect2f             m_position{0.f, 0.f};
+    inline static Vect2<uint16_t>    m_size{0, 0};
     inline static sf::RenderTexture* m_renderTexture;
-    inline static ImVec2 m_viewportImagePos;
-    inline static ImVec2 m_viewportImageDrawSize;
+    inline static ImVec2             m_viewportImagePos;
+    inline static ImVec2             m_viewportImageDrawSize;
 
-  public:
-
+public:
     inline static void SetViewportSize(const Vect2f& position, const Vect2<uint16_t>& size)
     {
         m_position = position;
-        m_size = size;
+        m_size     = size;
     }
 
     inline static void SetViewportTexture(sf::RenderTexture* renderTexture) { m_renderTexture = renderTexture; }
     inline static void UpdateViewportImage(ImVec2 pos, ImVec2 drawSize)
     {
-        m_viewportImagePos = pos;
+        m_viewportImagePos      = pos;
         m_viewportImageDrawSize = drawSize;
     };
 
@@ -38,7 +37,8 @@ class Viewport
     {
         Vect2f mouse = ImGui::GetMousePos();
 
-        return mouse.x >= m_position.x && mouse.y >= m_position.y && mouse.x <= m_position.x + m_size.x && mouse.y <= m_position.y + m_size.y;
+        return mouse.x >= m_position.x && mouse.y >= m_position.y && mouse.x <= m_position.x + m_size.x &&
+               mouse.y <= m_position.y + m_size.y;
     }
 
     inline static Vect2f ScreenToViewport(const Vect2f& screenPos)
@@ -46,12 +46,9 @@ class Viewport
         float x = screenPos.x - m_position.x;
         float y = screenPos.y - m_position.y;
 
-        if (x < 0 || y < 0 || x > m_size.x || y > m_size.y) return { -1.0f, -1.0f };
+        if (x < 0 || y < 0 || x > m_size.x || y > m_size.y) return {-1.0f, -1.0f};
 
-        // flip Y because render texture
-       // y = m_size.y - y;
-
-        return { x, y };
+        return {x, y};
     }
 
     inline static Vect2f ScreenToViewportMouse() { return ScreenToViewport(ImGui::GetMousePos()); }
@@ -63,22 +60,20 @@ class Viewport
         Vect2f vect = ScreenToViewport(screenPos);
         if (vect.x < 0 || vect.y < 0) return Vect2f(-1.f, -1.f);
 
-        return { vect.x / m_size.x, vect.y / m_size.y };
+        return {vect.x / m_size.x, vect.y / m_size.y};
     }
 
     inline static Vect2f ScreenToViewportNormalizedMouse() { return ScreenToViewportNormalized(ImGui::GetMousePos()); }
 
     inline static ImVec2 WorldToViewportGui(const Vect2f& worldPos)
     {
-        sf::Vector2i texturePixel = m_renderTexture->mapCoordsToPixel({ worldPos.x, worldPos.y });
-        sf::Vector2u textureSize = m_renderTexture->getSize();
+        sf::Vector2i texturePixel = m_renderTexture->mapCoordsToPixel({worldPos.x, worldPos.y});
+        sf::Vector2u textureSize  = m_renderTexture->getSize();
 
-        float scaleX = m_viewportImageDrawSize.x / (float) textureSize.x;
-        float scaleY = m_viewportImageDrawSize.y / (float) textureSize.y;
+        float scaleX = m_viewportImageDrawSize.x / (float)textureSize.x;
+        float scaleY = m_viewportImageDrawSize.y / (float)textureSize.y;
 
-        return ImVec2(
-               m_viewportImagePos.x + (float)texturePixel.x * scaleX,
-               m_viewportImagePos.y +  (float)texturePixel.y * scaleY  // Y flip
-           );
+        return ImVec2(m_viewportImagePos.x + (float)texturePixel.x * scaleX,
+                      m_viewportImagePos.y + (float)texturePixel.y * scaleY);
     }
 };
