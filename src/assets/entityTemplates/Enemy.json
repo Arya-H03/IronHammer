@@ -1,8 +1,8 @@
 {
   "Collider": {
     "isTrigger": false,
-    "layer": 2,
-    "mask": 4294967287,
+    "layer": 4,
+    "mask": 4294967283,
     "offset": {
       "x": 0.0,
       "y": 0.0
@@ -24,7 +24,7 @@
     "isStatic": false,
     "mass": 1.0,
     "velocity": {
-      "x": 9.800000190734863,
+      "x": 9.0,
       "y": 10.0
     }
   },

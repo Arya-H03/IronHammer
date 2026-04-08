@@ -16,7 +16,7 @@ private:
 
     Query* m_towerQuery;
     Query* m_enemyQuery;
-
+    Query* m_collisionEnterQuery;
     void SpawnTestEntities();
 
 public:

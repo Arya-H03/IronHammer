@@ -31,9 +31,9 @@ struct FlowCell
     int GetTotalCost() { return baseCost + dynamiqueCost; }
 };
 
-static inline const std::vector<Vect2<int>> NeighboorGridDirections = {
-    {Vect2<int>{1, 1}, Vect2<int>{1, 0}, Vect2<int>{1, -1}, Vect2<int>{-1, 1}, Vect2<int>{-1, 0}, Vect2<int>{-1, -1},
-     Vect2<int>{0, 1}, Vect2<int>{0, -1}}};
+static inline const std::vector<Vect2<int>> EightDirections = {Vect2<int>{0, 1},  Vect2<int>{1, 1},  Vect2<int>{1, 0},
+                                                               Vect2<int>{1, -1}, Vect2<int>{0, -1}, Vect2<int>{-1, -1},
+                                                               Vect2<int>{-1, 0}, Vect2<int>{-1, 1}};
 
 class FlowField
 {

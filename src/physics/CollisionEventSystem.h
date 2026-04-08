@@ -43,7 +43,7 @@ public:
         // enter events
         for (auto& collisionpair : m_currentFramePairs) {
             if (!m_previousFramePairs.contains(collisionpair)) {
-                worldptr->CreateEntityNoReturn(CCollisionStay(collisionpair.e1, collisionpair.e2));
+                worldptr->CreateEntityNoReturn(CCollisionEnter(collisionpair.e1, collisionpair.e2));
             }
         }
 

@@ -2,10 +2,13 @@
 
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "ecs/World.hpp"
 #include "editor/Viewport.h"
 #include "game/GameComponents.hpp"
 #include "input/InputSystem.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <cstdint>
 #include <string>
@@ -21,10 +24,12 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_movementSystem.SetupSystem(worldPtr);
     m_collisionSystem.SetupSystem(worldPtr);
     m_flowFieldSystem.SetupSystem(worldPtr);
-    m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
-    m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
 
-    m_flowFieldSystem.UpdateFlowField(worldPtr);
+    m_towerQuery          = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
+    m_enemyQuery          = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
+    m_collisionEnterQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
+
+    m_flowFieldSystem.InitialFlowFieldSetup(worldPtr);
     SpawnTestEntities();
 }
 
@@ -82,23 +87,15 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     }
     currentTime += Time::DeltaTime();
 
-    // for (auto& archetype : m_enterCollisionQuery->GetMatchingArchetypes()) {
-    //     for (auto& chunk : archetype->GetChunks()) {
-    //         CCollisionEnter* collisionEnterRow = chunk.GetComponentRow<CCollisionEnter>();
-    //         for (size_t i = 0; i < chunk.size; ++i) {
-    //             CCollisionEnter& collisionEnter = collisionEnterRow[i];
+    m_collisionEnterQuery->ForEach<CCollisionEnter>([&](CCollisionEnter& collisionEnter) {
+        Entity e1 = collisionEnter.entity1;
+        Entity e2 = collisionEnter.entity2;
 
-    //             Entity e1 = collisionEnter.entity1;
-    //             Entity e2 = collisionEnter.entity2;
-
-    //             if ((worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2)) ||
-    //                 (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2))) {
-    //                 worldPtr->DestroyEntity(e1);
-    //                 worldPtr->DestroyEntity(e2);
-    //             }
-    //         }
-    //     }
-    // }
+        if (worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2)) { worldPtr->DestroyEntity(e2); }
+        else if (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2)) {
+            worldPtr->DestroyEntity(e1);
+        }
+    });
 }
 void GameScene::SpawnTestEntities()
 {

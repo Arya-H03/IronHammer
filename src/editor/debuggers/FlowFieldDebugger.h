@@ -8,7 +8,8 @@ class FlowFieldSystem;
 class FlowFieldDebugger : public IDebugTab
 {
 private:
-    std::vector<Entity> m_visualCells;
+    std::vector<Entity> m_flowCellVisuals;
+    std::vector<Entity> m_flowDirVisuals;
 
     bool m_toggleFlowField = true;
 

@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <queue>
 
 class FlowFieldSystem : ISetupSystem
@@ -39,8 +40,10 @@ private:
     void CheckForTargetTags()
     {
         m_flowFieldTargetQuery->ForEach<CTransform, CSprite>([&](CTransform& transform, CSprite& sprite) {
-            Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f), (transform.position.y - sprite.size.y * 0.5f)};
-            Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f), (transform.position.y + sprite.size.y * 0.5f)};
+            Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f),
+                              (transform.position.y - sprite.size.y * 0.5f)};
+            Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f),
+                            (transform.position.y + sprite.size.y * 0.5f)};
 
             for (size_t j = std::floor(bottomLeft.y); j < std::ceil(topRight.y); ++j) {
                 for (size_t i = std::floor(bottomLeft.x); i < std::ceil(topRight.x); ++i) {
@@ -56,8 +59,10 @@ private:
     void CheckForObstacleTags()
     {
         m_flowFieldObstacleQuery->ForEach<CTransform, CSprite>([&](CTransform& transform, CSprite& sprite) {
-            Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f), (transform.position.y - sprite.size.y * 0.5f)};
-            Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f), (transform.position.y + sprite.size.y * 0.5f)};
+            Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f),
+                              (transform.position.y - sprite.size.y * 0.5f)};
+            Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f),
+                            (transform.position.y + sprite.size.y * 0.5f)};
 
             for (size_t j = std::floor(bottomLeft.y); j < std::ceil(topRight.y); ++j) {
                 for (size_t i = std::floor(bottomLeft.x); i < std::ceil(topRight.x); ++i) {
@@ -82,11 +87,10 @@ private:
             FlowCell* flowCellPtr = m_flowCellQueue.front();
             m_flowCellQueue.pop();
 
-            for (const auto& dir : NeighboorGridDirections) {
-                FlowCell* neighborCellPtr = m_flowField.TryGetFlowCellNeighbor(*flowCellPtr, dir);
+            for (const auto& offset : EightDirections) {
+                FlowCell* neighborCellPtr = m_flowField.TryGetFlowCellNeighbor(*flowCellPtr, offset);
 
                 if (!neighborCellPtr) continue;
-
                 if (neighborCellPtr->baseCost != static_cast<FlowCellCost>(FlowCellCostEnum::UnVisited)) continue;
 
                 m_flowCellQueue.push(neighborCellPtr);
@@ -99,16 +103,16 @@ private:
     {
         for (auto& cell : m_flowField.GetCells()) {
             Vect2<int> flowDir{0, 0};
-            int        lowestCost = 0;
+            int        cheapestNeighborCost = std::numeric_limits<int>::max();
 
-            for (const auto& dir : NeighboorGridDirections) {
+            for (const auto& dir : EightDirections) {
                 FlowCell* neighborCellPtr = m_flowField.TryGetFlowCellNeighbor(cell, dir);
                 if (!neighborCellPtr) continue;
 
-                int currentCost = neighborCellPtr->GetTotalCost() - cell.GetTotalCost();
-                if (currentCost < lowestCost) {
-                    lowestCost = currentCost;
-                    flowDir    = dir;
+                int currentCost = neighborCellPtr->GetTotalCost();
+                if (currentCost < cheapestNeighborCost) {
+                    cheapestNeighborCost = currentCost;
+                    flowDir              = dir;
                 }
             }
             cell.flowDir = flowDir;
@@ -116,22 +120,23 @@ private:
     }
 
 public:
-    FlowFieldSystem() { m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 25}; }
+    FlowFieldSystem() { m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50}; }
     ~FlowFieldSystem() { SystemDebuggerHub::Instance().GetFlowFieldDebugger().UnRegisterFlowField(); }
 
     void SetupSystem(World* worldPtr) override
     {
-        SystemDebuggerHub::Instance().GetFlowFieldDebugger().RegisterFlowField(this, worldPtr);
         m_flowFieldTargetQuery   = worldPtr->Query<RequiredComponents<CFlowFieldTarget, CTransform, CSprite>>();
         m_flowFieldObstacleQuery = worldPtr->Query<RequiredComponents<CFlowFieldObstacle, CTransform, CSprite>>();
         m_flowFieldAgentQuery    = worldPtr->Query<RequiredComponents<CFlowFieldAgent, CTransform, CRigidBody>>();
     }
 
-    void UpdateFlowField(World* worldPtr)
+    void InitialFlowFieldSetup(World* worldPtr)
     {
         CheckForFlowFieldTags();
         CalculateCellCosts();
         CalculateFlowDirections();
+
+        SystemDebuggerHub::Instance().GetFlowFieldDebugger().RegisterFlowField(this, worldPtr);
     }
 
     void UpdateFlowAgents()

@@ -8,8 +8,8 @@
       "y": 0.0
     },
     "size": {
-      "x": 200.0,
-      "y": 200.0
+      "x": 75.0,
+      "y": 75.0
     }
   },
   "FlowFieldObstacle": null,
@@ -24,14 +24,14 @@
   },
   "Sprite": {
     "color": [
-      210,
-      97,
-      9,
+      204,
+      191,
+      191,
       255
     ],
     "size": {
-      "x": 200.0,
-      "y": 200.0
+      "x": 75.0,
+      "y": 75.0
     },
     "textureName": "Square",
     "textureRect": [

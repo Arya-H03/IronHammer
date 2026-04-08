@@ -27,6 +27,7 @@ public:
         CreateTexture("UpArrowSharp", "assets/up-arrow-sharp.png");
         CreateTexture("RightArrowFlat", "assets/right-arrow-flat.png");
         CreateTexture("UpArrowFlat", "assets/up-arrow-flat.png");
+        CreateTexture("Arrow", "assets/arrow.png");
 
         CreateFont("Default", "assets/font.otf");
     }
