@@ -8,13 +8,13 @@ class CollisionSystem;
 
 class CollisionDebugger : public IDebugTab
 {
-private:
+  private:
     CollisionSystem* m_collisionSystemPtr = nullptr;
 
     void BroadPhaseGui(World* worldPtr) const;
     void NarrowPhaseGui() const;
 
-public:
+  public:
     CollisionDebugger();
 
     void RegisterCollisionSystem(CollisionSystem* collisionSystem);

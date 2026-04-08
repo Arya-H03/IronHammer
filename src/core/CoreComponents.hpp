@@ -7,8 +7,8 @@ struct CTransform
     static constexpr const char* name = "Transform";
 
     Vect2f position = Vect2f(0, 0);
-    Vect2f scale    = Vect2f(1, 1);
-    float  rotation = 0.f;
+    Vect2f scale = Vect2f(1, 1);
+    float rotation = 0.f;
 
     CTransform() = default;
     CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) {}
@@ -17,9 +17,8 @@ struct CTransform
 template <>
 struct Reflect<CTransform>
 {
-    static constexpr auto fields =
-        std::make_tuple(std::pair{"position", &CTransform::position}, std::pair{"scale", &CTransform::scale},
-                        std::pair{"rotation", &CTransform::rotation});
+    static constexpr auto fields = std::make_tuple(std::pair{"position", &CTransform::position}, std::pair{"scale", &CTransform::scale},
+                                                   std::pair{"rotation", &CTransform::rotation});
 };
 
 struct CMovement

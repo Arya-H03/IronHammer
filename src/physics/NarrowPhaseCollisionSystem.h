@@ -1,6 +1,6 @@
 #pragma once
-#include "ecs/common/ECSCommon.h"
 #include "ecs/World.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionCommon.h"
 #include "physics/CollisionEventSystem.h"
@@ -13,7 +13,7 @@ class NarrowPhaseCollisionSystem
 {
     friend class CollisionDebugger;
 
-private:
+  private:
     CollisionEventSystem& m_collisionEventSystem;
 
     std::vector<CollisionCorrectionData> m_collisionPenetrationData;
@@ -22,9 +22,8 @@ private:
     // Axis Aligned Bounding Box Check
     void AABBCheck(World* worldPtr, Entity e1, Entity e2);
 
-public:
+  public:
     NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem) {}
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World*                            worldPtr,
-                                                                         const std::vector<CollisionPair>& potentialPairs);
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPair>& potentialPairs);
 };

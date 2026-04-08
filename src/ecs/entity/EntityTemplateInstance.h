@@ -1,11 +1,12 @@
 #pragma once
 
-#include <unordered_set>
-#include <vector>
-#include <string>
-#include <utility>
 #include "core/saving/JsonUtility.h"
 #include "ecs/common/ECSCommon.h"
+
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 class EntityTemplate;
 class ComponentInfo;
@@ -14,7 +15,6 @@ class EntityTemplateManager;
 class EntityTemplateInstance
 {
   private:
-
     std::vector<std::pair<const ComponentInfo*, void*>> m_components;
     std::unordered_set<ComponentId> m_presentComponents;
 
@@ -28,7 +28,6 @@ class EntityTemplateInstance
     void Clear();
 
   public:
-
     explicit EntityTemplateInstance(EntityTemplate& sourceTemplate);
     ~EntityTemplateInstance();
 

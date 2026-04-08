@@ -2086,6 +2086,62 @@
           "y": 1.0
         }
       }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967287,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldTarget": null,
+      "RigidBody": {
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          0,
+          255,
+          51,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Tower": null,
+      "Transform": {
+        "position": {
+          "x": 739.0,
+          "y": 97.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
     }
   ]
 }

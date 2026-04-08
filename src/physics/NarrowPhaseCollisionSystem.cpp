@@ -1,10 +1,10 @@
 #include "NarrowPhaseCollisionSystem.h"
 
+#include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
 #include "physics/CollisionCommon.h"
-#include "Tracy.hpp"
 
 #include <cstdint>
 #include <cstdlib>
@@ -17,8 +17,10 @@ bool NarrowPhaseCollisionSystem::CanColliderContact(CCollider* collider1, CColli
     bool e1WantsE2 = (collider1->mask & e2Bit) != 0;
     bool e2WantsE1 = (collider2->mask & e1Bit) != 0;
 
-    if (!e1WantsE2 || !e2WantsE1) return false;
-    else return true;
+    if (!e1WantsE2 || !e2WantsE1)
+        return false;
+    else
+        return true;
 }
 
 void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2)
@@ -35,16 +37,17 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2
     CTransform* e2Transform = worldPtr->TryGetComponent<CTransform>(e2);
 
     // AABB check
-    Vect2f e1Center    = e1Transform->position + e1Collider->offset;
-    Vect2f e2Center    = e2Transform->position + e2Collider->offset;
-    Vect2f distance    = e2Center - e1Center;
+    Vect2f e1Center = e1Transform->position + e1Collider->offset;
+    Vect2f e2Center = e2Transform->position + e2Collider->offset;
+    Vect2f distance = e2Center - e1Center;
     Vect2f distanceAbs = distance.Abs();
 
     bool xCollide = distanceAbs.x <= (e1Collider->halfSize.x + e2Collider->halfSize.x);
     bool yCollide = distanceAbs.y <= (e1Collider->halfSize.y + e2Collider->halfSize.y);
 
     // Will Collide
-    if (xCollide && yCollide) {
+    if (xCollide && yCollide)
+    {
         Vect2f overlap = (e1Collider->halfSize + e2Collider->halfSize) - distanceAbs;
 
         Vect2f lastFrameE1Center = e1Rb->previousPosition + e1Collider->offset;
@@ -55,26 +58,31 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, Entity e1, Entity e2
         bool lastYCollide = std::abs(lastFrameDistance.y) <= (e1Collider->halfSize.y + e2Collider->halfSize.y);
 
         Vect2f normal;
-        float  penetration;
+        float penetration;
 
         // Was overlapping on X only, last frame -> Collision entered on Y
-        if (lastXCollide && !lastYCollide) {
-            normal      = (distance.y < 0) ? Vect2f(0, -1) : Vect2f(0, 1); // up : down
+        if (lastXCollide && !lastYCollide)
+        {
+            normal = (distance.y < 0) ? Vect2f(0, -1) : Vect2f(0, 1); // up : down
             penetration = overlap.y;
         }
         // Was overlapping on Y only, last frame -> Collision entered on X
-        else if (!lastXCollide && lastYCollide) {
-            normal      = (distance.x < 0) ? Vect2f(-1, 0) : Vect2f(1, 0); // right : left
+        else if (!lastXCollide && lastYCollide)
+        {
+            normal = (distance.x < 0) ? Vect2f(-1, 0) : Vect2f(1, 0); // right : left
             penetration = overlap.x;
         }
         // Wasn't overlapping last frame -> Collision entered on X and Y
-        else {
-            if (overlap.x < overlap.y) {
-                normal      = (distance.x < 0) ? Vect2f(-1, 0) : Vect2f(1, 0); // right : left
+        else
+        {
+            if (overlap.x < overlap.y)
+            {
+                normal = (distance.x < 0) ? Vect2f(-1, 0) : Vect2f(1, 0); // right : left
                 penetration = overlap.x;
             }
-            else {
-                normal      = (distance.y < 0) ? Vect2f(0, -1) : Vect2f(0, 1); // up : down
+            else
+            {
+                normal = (distance.y < 0) ? Vect2f(0, -1) : Vect2f(0, 1); // up : down
                 penetration = overlap.y;
             }
         }
@@ -89,7 +97,8 @@ NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World* worldPtr, cons
     m_collisionPenetrationData.clear();
     {
         ZoneScopedN("NarrowPhaseSystem/AABB_Checks");
-        for (auto& potentialPair : potentialPairs) {
+        for (auto& potentialPair : potentialPairs)
+        {
             Entity e1 = potentialPair.e1;
             Entity e2 = potentialPair.e2;
 

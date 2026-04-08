@@ -7,7 +7,7 @@
 
 class TypeErasedBlockAllocator
 {
-private:
+  private:
     std::vector<void*> m_allBlocks;  // ptr to all memory blocks
     std::vector<void*> m_freeBlocks; // ptr to free memory blocks
     size_t m_dataSize;               // Size of the data that needs to be stored
@@ -20,15 +20,13 @@ private:
         m_freeBlocks.push_back(newBlock);
     }
 
-public:
-    TypeErasedBlockAllocator(size_t dataSize, size_t dataPerBlock = 64)
-        : m_dataSize(dataSize), m_dataPerBlock(dataPerBlock)
-    {
-    }
+  public:
+    TypeErasedBlockAllocator(size_t dataSize, size_t dataPerBlock = 64) : m_dataSize(dataSize), m_dataPerBlock(dataPerBlock) {}
 
     ~TypeErasedBlockAllocator()
     {
-        for (void* block : m_allBlocks) ::operator delete(block, std::align_val_t(64));
+        for (void* block : m_allBlocks)
+            ::operator delete(block, std::align_val_t(64));
     }
 
     size_t GetDataSize() const { return m_dataSize; }

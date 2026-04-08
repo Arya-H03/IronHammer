@@ -1,12 +1,4 @@
 #pragma once
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Keyboard.hpp>
-#include <cmath>
-#include <imgui.h>
-#include <string>
-#include <vector>
-#include <cmath>
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
@@ -15,10 +7,17 @@
 #include "editor/ViewportGizmo.h"
 #include "engine/Engine.h"
 
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <cmath>
+#include <imgui.h>
+#include <string>
+#include <vector>
+
 class ViewportPanel
 {
   private:
-
     EditorContext& m_editorContext;
     ViewportGismo m_viewportGismo;
 
@@ -35,28 +34,32 @@ class ViewportPanel
 
             switch (m_editorContext.viewPortGizmMode)
             {
-                case GismoMode::None: break;
-                case GismoMode::Position: m_viewportGismo.DrawLiveEntityPositionGizmo(transformPtr); break;
-                case GismoMode::Scale: m_viewportGismo.DrawLiveEntityScaleGizmo(transformPtr); break;
+                case GismoMode::None:
+                    break;
+                case GismoMode::Position:
+                    m_viewportGismo.DrawLiveEntityPositionGizmo(transformPtr);
+                    break;
+                case GismoMode::Scale:
+                    m_viewportGismo.DrawLiveEntityScaleGizmo(transformPtr);
+                    break;
             }
         }
     }
 
   public:
-
-    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext) { }
+    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
 
     void Draw()
     {
-        ImGui::SetNextWindowPos(ImVec2((float) m_editorContext.layout.Viewport_X, (float) m_editorContext.layout.Viewport_Y));
-        ImGui::SetNextWindowSize(ImVec2((float) m_editorContext.layout.Viewport_Width, (float) m_editorContext.layout.Viewport_Height));
+        ImGui::SetNextWindowPos(ImVec2((float)m_editorContext.layout.Viewport_X, (float)m_editorContext.layout.Viewport_Y));
+        ImGui::SetNextWindowSize(ImVec2((float)m_editorContext.layout.Viewport_Width, (float)m_editorContext.layout.Viewport_Height));
 
         ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
 
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         sf::Vector2u size = m_editorContext.viewportTexture.getSize();
 
-        float texAspect = (float) size.x / size.y;
+        float texAspect = (float)size.x / size.y;
         float viewportAspect = viewportSize.x / viewportSize.y;
 
         ImVec2 drawSize;
@@ -73,7 +76,7 @@ class ViewportPanel
         }
 
         Viewport::UpdateViewportImage(ImGui::GetCursorScreenPos(), drawSize);
-        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize, ImVec2(0,1),ImVec2(1,0));
+        ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize, ImVec2(0, 1), ImVec2(1, 0));
 
         if (ImGui::BeginDragDropTarget())
         {
@@ -81,8 +84,8 @@ class ViewportPanel
             {
                 const char* templateName = static_cast<const char*>(payload->Data);
 
-                std::vector<PendingComponent>& components =
-                    m_editorContext.world->CreateEntityFromTemplate(*m_editorContext.entityTemplateManager->GetTemplateByName(templateName));
+                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromTemplate(
+                    *m_editorContext.entityTemplateManager->GetTemplateByName(templateName));
 
                 CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);
                 if (transform)

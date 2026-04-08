@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ecs/common/ECSCommon.h"
 #include "core/utils/Vect2.hpp"
+#include "ecs/common/ECSCommon.h"
 
+#include <SFML/Graphics/Color.hpp>
 #include <cmath>
 #include <cstdint>
-#include <SFML/Graphics/Color.hpp>
 
 struct CollisionPair
 {
@@ -31,5 +31,5 @@ struct CollisionCorrectionData
 {
     Entity e1, e2;
     Vect2f normal;
-    float  penetration;
+    float penetration;
 };

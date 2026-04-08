@@ -1,19 +1,19 @@
 #pragma once
 #include "imgui.h"
 
+#include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Joystick.hpp>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <math.h>
-#include <SFML/Graphics.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Joystick.hpp>
 #include <sys/types.h>
 
 template <typename T>
 class Vect2
 {
-public:
+  public:
     T x;
     T y;
 
@@ -94,9 +94,9 @@ public:
     static const Vect2<T> One;
 };
 
-using Vect2f   = Vect2<float>;
+using Vect2f = Vect2<float>;
 using Vect2int = Vect2<int>;
-using Vect2s   = Vect2<size_t>;
+using Vect2s = Vect2<size_t>;
 
 template <typename T>
 const inline Vect2<T> Vect2<T>::Zero = Vect2<T>{0, 0};

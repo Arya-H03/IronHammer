@@ -1,9 +1,9 @@
 #pragma once
 #include "core/utils/Vect2.hpp"
 
-#include <nlohmann/json.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include <nlohmann/json.hpp>
 #include <tuple>
 
 using Json = nlohmann::json;
@@ -73,7 +73,7 @@ struct DeSerializeVisitor
         if (!json.contains(name)) return;
 
         const auto& arr = json[name];
-        value           = sf::IntRect({arr[0], arr[1]}, {arr[2], arr[3]});
+        value = sf::IntRect({arr[0], arr[1]}, {arr[2], arr[3]});
     }
 
     void Field(const char* name, sf::Color& value)

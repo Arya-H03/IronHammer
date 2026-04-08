@@ -1,21 +1,21 @@
 #pragma once
-#include "editor/entityInspector/EntityInspector.h"
 #include "ecs/World.hpp"
+#include "editor/entityInspector/EntityInspector.h"
 #include "engine/Engine.h"
 
 struct DebugTabContext
 {
-    World*           worldPtr;
+    World* worldPtr;
     EntityInspector* entityInspectorPtr;
 };
 class IDebugTab
 {
-protected:
+  protected:
     EngineMode m_displayMode = EngineMode::None;
 
-public:
-    EngineMode   GetDisplayMode() const { return m_displayMode; }
+  public:
+    EngineMode GetDisplayMode() const { return m_displayMode; }
     virtual void DrawTab(DebugTabContext& context) = 0;
-    virtual void ResetDebugger(){};
+    virtual void ResetDebugger() {};
     virtual ~IDebugTab(){};
 };

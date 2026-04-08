@@ -4,13 +4,13 @@
 #include "editor/EditorContext.h"
 #include "gui/LogWindow.hpp"
 #include "imgui-SFML.h"
+
 #include <SFML/Graphics/Texture.hpp>
 #include <imgui.h>
 
 class BottomPanel
 {
   private:
-
     LogWindow m_logWindow;
 
     float iconSize = 64.f;
@@ -35,7 +35,7 @@ class BottomPanel
         {
             float panelWidth = ImGui::GetContentRegionAvail().x;
 
-            int itemsPerRow = std::max(1, (int) (panelWidth / itemWidth));
+            int itemsPerRow = std::max(1, (int)(panelWidth / itemWidth));
             int i = 0;
 
             for (auto& [name, entityTemplate] : m_editorContext.entityTemplateManager->GetEntityTemplates())
@@ -44,7 +44,8 @@ class BottomPanel
 
                 float cursorX = ImGui::GetCursorPosX();
                 ImGui::SetCursorPosX(cursorX + (itemWidth - iconSize) * 0.5f);
-                if (ImGui::ImageButton(name.c_str(), (ImTextureID) entityTemplate->iconTexture.getNativeHandle(), ImVec2(iconSize, iconSize)))
+                if (ImGui::ImageButton(name.c_str(), (ImTextureID)entityTemplate->iconTexture.getNativeHandle(),
+                                       ImVec2(iconSize, iconSize)))
                 {
                     m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
                 }
@@ -56,7 +57,8 @@ class BottomPanel
                     dragging = true;
                     ImGui::EndDragDropSource();
                 }
-                else dragging = false;
+                else
+                    dragging = false;
 
                 if (dragging)
                 {
@@ -118,33 +120,25 @@ class BottomPanel
             ImVec2 bottomRight(halfWidth, halfHeight);
             ImVec2 bottomLeft(-halfWidth, halfHeight);
 
-            float u1 = (float) spriteComp->textureRect.position.x / texture->getSize().x;
-            float v1 = (float) spriteComp->textureRect.position.y / texture->getSize().y;
-            float u2 = (float) (spriteComp->textureRect.position.x + spriteComp->textureRect.size.x) / texture->getSize().x;
-            float v2 = (float) (spriteComp->textureRect.position.y + spriteComp->textureRect.size.y) / texture->getSize().y;
+            float u1 = (float)spriteComp->textureRect.position.x / texture->getSize().x;
+            float v1 = (float)spriteComp->textureRect.position.y / texture->getSize().y;
+            float u2 = (float)(spriteComp->textureRect.position.x + spriteComp->textureRect.size.x) / texture->getSize().x;
+            float v2 = (float)(spriteComp->textureRect.position.y + spriteComp->textureRect.size.y) / texture->getSize().y;
 
-            drawList->AddImageQuad((ImTextureID) texture->getNativeHandle(),
-                Rotate(topLeft),
-                Rotate(topRight),
-                Rotate(bottomRight),
-                Rotate(bottomLeft),
-                ImVec2(u1, v1),
-                ImVec2(u2, v1),
-                ImVec2(u2, u2),
-                ImVec2(u1, v2),
-                IM_COL32(spriteComp->color.r, spriteComp->color.g, spriteComp->color.b, spriteComp->color.a));
+            drawList->AddImageQuad((ImTextureID)texture->getNativeHandle(), Rotate(topLeft), Rotate(topRight), Rotate(bottomRight),
+                                   Rotate(bottomLeft), ImVec2(u1, v1), ImVec2(u2, v1), ImVec2(u2, u2), ImVec2(u1, v2),
+                                   IM_COL32(spriteComp->color.r, spriteComp->color.g, spriteComp->color.b, spriteComp->color.a));
         }
     }
 
   public:
-
-    BottomPanel(EditorContext& editorContext) : m_editorContext(editorContext) { }
+    BottomPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
 
     void Draw()
     {
-        ImGui::SetNextWindowPos(ImVec2((float) m_editorContext.layout.Log_X, (float) m_editorContext.layout.Log_Y));
+        ImGui::SetNextWindowPos(ImVec2((float)m_editorContext.layout.Log_X, (float)m_editorContext.layout.Log_Y));
 
-        ImGui::SetNextWindowSize(ImVec2((float) m_editorContext.layout.Log_Width, (float) m_editorContext.layout.Log_Height));
+        ImGui::SetNextWindowSize(ImVec2((float)m_editorContext.layout.Log_Width, (float)m_editorContext.layout.Log_Height));
 
         ImGui::Begin("Bottom", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
 

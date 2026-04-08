@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/query/Query.hpp"
 #include "ecs/World.hpp"
+#include "ecs/query/Query.hpp"
 #include "pathfinding/FlowFieldSystem.h"
 #include "physics/CollisionSystem.h"
 #include "physics/MovementSystem.h"
@@ -9,8 +9,8 @@
 
 class GameScene : public BaseScene
 {
-private:
-    MovementSystem  m_movementSystem;
+  private:
+    MovementSystem m_movementSystem;
     CollisionSystem m_collisionSystem;
     FlowFieldSystem m_flowFieldSystem;
 
@@ -19,7 +19,7 @@ private:
     Query* m_collisionEnterQuery;
     void SpawnTestEntities();
 
-public:
+  public:
     GameScene(Vect2<uint16_t> windowSize);
 
     void OnStartPlay(World* worldPtr) override;

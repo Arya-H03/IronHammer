@@ -1,11 +1,12 @@
 #pragma once
+#include "core/memory/TemplatedSlabAllocator.hpp"
+#include "ecs/archetype/BaseTemplatedArchetype.h"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
+
 #include <imgui.h>
 #include <tuple>
 #include <vector>
-#include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/common/ECSCommon.h"
-#include "ecs/archetype/BaseTemplatedArchetype.h"
-#include "core/memory/TemplatedSlabAllocator.hpp"
 
 // Address having new entities being added that the back chunk always.
 
@@ -15,7 +16,6 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
     static_assert(ChunkSize > 0);
 
   private:
-
     using AllocatorTuple = std::tuple<TemplatedSlabAllocator<Components, ChunkSize>...>;
     AllocatorTuple allocatorTuple;
 
@@ -58,27 +58,23 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
         uint32_t indexInChunk = static_cast<uint32_t>(chunk.count - 1);
         chunk.entities[indexInChunk] = entity;
 
-        return EntityStorageLocation { archetypeId, chunkIndex, indexInChunk };
+        return EntityStorageLocation{archetypeId, chunkIndex, indexInChunk};
     }
 
     template <typename TComponent>
     static void DrawComponentDebugGUI(const TComponent& component)
     {
-        ImGui::Text("%s: %s",
-            ComponentRegistry::GetComponentNameByType(component).c_str());
+        ImGui::Text("%s: %s", ComponentRegistry::GetComponentNameByType(component).c_str());
     }
 
   public:
-
     EntityStorageLocation AddEntity(Entity entity, void* componentTuple) override
     {
-        return AddEntityImplementation(entity,
-            *static_cast<std::tuple<Components...>*>(componentTuple),
-            std::index_sequence_for<Components...> {});
+        return AddEntityImplementation(entity, *static_cast<std::tuple<Components...>*>(componentTuple),
+                                       std::index_sequence_for<Components...>{});
     }
 
-    std::pair<Entity, EntityStorageLocation> RemoveEntity(
-        Entity entity, uint32_t chunkIndex, uint32_t indexInChunk) override
+    std::pair<Entity, EntityStorageLocation> RemoveEntity(Entity entity, uint32_t chunkIndex, uint32_t indexInChunk) override
     {
         ArchetypeChunk& chunk = archetypeChunks[chunkIndex];
         const size_t lastIndexInChunk = chunk.count - 1;
@@ -86,8 +82,8 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
         if (indexInChunk != lastIndexInChunk)
         {
             ((std::get<Components*>(chunk.componentArrayTuple)[indexInChunk] =
-                     std::move(std::get<Components*>(chunk.componentArrayTuple)[lastIndexInChunk])),
-                ...);
+                  std::move(std::get<Components*>(chunk.componentArrayTuple)[lastIndexInChunk])),
+             ...);
 
             chunk.entities[indexInChunk] = chunk.entities[lastIndexInChunk];
         }
@@ -95,7 +91,7 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
         --chunk.count;
         --totalCount;
 
-        return { chunk.entities[indexInChunk], { archetypeId, chunkIndex, indexInChunk } };
+        return {chunk.entities[indexInChunk], {archetypeId, chunkIndex, indexInChunk}};
     }
 
     void DrawArchetypeGUI(const std::function<void(Entity)>& deleteEntityCallBack) const override
@@ -133,9 +129,7 @@ class TemplatedArchetype final : public BaseTemplatedArchetype
                 if (ImGui::TreeNode("", "Entity: %d", currentChunk.entities[currentIndexInCunk].id))
                 {
 
-                    ((DrawComponentDebugGUI(
-                         std::get<Components*>(currentChunk.componentArrayTuple)[currentIndexInCunk])),
-                        ...);
+                    ((DrawComponentDebugGUI(std::get<Components*>(currentChunk.componentArrayTuple)[currentIndexInCunk])), ...);
 
                     ImGui::TreePop();
                 }

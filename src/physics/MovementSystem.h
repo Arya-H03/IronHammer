@@ -1,16 +1,16 @@
 #pragma once
-#include "core/CoreComponents.hpp"
-#include "ecs/system/ISystem.h"
-#include "ecs/World.hpp"
-#include "physics/PhysicsComponents.hpp"
 #include "Tracy.hpp"
+#include "core/CoreComponents.hpp"
+#include "ecs/World.hpp"
+#include "ecs/system/ISystem.h"
+#include "physics/PhysicsComponents.hpp"
 
 class MovementSystem : public ISetupSystem
 {
-private:
+  private:
     Query* m_movementQuery;
 
-public:
+  public:
     MovementSystem() = default;
 
     void SetupSystem(World* worldPtr) override
@@ -22,8 +22,9 @@ public:
         ZoneScoped;
 
         m_movementQuery->ForEach<CTransform, CMovement, CRigidBody>(
-            [](CTransform& transformComp, CMovement& movementComp, CRigidBody& rigidBodyComp) {
-                Vect2f velocityNormalized      = rigidBodyComp.velocity.Normalize();
+            [](CTransform& transformComp, CMovement& movementComp, CRigidBody& rigidBodyComp)
+            {
+                Vect2f velocityNormalized = rigidBodyComp.velocity.Normalize();
                 rigidBodyComp.previousPosition = transformComp.position;
                 transformComp.position += velocityNormalized * movementComp.speed * Time::DeltaTime();
             });

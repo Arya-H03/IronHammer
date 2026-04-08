@@ -9,12 +9,12 @@
 
 class LogWindow
 {
-private:
+  private:
     std::vector<int> m_visibleIndices;
 
-    bool   showLogs     = true;
-    bool   showWarnings = true;
-    bool   showErrors   = true;
+    bool showLogs = true;
+    bool showWarnings = true;
+    bool showErrors = true;
     size_t m_selectedIndex;
     size_t m_lastLogCount = 0;
 
@@ -35,20 +35,14 @@ private:
 
             float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-            float logsWidth =
-                ImGui::CalcTextSize("Info").x + ImGui::GetFrameHeight() +
-                ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().infoLogCount).c_str()).x +
-                spacing;
+            float logsWidth = ImGui::CalcTextSize("Info").x + ImGui::GetFrameHeight() +
+                              ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().infoLogCount).c_str()).x + spacing;
 
-            float warningsWidth =
-                ImGui::CalcTextSize("Warnings").x + ImGui::GetFrameHeight() +
-                ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().warningLogCount).c_str())
-                    .x +
-                spacing;
+            float warningsWidth = ImGui::CalcTextSize("Warnings").x + ImGui::GetFrameHeight() +
+                                  ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().warningLogCount).c_str()).x + spacing;
 
-            float errorsWidth =
-                ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight() +
-                ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().errorLogCount).c_str()).x;
+            float errorsWidth = ImGui::CalcTextSize("Errors").x + ImGui::GetFrameHeight() +
+                                ImGui::CalcTextSize(std::to_string(Debug::GetLogCounts().errorLogCount).c_str()).x;
 
             float totalWidth = logsWidth + warningsWidth + errorsWidth + spacing * 10;
 
@@ -83,17 +77,15 @@ private:
 
     void OpenFileFromTrace(const TraceBreakdown& traceBreakdown)
     {
-        std::string command = "zed " + traceBreakdown.path + ":" +
-                              std::to_string(traceBreakdown.line) + ":" +
-                              std::to_string(traceBreakdown.column);
+        std::string command =
+            "zed " + traceBreakdown.path + ":" + std::to_string(traceBreakdown.line) + ":" + std::to_string(traceBreakdown.column);
 
         std::system(command.c_str());
     }
 
     void LogWindowMessages()
     {
-        ImGui::BeginChild("LogRegion", ImVec2(0, 0), false,
-                          ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
+        ImGui::BeginChild("LogRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground);
 
         const std::deque<LogMessage>& logs = Debug::GetLogMessages();
 
@@ -131,8 +123,7 @@ private:
 
                         ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
                         ImGui::BulletText("%s", traceBreakdown.result.c_str());
-                        if (ImGui::IsItemHovered() &&
-                            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                         {
                             OpenFileFromTrace(traceBreakdown);
                         }
@@ -149,7 +140,7 @@ private:
         ImGui::EndChild();
     }
 
-public:
+  public:
     void DrawLogsGui()
     {
         LogWindowHeader();

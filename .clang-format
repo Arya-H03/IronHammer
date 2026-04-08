@@ -1,0 +1,57 @@
+# clang-format configuration file
+# Place this at the root of your C++ project as `.clang-format`
+# It controls automatic code formatting with clang-format
+
+# ---------------- Base style ----------------
+# You can use LLVM, Google, Chromium, Microsoft, Mozilla, WebKit
+# # Language specific overrides
+Language: Cpp
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AccessModifierOffset: -2
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+NamespaceIndentation: None
+LambdaBodyIndentation: Signature
+
+# Braces
+BreakBeforeBraces: Allman
+
+# Line length
+ColumnLimit: 140
+
+# Alignment
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignTrailingComments: true
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInParentheses: false
+SpaceAfterCStyleCast: false
+
+# Breaking long lines
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+AlwaysBreakTemplateDeclarations: Yes
+
+# Includes
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+
+# Misc
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+ReflowComments: true
+MaxEmptyLinesToKeep: 2

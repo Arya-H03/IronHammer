@@ -1,8 +1,9 @@
 #pragma once
-#include <SFML/Graphics/Texture.hpp>
-#include <cstdint>
-#include <bitset>
 #include "core/saving/JsonUtility.h"
+
+#include <SFML/Graphics/Texture.hpp>
+#include <bitset>
+#include <cstdint>
 
 static constexpr uint16_t MaxComponents = 32;
 using ComponentId = uint32_t;
@@ -28,16 +29,16 @@ struct EntityStorageLocation
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 
-    static constexpr EntityStorageLocation InvalidLocation() { return { InvalidArchetypeID, UINT32_MAX, UINT32_MAX }; }
+    static constexpr EntityStorageLocation InvalidLocation() { return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX}; }
 };
 
 struct EntityTemplate
 {
-     sf::Texture iconTexture;
+    sf::Texture iconTexture;
     std::string entityName;
     Json entityJson;
 
-    EntityTemplate( sf::Texture tex, const std::string& name, const Json& json)
+    EntityTemplate(sf::Texture tex, const std::string& name, const Json& json)
         : iconTexture(std::move(tex)), entityName(name), entityJson(json)
     {
     }

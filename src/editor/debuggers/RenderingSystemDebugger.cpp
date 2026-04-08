@@ -2,15 +2,22 @@
 
 #include "engine/Engine.h"
 
-RenderingSystemDebugger::RenderingSystemDebugger() { m_displayMode = EngineMode::Both; }
+RenderingSystemDebugger::RenderingSystemDebugger()
+{
+    m_displayMode = EngineMode::Both;
+}
 
 // Fix me: No reason to have flags in render system for a debugger, simple move the functionalities over
 void RenderingSystemDebugger::DrawTab(DebugTabContext& context)
 {
 
-    if (ImGui::BeginTabItem("Rendering")) {
+    if (ImGui::BeginTabItem("Rendering"))
+    {
 
-        if (!m_renderingSystemPtr) { return; }
+        if (!m_renderingSystemPtr)
+        {
+            return;
+        }
 
         bool canDrawSprites = m_renderingSystemPtr->GetCanDrawSprites();
         if (ImGui::Checkbox("Draw Sprites", &canDrawSprites)) m_renderingSystemPtr->SetCanDrawSprites(canDrawSprites);
@@ -28,8 +35,7 @@ void RenderingSystemDebugger::DrawTab(DebugTabContext& context)
         ImGui::Separator();
 
         bool canDrawColliders = m_renderingSystemPtr->GetCanDrawColliders();
-        if (ImGui::Checkbox("Draw Colliders", &canDrawColliders))
-            m_renderingSystemPtr->SetCanDrawColliders(canDrawColliders);
+        if (ImGui::Checkbox("Draw Colliders", &canDrawColliders)) m_renderingSystemPtr->SetCanDrawColliders(canDrawColliders);
 
         ImGui::EndTabItem();
     }
@@ -39,4 +45,7 @@ void RenderingSystemDebugger::RegisterRenderingSystem(RenderingSystem* rendering
 {
     m_renderingSystemPtr = renderingSystem;
 }
-void RenderingSystemDebugger::UnRegisterRenderingSystem() { m_renderingSystemPtr = nullptr; }
+void RenderingSystemDebugger::UnRegisterRenderingSystem()
+{
+    m_renderingSystemPtr = nullptr;
+}

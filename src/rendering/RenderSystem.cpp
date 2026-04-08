@@ -1,15 +1,12 @@
 #include "RenderSystem.h"
 
+#include "Tracy.hpp"
 #include "assets/AssetManager.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
-#include "Tracy.hpp"
 
-#include <SFML/System/Angle.hpp>
-#include <cmath>
-#include <imgui-SFML.h>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
@@ -17,7 +14,10 @@
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Vertex.hpp>
+#include <SFML/System/Angle.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <cmath>
+#include <imgui-SFML.h>
 
 RenderingSystem::RenderingSystem(World* world)
     : shapeQuery(world->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>()),
@@ -28,35 +28,40 @@ RenderingSystem::RenderingSystem(World* world)
     SystemDebuggerHub::Instance().GetRenderignSystemDebugger().RegisterRenderingSystem(this);
 }
 
-RenderingSystem::~RenderingSystem() { SystemDebuggerHub::Instance().GetRenderignSystemDebugger().UnRegisterRenderingSystem(); }
+RenderingSystem::~RenderingSystem()
+{
+    SystemDebuggerHub::Instance().GetRenderignSystemDebugger().UnRegisterRenderingSystem();
+}
 
 void RenderingSystem::SetupSystem(World* newWorldPtr)
 {
-    shapeQuery    = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
-    textQuery     = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
+    shapeQuery = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
+    textQuery = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
     colliderQuery = newWorldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
-    spriteQuery   = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
+    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderingSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
 {
-    const float  innerRadius = cshape.radius - cshape.outlineThickness;
-    const float  outerRadius = cshape.radius;
-    const float  rotationRad = ctransform.rotation * (M_PI / 180.f);
-    const size_t points      = cshape.points;
+    const float innerRadius = cshape.radius - cshape.outlineThickness;
+    const float outerRadius = cshape.radius;
+    const float rotationRad = ctransform.rotation * (M_PI / 180.f);
+    const size_t points = cshape.points;
 
     size_t verticesAdded = 0;
 
     sf::Vector2f center = {ctransform.position.x, ctransform.position.y};
 
-    for (size_t i = 0; i < points; ++i) {
+    for (size_t i = 0; i < points; ++i)
+    {
         float angle1 = (i * 2.f * M_PI) / points + rotationRad + M_PI / 4;
         float angle2 = ((i + 1) * 2.f * M_PI) / points + rotationRad + M_PI / 4;
 
         float a1Cos = std::cos(angle1), a2Cos = std::cos(angle2);
         float a1Sin = std::sin(angle1), a2Sin = std::sin(angle2);
 
-        if (cshape.outlineThickness > 0) {
+        if (cshape.outlineThickness > 0)
+        {
             sf::Vector2f outer1{center.x + a1Cos * outerRadius, center.y + a1Sin * outerRadius};
             sf::Vector2f outer2{center.x + a2Cos * outerRadius, center.y + a2Sin * outerRadius};
 
@@ -80,7 +85,7 @@ size_t RenderingSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, 
 
 size_t RenderingSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch)
 {
-    const float halfWidth  = ccollider.size.x * 0.5f;
+    const float halfWidth = ccollider.size.x * 0.5f;
     const float halfHeight = ccollider.size.y * 0.5f;
 
     sf::Vector2f center(ctransform.position.x + ccollider.offset.x, ctransform.position.y + ccollider.offset.y);
@@ -109,25 +114,23 @@ void RenderingSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform&
 {
     ZoneScopedN("Add Sprite to Batch");
 
-    float width      = csprite.size.x * ctransform.scale.x;
-    float height     = csprite.size.y * ctransform.scale.y;
-    float halfWidth  = width / 2.0f;
+    float width = csprite.size.x * ctransform.scale.x;
+    float height = csprite.size.y * ctransform.scale.y;
+    float halfWidth = width / 2.0f;
     float halfHeight = height / 2.0f;
 
     Vect2f center = ctransform.position;
 
-    float rad    = ctransform.rotation * (float)M_PI / 180.0f;
+    float rad = ctransform.rotation * (float)M_PI / 180.0f;
     float cosRad = std::cos(rad);
     float sinRad = std::sin(rad);
 
-    auto Rotate = [&](float x, float y) {
-        return sf::Vector2f(center.x + x * cosRad - y * sinRad, center.y + x * sinRad + y * cosRad);
-    };
+    auto Rotate = [&](float x, float y) { return sf::Vector2f(center.x + x * cosRad - y * sinRad, center.y + x * sinRad + y * cosRad); };
 
-    sf::Vector2 topLeft     = Rotate(-halfWidth, -halfHeight);
-    sf::Vector2 topRight    = Rotate(halfWidth, -halfHeight);
+    sf::Vector2 topLeft = Rotate(-halfWidth, -halfHeight);
+    sf::Vector2 topRight = Rotate(halfWidth, -halfHeight);
     sf::Vector2 bottomRight = Rotate(halfWidth, halfHeight);
-    sf::Vector2 bottomLeft  = Rotate(-halfWidth, halfHeight);
+    sf::Vector2 bottomLeft = Rotate(-halfWidth, halfHeight);
 
     float u1 = csprite.textureRect.position.x;
     float v1 = csprite.textureRect.position.y;
@@ -155,24 +158,27 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
 
     const sf::Texture* currentTexture = nullptr;
 
-    spriteQuery->ForEach<CSprite, CTransform>([&](CSprite& csprite, CTransform& ctransform) {
-        // Batch
-        if (currentTexture != csprite.texturePtr) {
-            renderTarget.draw(batch, currentTexture);
-            batch.clear();
-            currentTexture = csprite.texturePtr;
-        }
+    spriteQuery->ForEach<CSprite, CTransform>(
+        [&](CSprite& csprite, CTransform& ctransform)
+        {
+            // Batch
+            if (currentTexture != csprite.texturePtr)
+            {
+                renderTarget.draw(batch, currentTexture);
+                batch.clear();
+                currentTexture = csprite.texturePtr;
+            }
 
-        AddSpriteToBatch(csprite, ctransform, batch);
-        // Individual
-        //  sf::Sprite spriteToDraw(*csprite.texture);
-        //  spriteToDraw.setTextureRect(csprite.textureRect);
-        //  spriteToDraw.setColor(csprite.color);
-        //  spriteToDraw.setPosition({ctransform.position.x, ctransform.position.y});
-        //  spriteToDraw.setOrigin({ctransform.position.x * 0.5f, ctransform.position.y *
-        //  0.5f}); spriteToDraw.setScale({csprite.size.x / csprite.textureRect.size.x,
-        //  csprite.size.y / csprite.textureRect.size.y}); renderTarget.draw(spriteToDraw);
-    });
+            AddSpriteToBatch(csprite, ctransform, batch);
+            // Individual
+            //  sf::Sprite spriteToDraw(*csprite.texture);
+            //  spriteToDraw.setTextureRect(csprite.textureRect);
+            //  spriteToDraw.setColor(csprite.color);
+            //  spriteToDraw.setPosition({ctransform.position.x, ctransform.position.y});
+            //  spriteToDraw.setOrigin({ctransform.position.x * 0.5f, ctransform.position.y *
+            //  0.5f}); spriteToDraw.setScale({csprite.size.x / csprite.textureRect.size.x,
+            //  csprite.size.y / csprite.textureRect.size.y}); renderTarget.draw(spriteToDraw);
+        });
 
     renderTarget.draw(batch, currentTexture);
 }
@@ -185,17 +191,20 @@ void RenderingSystem::RenderShapes(sf::RenderTarget& renderTarget)
 
     size_t verticesInBatch = 0;
 
-    shapeQuery->ForEach<CShape, CTransform>([&](CShape& shape, CTransform& transform) {
-        size_t newVertices = AddShapeToBatch(shape, transform, batch);
-        verticesInBatch += newVertices;
+    shapeQuery->ForEach<CShape, CTransform>(
+        [&](CShape& shape, CTransform& transform)
+        {
+            size_t newVertices = AddShapeToBatch(shape, transform, batch);
+            verticesInBatch += newVertices;
 
-        if (verticesInBatch >= maxVerticesPerBatch) {
-            ZoneScopedN("Draw Shape Batch");
-            renderTarget.draw(batch);
-            batch.clear();
-            verticesInBatch = 0;
-        }
-    });
+            if (verticesInBatch >= maxVerticesPerBatch)
+            {
+                ZoneScopedN("Draw Shape Batch");
+                renderTarget.draw(batch);
+                batch.clear();
+                verticesInBatch = 0;
+            }
+        });
 
     if (verticesInBatch > 0) renderTarget.draw(batch);
 }
@@ -206,16 +215,19 @@ void RenderingSystem::RenderColliders(sf::RenderTarget& renderTarget)
 
     size_t verticesInBatch = 0;
 
-    colliderQuery->ForEach<CCollider, CTransform>([&](CCollider& collider, CTransform& transform) {
-        size_t newVertices = AddColliderToBatch(collider, transform, batch);
-        verticesInBatch += newVertices;
+    colliderQuery->ForEach<CCollider, CTransform>(
+        [&](CCollider& collider, CTransform& transform)
+        {
+            size_t newVertices = AddColliderToBatch(collider, transform, batch);
+            verticesInBatch += newVertices;
 
-        if (verticesInBatch >= maxVerticesPerBatch) {
-            renderTarget.draw(batch);
-            batch.clear();
-            verticesInBatch = 0;
-        }
-    });
+            if (verticesInBatch >= maxVerticesPerBatch)
+            {
+                renderTarget.draw(batch);
+                batch.clear();
+                verticesInBatch = 0;
+            }
+        });
 
     if (verticesInBatch > 0) renderTarget.draw(batch);
 }
@@ -224,15 +236,17 @@ void RenderingSystem::RenderColliders(sf::RenderTarget& renderTarget)
 // Fix me: Texts render upside down
 void RenderingSystem::RenderText(sf::RenderTarget& renderTarget)
 {
-    textQuery->ForEach<CText, CTransform>([&](CText& textComp, CTransform& transformComp) {
-        sf::Text text{*AssetManager::Instance().LoadFont("Default")};
-        text.setString(textComp.content);
-        text.setFillColor(textComp.textColor);
-        text.setCharacterSize(textComp.fontSize);
-        text.setPosition({transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y});
+    textQuery->ForEach<CText, CTransform>(
+        [&](CText& textComp, CTransform& transformComp)
+        {
+            sf::Text text{*AssetManager::Instance().LoadFont("Default")};
+            text.setString(textComp.content);
+            text.setFillColor(textComp.textColor);
+            text.setCharacterSize(textComp.fontSize);
+            text.setPosition({transformComp.position.x - textComp.offset.x, transformComp.position.y - textComp.offset.y});
 
-        renderTarget.draw(text);
-    });
+            renderTarget.draw(text);
+        });
 }
 
 void RenderingSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)

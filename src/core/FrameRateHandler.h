@@ -10,10 +10,10 @@
 
 class FrameRateHandler
 {
-private:
-    static inline size_t m_targetFrameRate  = 0; // 0 for unlimited
+  private:
+    static inline size_t m_targetFrameRate = 0; // 0 for unlimited
     static inline size_t m_currentFrameRate = 0;
-    static inline size_t m_currentFrame     = 0;
+    static inline size_t m_currentFrame = 0;
 
     long long m_currentFrameStartTime = 0; // in microsecond
 
@@ -21,9 +21,10 @@ private:
     {
         if (m_targetFrameRate == 0) return;
 
-        long long elapsedTime     = Time::GetCurrentTimeInMicrosecond() - m_currentFrameStartTime;
+        long long elapsedTime = Time::GetCurrentTimeInMicrosecond() - m_currentFrameStartTime;
         long long targetFrameTime = 1000000 / m_targetFrameRate;
-        if (elapsedTime < targetFrameTime) {
+        if (elapsedTime < targetFrameTime)
+        {
             std::this_thread::sleep_for(std::chrono::microseconds(std::max(0LL, targetFrameTime - elapsedTime)));
         }
     }
@@ -33,13 +34,15 @@ private:
         if (m_targetFrameRate == 0) return;
 
         long long targetFrameTime = 1000000 / m_targetFrameRate;
-        long long targetTime      = m_currentFrameStartTime + targetFrameTime;
-        while (Time::GetCurrentTimeInMicrosecond() < targetTime) {}
+        long long targetTime = m_currentFrameStartTime + targetFrameTime;
+        while (Time::GetCurrentTimeInMicrosecond() < targetTime)
+        {
+        }
     }
 
-public:
+  public:
     static size_t GetTargetFrameRate() { return m_targetFrameRate; }
-    static void   SetTargetFrameRate(size_t targetFrameRate) { m_targetFrameRate = targetFrameRate; }
+    static void SetTargetFrameRate(size_t targetFrameRate) { m_targetFrameRate = targetFrameRate; }
     static size_t GetCurrentFrameRate() { return m_currentFrameRate; }
     static size_t GetCurrentFrame() { return m_currentFrame; }
 
@@ -50,15 +53,15 @@ public:
         WaitBySpinning();
         // WaitByThreadToSleep();
 
-        long long now            = Time::GetCurrentTimeInMicrosecond();
+        long long now = Time::GetCurrentTimeInMicrosecond();
         long long totalFrameTime = now - m_currentFrameStartTime;
 
         if (totalFrameTime > 0) m_currentFrameRate = 1000000 / totalFrameTime;
 
         m_currentFrameStartTime = now;
 
-        float sec         = totalFrameTime / 1000000.f;
-        sec               = std::min(sec, 0.05f);
+        float sec = totalFrameTime / 1000000.f;
+        sec = std::min(sec, 0.05f);
         Time::m_deltaTime = Time::DeltaTime() * 0.1f + sec * 0.9f;
 
         ++m_currentFrame;

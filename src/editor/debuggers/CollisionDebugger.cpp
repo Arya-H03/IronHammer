@@ -4,57 +4,88 @@
 #include "physics/CollisionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
 
-CollisionDebugger::CollisionDebugger() { m_displayMode = EngineMode::Play; }
+CollisionDebugger::CollisionDebugger()
+{
+    m_displayMode = EngineMode::Play;
+}
 
-void CollisionDebugger::RegisterCollisionSystem(CollisionSystem* collisionSystem) { m_collisionSystemPtr = collisionSystem; }
-void CollisionDebugger::UnRegisterCollsionSystem() { m_collisionSystemPtr = nullptr; }
+void CollisionDebugger::RegisterCollisionSystem(CollisionSystem* collisionSystem)
+{
+    m_collisionSystemPtr = collisionSystem;
+}
+void CollisionDebugger::UnRegisterCollsionSystem()
+{
+    m_collisionSystemPtr = nullptr;
+}
 
 void CollisionDebugger::DrawTab(DebugTabContext& context)
 {
-    if (ImGui::BeginTabItem("Physics")) {
-        if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None)) { BroadPhaseGui(context.worldPtr); }
-        if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None)) { NarrowPhaseGui(); }
+    if (ImGui::BeginTabItem("Physics"))
+    {
+        if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
+        {
+            BroadPhaseGui(context.worldPtr);
+        }
+        if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
+        {
+            NarrowPhaseGui();
+        }
         ImGui::EndTabItem();
     };
 }
 
 void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 {
-    if (!worldPtr || !m_collisionSystemPtr) { return; }
+    if (!worldPtr || !m_collisionSystemPtr)
+    {
+        return;
+    }
 
     BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
 
     bool canDisplayGrid = broadPhaseCollsionSystem.GetCanDisplayGrid();
-    if (ImGui::Checkbox("Display Grid", &canDisplayGrid)) {
+    if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
+    {
         broadPhaseCollsionSystem.SetCanDisplayGrid(worldPtr, canDisplayGrid);
     }
     ImGui::SameLine(0, 50);
 
     bool canHighlightgrid = broadPhaseCollsionSystem.GetCanHighlightGrid();
-    if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid)) {
+    if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid))
+    {
         broadPhaseCollsionSystem.SetCanHighlightGrid(worldPtr, canHighlightgrid);
     }
     ImGui::Separator();
 
-    if (ImGui::TreeNode("Cells")) {
+    if (ImGui::TreeNode("Cells"))
+    {
         ImGuiListClipper clipper;
         clipper.Begin((int)broadPhaseCollsionSystem.m_grid.size());
 
-        while (clipper.Step()) {
-            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
+        while (clipper.Step())
+        {
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+            {
                 Cell& cell = broadPhaseCollsionSystem.m_grid[i];
                 ImGui::PushID(&cell);
 
-                if (cell.overlapingEntities.size() > 2) { ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui); }
-                else if (cell.overlapingEntities.size() == 1) {
+                if (cell.overlapingEntities.size() > 2)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui);
+                }
+                else if (cell.overlapingEntities.size() == 1)
+                {
                     ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_ImGui);
                 }
-                else {
+                else
+                {
                     ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gunmetal_ImGui);
                 }
 
-                if (ImGui::TreeNode("", "Cell (%i, %i)", cell.coord.x, cell.coord.y)) {
-                    for (size_t j = 0; j < cell.overlapingEntities.size(); ++j) {
+                if (ImGui::TreeNode("", "Cell (%i, %i)", cell.coord.x, cell.coord.y))
+                {
+                    for (size_t j = 0; j < cell.overlapingEntities.size(); ++j)
+                    {
                         ImGui::Text("Entity %i", cell.overlapingEntities[j].id);
                     }
 
@@ -68,7 +99,8 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
         ImGui::TreePop();
     }
 
-    if (ImGui::TreeNode("Potential Collision Pairs")) {
+    if (ImGui::TreeNode("Potential Collision Pairs"))
+    {
         ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
         ImGui::Text("Pair Count: %zu", broadPhaseCollsionSystem.m_uniquePotentialPairsVector.size());
         ImGui::PopStyleColor();
@@ -77,8 +109,10 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
         ImGuiListClipper clipper;
         clipper.Begin((int)broadPhaseCollsionSystem.m_uniquePotentialPairsVector.size());
 
-        while (clipper.Step()) {
-            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
+        while (clipper.Step())
+        {
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+            {
                 const auto& pair = broadPhaseCollsionSystem.m_uniquePotentialPairsVector[i];
 
                 ImGui::Text("Entity %i", pair.e1.id);
@@ -97,7 +131,10 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 
 void CollisionDebugger::NarrowPhaseGui() const
 {
-    if (!m_collisionSystemPtr) { return; }
+    if (!m_collisionSystemPtr)
+    {
+        return;
+    }
     NarrowPhaseCollisionSystem& narrowPhaseCollisionSystem = m_collisionSystemPtr->m_narrowPhaseCollisionSystem;
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
@@ -108,8 +145,10 @@ void CollisionDebugger::NarrowPhaseGui() const
     ImGuiListClipper clipper;
     clipper.Begin((int)narrowPhaseCollisionSystem.m_collisionPenetrationData.size());
 
-    while (clipper.Step()) {
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i) {
+    while (clipper.Step())
+    {
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+        {
             CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
             ImGui::Text("Entity %i", pair.e1.id);
             ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);

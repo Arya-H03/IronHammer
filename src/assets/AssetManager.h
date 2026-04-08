@@ -2,19 +2,19 @@
 #include "core/utils/Debug.h"
 #include "imgui.h"
 
-#include <memory>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <memory>
 #include <string>
 
 class AssetManager
 {
-private:
+  private:
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> m_textures;
-    std::unordered_map<std::string, std::unique_ptr<sf::Font>>    m_fonts;
+    std::unordered_map<std::string, std::unique_ptr<sf::Font>> m_fonts;
 
-public:
+  public:
     AssetManager()
     {
         // This is for testing
@@ -32,9 +32,9 @@ public:
         CreateFont("Default", "assets/font.otf");
     }
 
-    AssetManager(const AssetManager&)                = delete;
-    AssetManager& operator=(const AssetManager&)     = delete;
-    AssetManager(AssetManager&&) noexcept            = delete;
+    AssetManager(const AssetManager&) = delete;
+    AssetManager& operator=(const AssetManager&) = delete;
+    AssetManager(AssetManager&&) noexcept = delete;
     AssetManager& operator=(AssetManager&&) noexcept = delete;
 
     static AssetManager& Instance()
@@ -45,14 +45,16 @@ public:
 
     void CreateTexture(const std::string& name, const std::string& filePath)
     {
-        if (m_textures.contains(name)) {
+        if (m_textures.contains(name))
+        {
             LOG_ERROR("Texture already exists: " + name);
             return;
         }
 
         std::unique_ptr<sf::Texture> texture = std::make_unique<sf::Texture>();
 
-        if (!texture->loadFromFile(filePath)) {
+        if (!texture->loadFromFile(filePath))
+        {
             LOG_ERROR("Could not load texture: " + filePath);
             return;
         }
@@ -63,7 +65,8 @@ public:
     sf::Texture* LoadTexture(const std::string& name)
     {
         auto it = m_textures.find(name);
-        if (it == m_textures.end()) {
+        if (it == m_textures.end())
+        {
             LOG_ERROR("Could not find texture: " + name);
             return nullptr;
         }
@@ -73,7 +76,8 @@ public:
     ImTextureID GetTextureID(const std::string& name)
     {
         auto it = m_textures.find(name);
-        if (it == m_textures.end()) {
+        if (it == m_textures.end())
+        {
             LOG_ERROR("Could not find texture: " + name);
             return -1;
         }
@@ -82,14 +86,16 @@ public:
 
     void CreateFont(const std::string& name, const std::string& filePath)
     {
-        if (m_fonts.contains(name)) {
+        if (m_fonts.contains(name))
+        {
             LOG_ERROR("Font already exists: " + name);
             return;
         }
 
         std::unique_ptr<sf::Font> font = std::make_unique<sf::Font>();
 
-        if (!font->openFromFile(filePath)) {
+        if (!font->openFromFile(filePath))
+        {
             LOG_ERROR("Could not load font: " + filePath);
             return;
         }
@@ -100,7 +106,8 @@ public:
     sf::Font* LoadFont(const std::string& name)
     {
         auto it = m_fonts.find(name);
-        if (it == m_fonts.end()) {
+        if (it == m_fonts.end())
+        {
             LOG_ERROR("Could not find font: " + name);
             return nullptr;
         }

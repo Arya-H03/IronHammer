@@ -1,6 +1,7 @@
 #pragma once
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityManager.hpp"
+
 #include <algorithm>
 #include <memory>
 #include <tuple>
@@ -11,7 +12,6 @@
 class OldCommandBuffer
 {
   private:
-
     struct ICommand
     {
         virtual ~ICommand() = default;
@@ -29,8 +29,8 @@ class OldCommandBuffer
         }
         void Execute(EntityManager& entityManager) override
         {
-            m_entity = std::apply(
-                [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(m_componentTuple));
+            m_entity = std::apply([&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); },
+                                  std::move(m_componentTuple));
         }
     };
 
@@ -38,18 +38,18 @@ class OldCommandBuffer
     struct CreateEntityCommandNoReturn : public ICommand
     {
         std::tuple<Components...> m_componentTuple;
-        CreateEntityCommandNoReturn(Components&&... components) : m_componentTuple(std::forward<Components>(components)...) { }
+        CreateEntityCommandNoReturn(Components&&... components) : m_componentTuple(std::forward<Components>(components)...) {}
         void Execute(EntityManager& entityManager) override
         {
-            std::apply(
-                [&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); }, std::move(m_componentTuple));
+            std::apply([&](auto&&... comps) { return entityManager.CreateEntity(std::forward<decltype(comps)>(comps)...); },
+                       std::move(m_componentTuple));
         }
     };
 
     struct DestroyEntityCommand : public ICommand
     {
         Entity m_entity;
-        DestroyEntityCommand(Entity entity) : m_entity(entity) { }
+        DestroyEntityCommand(Entity entity) : m_entity(entity) {}
         void Execute(EntityManager& entityManager) override { entityManager.DestroyEntity(m_entity); }
     };
 
@@ -58,7 +58,7 @@ class OldCommandBuffer
     {
         Component m_component;
         Entity m_entity;
-        AddToEntityCommand(Entity entity, Component&& component) : m_component(component), m_entity(entity) { }
+        AddToEntityCommand(Entity entity, Component&& component) : m_component(component), m_entity(entity) {}
 
         void Execute(EntityManager& entityManager) override { entityManager.AddToEntity(m_entity, std::forward<Component>(m_component)); }
     };
@@ -67,7 +67,7 @@ class OldCommandBuffer
     struct RemoveFromEntityCommand : public ICommand
     {
         Entity m_entity;
-        RemoveFromEntityCommand(Entity entity) : m_entity(entity) { }
+        RemoveFromEntityCommand(Entity entity) : m_entity(entity) {}
         void Execute(EntityManager& entityManager) override { entityManager.RemoveComponentFrom<Component>(m_entity); }
     };
 
@@ -75,8 +75,7 @@ class OldCommandBuffer
     EntityManager& m_entityManager;
 
   public:
-
-    OldCommandBuffer(EntityManager& entityManager) : m_entityManager(entityManager) { }
+    OldCommandBuffer(EntityManager& entityManager) : m_entityManager(entityManager) {}
 
     void ExecuteAllCommands()
     {
@@ -91,7 +90,8 @@ class OldCommandBuffer
     template <typename... Components>
     void CreateEntity(Entity& entity, Components&&... components)
     {
-        m_commands.push_back(std::make_unique<CreateEntityCommandWithReturn<Components...>>(entity, std::forward<Components>(components)...));
+        m_commands.push_back(
+            std::make_unique<CreateEntityCommandWithReturn<Components...>>(entity, std::forward<Components>(components)...));
     }
 
     template <typename... Components>

@@ -20,7 +20,7 @@
 
 class CommandBuffer
 {
-private:
+  private:
     struct CreateEntityCommandTypeErased
     {
         Entity entity;
@@ -31,7 +31,7 @@ private:
     struct CreateEntityCommandTemplated
     {
         Entity entity;
-        void*  data;
+        void* data;
 
         void (*ExecuteFn)(EntityManager&, Entity, void*);
         void (*DestroyFn)(void*);
@@ -45,7 +45,7 @@ private:
     struct AddToEntityCommandTemplated
     {
         Entity entity;
-        void*  data;
+        void* data;
 
         void (*ExecuteFn)(EntityManager&, Entity, void*);
         void (*DestroyFn)(void*);
@@ -53,9 +53,9 @@ private:
 
     struct AddToEntityCommandTypeErased
     {
-        Entity      entity;
+        Entity entity;
         ComponentId componentID;
-        void*       componentPtr;
+        void* componentPtr;
     };
 
     struct RemoveFromEntityCommandTemplated
@@ -67,17 +67,17 @@ private:
 
     struct RemoveFromEntityCommandTypeErased
     {
-        Entity      entity;
+        Entity entity;
         ComponentId componentID;
-        void*       componentPtr;
+        void* componentPtr;
     };
 
-    std::vector<CreateEntityCommandTypeErased>     m_createEntityCommandsTypeErased;
-    std::vector<CreateEntityCommandTemplated>      m_createEntityCommandsTemplated;
-    std::vector<DestroyEntityCommand>              m_destroyEntityCommands;
-    std::vector<AddToEntityCommandTemplated>       m_addToEntityCommandsTemplated;
-    std::vector<AddToEntityCommandTypeErased>      m_addToEntityCommandsTypeErased;
-    std::vector<RemoveFromEntityCommandTemplated>  m_removeFromEntityCommandsTemplated;
+    std::vector<CreateEntityCommandTypeErased> m_createEntityCommandsTypeErased;
+    std::vector<CreateEntityCommandTemplated> m_createEntityCommandsTemplated;
+    std::vector<DestroyEntityCommand> m_destroyEntityCommands;
+    std::vector<AddToEntityCommandTemplated> m_addToEntityCommandsTemplated;
+    std::vector<AddToEntityCommandTypeErased> m_addToEntityCommandsTypeErased;
+    std::vector<RemoveFromEntityCommandTemplated> m_removeFromEntityCommandsTemplated;
     std::vector<RemoveFromEntityCommandTypeErased> m_removeFromEntityCommandsTypeErased;
 
     void Clear()
@@ -91,12 +91,11 @@ private:
         m_removeFromEntityCommandsTypeErased.clear();
     }
 
-public:
+  public:
     CommandBuffer() = default;
 
     // Create from EntityTemplate ///////
-    std::vector<PendingComponent>& CreateEntityFromTemplate(EntityManager&                  entityManager,
-                                                            std::vector<PendingComponent>&& components)
+    std::vector<PendingComponent>& CreateEntityFromTemplate(EntityManager& entityManager, std::vector<PendingComponent>&& components)
     {
         Entity entity = entityManager.GenerateEntity();
         m_createEntityCommandsTypeErased.push_back({entity, std::move(components)});
@@ -109,7 +108,7 @@ public:
     template <typename... Components>
     void CreateEntityFromComponentsNoReturn(EntityManager& entityManager, Components&&... components)
     {
-        Entity entity        = entityManager.GenerateEntity();
+        Entity entity = entityManager.GenerateEntity();
         using ComponentTuple = std::tuple<std::decay_t<Components>...>;
 
         ComponentTuple* componentTupleData = new ComponentTuple(std::forward<Components>(components)...);
@@ -117,11 +116,11 @@ public:
         m_createEntityCommandsTemplated.push_back(
             {entity, componentTupleData,
              // Execute Function
-             [](EntityManager& entityManager, Entity entity, void* data) {
+             [](EntityManager& entityManager, Entity entity, void* data)
+             {
                  ComponentTuple* componentTuplePtr = static_cast<ComponentTuple*>(data);
-                 std::apply(
-                     [&](auto&&... comps) { entityManager.CreateEntity(entity, std::forward<decltype(comps)>(comps)...); },
-                     std::move(*componentTuplePtr));
+                 std::apply([&](auto&&... comps) { entityManager.CreateEntity(entity, std::forward<decltype(comps)>(comps)...); },
+                            std::move(*componentTuplePtr));
              },
              // Destroy Function
              [](void* data) { delete static_cast<ComponentTuple*>(data); }});
@@ -130,7 +129,7 @@ public:
     template <typename... Components>
     Entity CreateEntityFromComponentsWithReturn(EntityManager& entityManager, Components&&... components)
     {
-        Entity entity        = entityManager.GenerateEntity();
+        Entity entity = entityManager.GenerateEntity();
         using ComponentTuple = std::tuple<std::decay_t<Components>...>;
 
         ComponentTuple* componentTupleData = new ComponentTuple(std::forward<Components>(components)...);
@@ -138,11 +137,11 @@ public:
         m_createEntityCommandsTemplated.push_back(
             {entity, componentTupleData,
              // Execute Function
-             [](EntityManager& entityManager, Entity entity, void* data) {
+             [](EntityManager& entityManager, Entity entity, void* data)
+             {
                  ComponentTuple* componentTuplePtr = static_cast<ComponentTuple*>(data);
-                 std::apply(
-                     [&](auto&&... comps) { entityManager.CreateEntity(entity, std::forward<decltype(comps)>(comps)...); },
-                     std::move(*componentTuplePtr));
+                 std::apply([&](auto&&... comps) { entityManager.CreateEntity(entity, std::forward<decltype(comps)>(comps)...); },
+                            std::move(*componentTuplePtr));
              },
              // Destroy Function
              [](void* data) { delete static_cast<ComponentTuple*>(data); }});
@@ -156,12 +155,13 @@ public:
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)
     {
-        using CompType     = std::decay_t<Component>;
+        using CompType = std::decay_t<Component>;
         CompType* compData = new CompType(std::forward<Component>(component));
 
         m_addToEntityCommandsTemplated.push_back({entity, compData,
                                                   // Execute Function
-                                                  [](EntityManager& entityManager, Entity entity, void* data) {
+                                                  [](EntityManager& entityManager, Entity entity, void* data)
+                                                  {
                                                       CompType* comp = static_cast<CompType*>(data);
                                                       entityManager.AddToEntity(entity, std::forward<CompType>(*comp));
                                                   },
@@ -177,10 +177,10 @@ public:
     template <typename Component>
     void RemoveFromEntity(Entity entity)
     {
-        m_removeFromEntityCommandsTemplated.push_back(
-            {entity,
-             // Execute Function
-             [](EntityManager& entityManager, Entity entity) { entityManager.RemoveComponentFrom<Component>(entity); }});
+        m_removeFromEntityCommandsTemplated.push_back({entity,
+                                                       // Execute Function
+                                                       [](EntityManager& entityManager, Entity entity)
+                                                       { entityManager.RemoveComponentFrom<Component>(entity); }});
     }
 
     void RemoveFromEntity(Entity entity, ComponentId componentId, void* componentPtr)
@@ -190,29 +190,38 @@ public:
 
     void ExecuteAllCommands(EntityManager& entityManager)
     {
-        for (auto& command : m_createEntityCommandsTypeErased) {
+        for (auto& command : m_createEntityCommandsTypeErased)
+        {
             entityManager.CreateEntity(command.entity, command.pendingComponents);
         }
 
-        for (auto& command : m_createEntityCommandsTemplated) {
+        for (auto& command : m_createEntityCommandsTemplated)
+        {
             command.ExecuteFn(entityManager, command.entity, command.data);
             command.DestroyFn(command.data);
         }
 
-        for (auto& command : m_destroyEntityCommands) entityManager.DestroyEntity(command.entity);
+        for (auto& command : m_destroyEntityCommands)
+            entityManager.DestroyEntity(command.entity);
 
-        for (auto& command : m_addToEntityCommandsTemplated) {
+        for (auto& command : m_addToEntityCommandsTemplated)
+        {
             command.ExecuteFn(entityManager, command.entity, command.data);
             command.DestroyFn(command.data);
         }
 
-        for (auto& command : m_addToEntityCommandsTypeErased) {
+        for (auto& command : m_addToEntityCommandsTypeErased)
+        {
             entityManager.AddToEntity(command.entity, command.componentID, command.componentPtr);
         }
 
-        for (auto& command : m_removeFromEntityCommandsTemplated) { command.ExecuteFn(entityManager, command.entity); }
+        for (auto& command : m_removeFromEntityCommandsTemplated)
+        {
+            command.ExecuteFn(entityManager, command.entity);
+        }
 
-        for (auto& command : m_removeFromEntityCommandsTypeErased) {
+        for (auto& command : m_removeFromEntityCommandsTypeErased)
+        {
             entityManager.RemoveComponentFrom(command.entity, command.componentID, command.componentPtr);
         }
 

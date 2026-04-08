@@ -1,8 +1,8 @@
 #pragma once
 
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/system/ISystem.h"
-#include "ecs/World.hpp"
 #include "physics/CollisionCommon.h"
 #include "physics/PhysicsComponents.hpp"
 
@@ -10,7 +10,7 @@
 
 class CollisionEventSystem : ISetupSystem
 {
-private:
+  private:
     std::unordered_set<CollisionPair, CollisionPairHash> m_previousFramePairs;
     std::unordered_set<CollisionPair, CollisionPairHash> m_currentFramePairs;
 
@@ -18,12 +18,12 @@ private:
     Query* m_stayCollisionQuery;
     Query* m_exitCollisionQuery;
 
-public:
+  public:
     void SetupSystem(World* worldPtr) override
     {
         m_enterCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
-        m_stayCollisionQuery  = worldPtr->Query<RequiredComponents<CCollisionStay>>();
-        m_exitCollisionQuery  = worldPtr->Query<RequiredComponents<CCollisionExit>>();
+        m_stayCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionStay>>();
+        m_exitCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionExit>>();
     }
 
     void CreateCollisionPair(Entity e1, Entity e2) { m_currentFramePairs.emplace(CollisionPair(e1, e2)); }
@@ -33,16 +33,21 @@ public:
     void HandleCollisionEvents(World* worldptr)
     {
         // stay and exit events
-        for (auto& collisionpair : m_previousFramePairs) {
-            if (m_currentFramePairs.contains(collisionpair)) {
+        for (auto& collisionpair : m_previousFramePairs)
+        {
+            if (m_currentFramePairs.contains(collisionpair))
+            {
                 worldptr->CreateEntityNoReturn(CCollisionStay(collisionpair.e1, collisionpair.e2));
             }
-            else worldptr->CreateEntityNoReturn(CCollisionExit(collisionpair.e1, collisionpair.e2));
+            else
+                worldptr->CreateEntityNoReturn(CCollisionExit(collisionpair.e1, collisionpair.e2));
         }
 
         // enter events
-        for (auto& collisionpair : m_currentFramePairs) {
-            if (!m_previousFramePairs.contains(collisionpair)) {
+        for (auto& collisionpair : m_currentFramePairs)
+        {
+            if (!m_previousFramePairs.contains(collisionpair))
+            {
                 worldptr->CreateEntityNoReturn(CCollisionEnter(collisionpair.e1, collisionpair.e2));
             }
         }

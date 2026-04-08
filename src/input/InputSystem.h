@@ -1,15 +1,14 @@
 #pragma once
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <imgui-SFML.h>
-#include <SFML/Graphics/RenderWindow.hpp>
 #include <unordered_map>
 
 class InputSystem
 {
   private:
-
     struct KeyState
     {
         bool pressed = false;
@@ -53,13 +52,12 @@ class InputSystem
     }
 
   public:
-
     InputSystem(sf::RenderWindow& window) : m_window(window)
     {
         // Initialize for map for all keys
         for (int i = 0; i < sf::Keyboard::KeyCount; ++i)
         {
-            m_keyboardKeyStateMap[(sf::Keyboard::Key) i] = KeyState {};
+            m_keyboardKeyStateMap[(sf::Keyboard::Key)i] = KeyState{};
         }
 
         m_mouseButtonStateMap[sf::Mouse::Button::Left] = KeyState{};

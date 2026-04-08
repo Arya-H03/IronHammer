@@ -11,12 +11,12 @@
 
 class SystemDebuggerHub
 {
-private:
-    CollisionDebugger       m_collisionDebugger;
-    WorldDebugger           m_worldDebugger;
+  private:
+    CollisionDebugger m_collisionDebugger;
+    WorldDebugger m_worldDebugger;
     RenderingSystemDebugger m_renderingSystemDebugger;
-    EditorDebugger          m_editorDebugger;
-    FlowFieldDebugger       m_flowFieldDebugger;
+    EditorDebugger m_editorDebugger;
+    FlowFieldDebugger m_flowFieldDebugger;
 
     std::vector<IDebugTab*> m_debugTabs;
 
@@ -29,10 +29,10 @@ private:
         m_debugTabs.push_back(&m_flowFieldDebugger);
     }
 
-public:
-    SystemDebuggerHub(const SystemDebuggerHub&)                = delete;
-    SystemDebuggerHub& operator=(const SystemDebuggerHub&)     = delete;
-    SystemDebuggerHub(SystemDebuggerHub&&) noexcept            = delete;
+  public:
+    SystemDebuggerHub(const SystemDebuggerHub&) = delete;
+    SystemDebuggerHub& operator=(const SystemDebuggerHub&) = delete;
+    SystemDebuggerHub(SystemDebuggerHub&&) noexcept = delete;
     SystemDebuggerHub& operator=(SystemDebuggerHub&&) noexcept = delete;
 
     static SystemDebuggerHub& Instance()
@@ -43,9 +43,9 @@ public:
 
     const std::vector<IDebugTab*>& GetDebugTabs() const { return m_debugTabs; }
 
-    CollisionDebugger&       GetCollsionDebugger() { return m_collisionDebugger; }
-    WorldDebugger&           GetWorldDebugger() { return m_worldDebugger; }
+    CollisionDebugger& GetCollsionDebugger() { return m_collisionDebugger; }
+    WorldDebugger& GetWorldDebugger() { return m_worldDebugger; }
     RenderingSystemDebugger& GetRenderignSystemDebugger() { return m_renderingSystemDebugger; }
-    EditorDebugger&          GetEditorDebugger() { return m_editorDebugger; }
-    FlowFieldDebugger&       GetFlowFieldDebugger() { return m_flowFieldDebugger; }
+    EditorDebugger& GetEditorDebugger() { return m_editorDebugger; }
+    FlowFieldDebugger& GetFlowFieldDebugger() { return m_flowFieldDebugger; }
 };

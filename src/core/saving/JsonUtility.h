@@ -1,14 +1,14 @@
 #pragma once
+#include "core/utils/Debug.h"
+
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "core/utils/Debug.h"
 
 using Json = nlohmann::json;
 
 class JsonUtility
 {
   public:
-
     inline static bool SaveJsonObjectToFile(Json& jsonObject, const std::string& filePath)
     {
 

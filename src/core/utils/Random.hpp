@@ -5,11 +5,9 @@
 class Random
 {
   private:
-
     inline static std::mt19937 m_engine; // Random engine
 
   public:
-
     static void Init()
     {
         std::random_device rd;

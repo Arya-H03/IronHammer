@@ -1,18 +1,19 @@
 #pragma once
+#include "core/utils/Colors.h"
+#include "core/utils/Time.h"
+
 #include <SFML/Window/Keyboard.hpp>
+#include <backward.hpp>
 #include <condition_variable>
 #include <cstddef>
 #include <deque>
+#include <imgui.h>
 #include <mutex>
 #include <queue>
-#include <string>
-#include <imgui.h>
-#include <backward.hpp>
 #include <regex>
+#include <string>
 #include <thread>
 #include <vector>
-#include "core/utils/Colors.h"
-#include "core/utils/Time.h"
 
 enum class LogType
 {
@@ -31,7 +32,8 @@ struct TraceBreakdown
     std::string result;
 
     TraceBreakdown(const std::string& func, const std::string& file, unsigned int line, unsigned int col)
-        : objectFunction(func), path(file), line(line), column(col), result(objectFunction + " at " + path + " line " + std::to_string(line))
+        : objectFunction(func), path(file), line(line), column(col),
+          result(objectFunction + " at " + path + " line " + std::to_string(line))
     {
     }
 };
@@ -60,12 +62,8 @@ struct LogMessage
     LogType logType;
 
     LogMessage(std::string message, std::string time, std::vector<TraceBreakdown> traceBreakdowns, ImVec4 color, LogType logType)
-        : message(std::move(message))
-        , time(std::move(time))
-        , displayLable(this->time + " " + this->message)
-        , traceBreakdowns(std::move(traceBreakdowns))
-        , color(color)
-        , logType(logType)
+        : message(std::move(message)), time(std::move(time)), displayLable(this->time + " " + this->message),
+          traceBreakdowns(std::move(traceBreakdowns)), color(color), logType(logType)
     {
     }
 };
@@ -80,7 +78,6 @@ struct LogCounts
 class Debug
 {
   private:
-
     inline static std::deque<LogMessage> m_logMessageQueue;
     inline static std::deque<LogMessage> m_logMessageQueueBuffer;
     inline static std::queue<PendingLogMessage> m_pendingLogMesssageQueue;
@@ -104,8 +101,8 @@ class Debug
         return std::regex_replace(simplified, templatePattern, "");
     }
 
-    inline static std::vector<TraceBreakdown> ResolveStackTrace(
-        backward::StackTrace& stackTrace, size_t skipFramesFromStart = 4, size_t skipFramesFromEnd = 4)
+    inline static std::vector<TraceBreakdown> ResolveStackTrace(backward::StackTrace& stackTrace, size_t skipFramesFromStart = 4,
+                                                                size_t skipFramesFromEnd = 4)
     {
         std::vector<TraceBreakdown> traceBreakdowns;
 
@@ -119,16 +116,13 @@ class Debug
         for (size_t i = skipFramesFromStart; i < stackTrace.size() - skipFramesFromEnd; ++i)
         {
             const backward::ResolvedTrace& resolvedTrace = traceResolver.resolve(stackTrace[i]);
-            traceBreakdowns.emplace_back(SimplifyObjectFunctionName(resolvedTrace.object_function),
-                resolvedTrace.source.filename,
-                resolvedTrace.source.line,
-                resolvedTrace.source.col);
+            traceBreakdowns.emplace_back(SimplifyObjectFunctionName(resolvedTrace.object_function), resolvedTrace.source.filename,
+                                         resolvedTrace.source.line, resolvedTrace.source.col);
         }
         return traceBreakdowns;
     }
 
   public:
-
     inline static const std::deque<LogMessage>& GetLogMessages() { return m_logMessageQueue; }
     inline static LogCounts& GetLogCounts() { return m_logCounts; }
 
@@ -152,15 +146,22 @@ class Debug
                         std::vector<TraceBreakdown> breakdowns = ResolveStackTrace(pendingLog.stackTrace);
                         {
                             std::lock_guard logMessagesLock(m_logMessagesMutex);
-                            m_logMessageQueueBuffer.emplace_back(
-                                pendingLog.message, pendingLog.time, breakdowns, pendingLog.color, pendingLog.logType);
+                            m_logMessageQueueBuffer.emplace_back(pendingLog.message, pendingLog.time, breakdowns, pendingLog.color,
+                                                                 pendingLog.logType);
 
                             switch (pendingLog.logType)
                             {
-                                case LogType::Info: ++m_logCountsBuffer.infoLogCount; break;
-                                case LogType::Warning: ++m_logCountsBuffer.warningLogCount; break;
-                                case LogType::Error: ++m_logCountsBuffer.errorLogCount; break;
-                                case LogType::Unknown:; break;
+                                case LogType::Info:
+                                    ++m_logCountsBuffer.infoLogCount;
+                                    break;
+                                case LogType::Warning:
+                                    ++m_logCountsBuffer.warningLogCount;
+                                    break;
+                                case LogType::Error:
+                                    ++m_logCountsBuffer.errorLogCount;
+                                    break;
+                                case LogType::Unknown:;
+                                    break;
                             }
                         }
                         pendingLogsLock.lock();
@@ -210,14 +211,22 @@ class Debug
 
         switch (logType)
         {
-            case LogType::Info: stackTrace.load_here(0); break;
-            case LogType::Error: stackTrace.load_here(32); break;
-            case LogType::Warning: stackTrace.load_here(16); break;
-            case LogType::Unknown: stackTrace.load_here(0); break;
+            case LogType::Info:
+                stackTrace.load_here(0);
+                break;
+            case LogType::Error:
+                stackTrace.load_here(32);
+                break;
+            case LogType::Warning:
+                stackTrace.load_here(16);
+                break;
+            case LogType::Unknown:
+                stackTrace.load_here(0);
+                break;
         }
         {
             std::lock_guard lock(m_pendingLogsMutex);
-            m_pendingLogMesssageQueue.push({ message, Time::GetLocalTimeStamp(), color, logType, std::move(stackTrace) });
+            m_pendingLogMesssageQueue.push({message, Time::GetLocalTimeStamp(), color, logType, std::move(stackTrace)});
         }
         m_cv.notify_one();
     }

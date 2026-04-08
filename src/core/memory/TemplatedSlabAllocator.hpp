@@ -5,11 +5,12 @@
 #include <vector>
 #pragma once
 
-template <typename T, size_t SlabSize> class TemplatedSlabAllocator
+template <typename T, size_t SlabSize>
+class TemplatedSlabAllocator
 {
     static_assert(SlabSize > 0, "SlotCount must be positive");
 
-private:
+  private:
     struct Slab
     {
         static constexpr size_t wordCount = (SlabSize + 63) / 64;
@@ -20,7 +21,7 @@ private:
             uint64_t multiple[wordCount];
         } bitSet; // 1 -> free bit // 0 -> used bit
 
-        T      blocks[SlabSize];
+        T blocks[SlabSize];
         size_t freeCount;
 
         Slab()
@@ -39,7 +40,7 @@ private:
             else
             {
                 size_t wordIndex = index / 64;
-                size_t bitIndex  = index % 64;
+                size_t bitIndex = index % 64;
 
                 bitSet.multiple[wordIndex] &= ~(1ull << bitIndex);
             }
@@ -47,9 +48,11 @@ private:
 
         void SetBitsetToZero()
         {
-            if constexpr (wordCount == 1) bitSet.single = 0ull;
+            if constexpr (wordCount == 1)
+                bitSet.single = 0ull;
             else
-                for (size_t i = 0; i < wordCount; ++i) bitSet.multiple[i] = 0ull;
+                for (size_t i = 0; i < wordCount; ++i)
+                    bitSet.multiple[i] = 0ull;
         }
 
         void ResetBitToOne(size_t index)
@@ -61,7 +64,7 @@ private:
             else
             {
                 size_t wordIndex = index / 64;
-                size_t bitIndex  = index % 64;
+                size_t bitIndex = index % 64;
 
                 bitSet.multiple[wordIndex] |= 1ull << bitIndex;
             }
@@ -69,9 +72,11 @@ private:
 
         void ResetBitSetToOne()
         {
-            if constexpr (wordCount == 1) bitSet.single = ~0ull;
+            if constexpr (wordCount == 1)
+                bitSet.single = ~0ull;
             else
-                for (size_t i = 0; i < wordCount; ++i) bitSet.multiple[i] = ~0ull;
+                for (size_t i = 0; i < wordCount; ++i)
+                    bitSet.multiple[i] = ~0ull;
         }
 
         // For when SlabSize if not a multiple of 64
@@ -154,7 +159,7 @@ private:
         assert(false && "Pointer wans't found");
     }
 
-public:
+  public:
     T* Allocate()
     {
         // When no free Slabs Exist
@@ -168,7 +173,7 @@ public:
             }
         }
 
-        auto&  slab      = slabs[currentSlabIndex];
+        auto& slab = slabs[currentSlabIndex];
         size_t freeIndex = slab.FindFirstFreeBit();
         slab.SetBitToZero(freeIndex);
         --slab.freeCount;

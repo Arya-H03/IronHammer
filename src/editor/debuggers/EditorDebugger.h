@@ -6,10 +6,10 @@ class Editor;
 
 class EditorDebugger : public IDebugTab
 {
-private:
+  private:
     Editor* m_editorPtr = nullptr;
 
-public:
+  public:
     EditorDebugger();
 
     void RegisterEditor(Editor* editor);

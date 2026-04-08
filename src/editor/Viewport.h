@@ -3,29 +3,29 @@
 #include "core/utils/Vect2.hpp"
 #include "imgui.h"
 
-#include <cstdint>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <cstdint>
 class Viewport
 {
-private:
-    inline static Vect2f             m_position{0.f, 0.f};
-    inline static Vect2<uint16_t>    m_size{0, 0};
+  private:
+    inline static Vect2f m_position{0.f, 0.f};
+    inline static Vect2<uint16_t> m_size{0, 0};
     inline static sf::RenderTexture* m_renderTexture;
-    inline static ImVec2             m_viewportImagePos;
-    inline static ImVec2             m_viewportImageDrawSize;
+    inline static ImVec2 m_viewportImagePos;
+    inline static ImVec2 m_viewportImageDrawSize;
 
-public:
+  public:
     inline static void SetViewportSize(const Vect2f& position, const Vect2<uint16_t>& size)
     {
         m_position = position;
-        m_size     = size;
+        m_size = size;
     }
 
     inline static void SetViewportTexture(sf::RenderTexture* renderTexture) { m_renderTexture = renderTexture; }
     inline static void UpdateViewportImage(ImVec2 pos, ImVec2 drawSize)
     {
-        m_viewportImagePos      = pos;
+        m_viewportImagePos = pos;
         m_viewportImageDrawSize = drawSize;
     };
 
@@ -68,12 +68,11 @@ public:
     inline static ImVec2 WorldToViewportGui(const Vect2f& worldPos)
     {
         sf::Vector2i texturePixel = m_renderTexture->mapCoordsToPixel({worldPos.x, worldPos.y});
-        sf::Vector2u textureSize  = m_renderTexture->getSize();
+        sf::Vector2u textureSize = m_renderTexture->getSize();
 
         float scaleX = m_viewportImageDrawSize.x / (float)textureSize.x;
         float scaleY = m_viewportImageDrawSize.y / (float)textureSize.y;
 
-        return ImVec2(m_viewportImagePos.x + (float)texturePixel.x * scaleX,
-                      m_viewportImagePos.y + (float)texturePixel.y * scaleY);
+        return ImVec2(m_viewportImagePos.x + (float)texturePixel.x * scaleX, m_viewportImagePos.y + (float)texturePixel.y * scaleY);
     }
 };

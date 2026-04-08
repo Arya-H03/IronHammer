@@ -1,23 +1,21 @@
 #pragma once
-#include <fstream>
-#include <unordered_map>
-#include <string>
-#include <memory>
-
+#include "core/saving/JsonUtility.h"
 #include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "scene/BaseScene.h"
-#include "core/saving/JsonUtility.h"
+
+#include <fstream>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 class SceneManager
 {
   private:
-
     std::unordered_map<std::string, std::unique_ptr<BaseScene>> m_scenes;
     BaseScene* m_currentScene = nullptr;
 
   public:
-
     BaseScene* GetCurrentScenePtr() const { return m_currentScene; }
 
     void RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene)

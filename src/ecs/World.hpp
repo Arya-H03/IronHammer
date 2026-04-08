@@ -12,18 +12,18 @@ class World
 {
     friend class Engine;
 
-private:
+  private:
     ArchetypeRegistry m_archetypeRegistry;
-    EntityManager     m_entityManager;
-    CommandBuffer     m_commandBuffer;
+    EntityManager m_entityManager;
+    CommandBuffer m_commandBuffer;
 
     void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager); }
 
-public:
+  public:
     World() : m_entityManager(m_archetypeRegistry) {}
     ArchetypeRegistry& GetArchetypeRegistry() { return m_archetypeRegistry; }
-    EntityManager&     GetEntityManager() { return m_entityManager; }
-    CommandBuffer&     GetCommandBuffer() { return m_commandBuffer; }
+    EntityManager& GetEntityManager() { return m_entityManager; }
+    CommandBuffer& GetCommandBuffer() { return m_commandBuffer; }
 
     bool ValidateEntity(Entity entity, bool log = true) const { return m_entityManager.ValidateEntity(entity, log); }
 
@@ -43,8 +43,7 @@ public:
     template <typename... Components>
     Entity CreateEntityWithReturn(Components&&... components)
     {
-        return m_commandBuffer.CreateEntityFromComponentsWithReturn(m_entityManager,
-                                                                    std::forward<Components>(components)...);
+        return m_commandBuffer.CreateEntityFromComponentsWithReturn(m_entityManager, std::forward<Components>(components)...);
     }
 
     template <typename... Components>
@@ -102,12 +101,11 @@ public:
     // Deserialize completes on next frame
     void DeserializeWorld(Json worldJson)
     {
-        for (auto& entityJson : worldJson["entities"]) {
-            std::vector<PendingComponent> pendingComponents =
-                ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityJson);
+        for (auto& entityJson : worldJson["entities"])
+        {
+            std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityJson);
 
             m_commandBuffer.CreateEntityFromTemplate(m_entityManager, std::move(pendingComponents));
         }
     }
-
 };

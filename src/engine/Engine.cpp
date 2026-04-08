@@ -3,8 +3,8 @@
 #include "core/utils/Debug.h"
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/World.hpp"
+#include "ecs/component/ComponentRegistry.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
@@ -12,26 +12,26 @@
 #include "scene/GameScene.h"
 #include "scene/SceneManager.h"
 
-#include <cassert>
-#include <cstdint>
-#include <imgui-SFML.h>
-#include <memory>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/WindowEnums.hpp>
+#include <cassert>
+#include <cstdint>
+#include <imgui-SFML.h>
+#include <memory>
 
 Engine::Engine()
-    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld),
-      m_inputSystem(m_window)
+    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld), m_inputSystem(m_window)
 {
     Init();
 }
 
 bool Engine::GetIsPlayModePaused() const
 {
-    if (!m_sceneManager.GetCurrentScenePtr()) {
+    if (!m_sceneManager.GetCurrentScenePtr())
+    {
         LOG_WARNING("Tried to GetIsPlayModePaused when there is not currentScene");
         return false;
     }
@@ -39,14 +39,38 @@ bool Engine::GetIsPlayModePaused() const
     return m_sceneManager.GetCurrentScenePtr()->GetScenePaused();
 }
 
-EngineMode             Engine::GetEngineMode() const { return m_engineMode; }
-Vect2<uint16_t>        Engine::GetWindowSize() const { return m_windowSize; }
-World*                 Engine::GetCurrentWorld() const { return m_currentWorld; }
-sf::RenderWindow&      Engine::GetRenderWindow() { return m_window; }
-RenderingSystem&       Engine::GetRenderSystem() { return m_renderSystem; }
-SceneManager&          Engine::GetSceneManager() { return m_sceneManager; }
-InputSystem&           Engine::GetInputSystem() { return m_inputSystem; }
-EntityTemplateManager& Engine::GetEntityTemplateManager() { return m_entityTemplateManager; }
+EngineMode Engine::GetEngineMode() const
+{
+    return m_engineMode;
+}
+Vect2<uint16_t> Engine::GetWindowSize() const
+{
+    return m_windowSize;
+}
+World* Engine::GetCurrentWorld() const
+{
+    return m_currentWorld;
+}
+sf::RenderWindow& Engine::GetRenderWindow()
+{
+    return m_window;
+}
+RenderingSystem& Engine::GetRenderSystem()
+{
+    return m_renderSystem;
+}
+SceneManager& Engine::GetSceneManager()
+{
+    return m_sceneManager;
+}
+InputSystem& Engine::GetInputSystem()
+{
+    return m_inputSystem;
+}
+EntityTemplateManager& Engine::GetEntityTemplateManager()
+{
+    return m_entityTemplateManager;
+}
 
 void Engine::Init()
 {
@@ -106,8 +130,12 @@ void Engine::ExitPlayMode()
 
 void Engine::TogglePlayMode()
 {
-    if (m_engineMode == EngineMode::Edit) { EnterPlayMode(); }
-    else if (m_engineMode == EngineMode::Play) {
+    if (m_engineMode == EngineMode::Edit)
+    {
+        EnterPlayMode();
+    }
+    else if (m_engineMode == EngineMode::Play)
+    {
         ExitPlayMode();
     }
 }
@@ -123,7 +151,10 @@ void Engine::LoadEditorSceneData()
     m_sceneManager.LoadScene(*m_editorWorld, "src/assets/sceneData/test.Json");
 }
 
-void Engine::LoadTempSceneData() { m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json"); }
+void Engine::LoadTempSceneData()
+{
+    m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json");
+}
 
 void Engine::BeginFrame()
 {

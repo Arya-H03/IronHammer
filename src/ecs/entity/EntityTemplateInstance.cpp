@@ -1,7 +1,9 @@
 #include "EntityTemplateInstance.h"
+
 #include "EntityTemplateManager.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
+
 #include <vector>
 
 EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
@@ -10,7 +12,10 @@ EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
     DeserializeFrom(sourceTemplate.entityJson);
 }
 
-EntityTemplateInstance::~EntityTemplateInstance() { Clear(); }
+EntityTemplateInstance::~EntityTemplateInstance()
+{
+    Clear();
+}
 
 void EntityTemplateInstance::Clear()
 {
@@ -50,11 +55,10 @@ void EntityTemplateInstance::DrawInspector()
 
     if (m_pendingRemovalcomponents.size() > 0)
     {
-        std::erase_if(
-            m_components, [&](const std::pair<const ComponentInfo*, void*>& pair) { return m_pendingRemovalcomponents.contains(pair.first->id); });
+        std::erase_if(m_components, [&](const std::pair<const ComponentInfo*, void*>& pair)
+                      { return m_pendingRemovalcomponents.contains(pair.first->id); });
 
-        std::erase_if(
-            m_presentComponents, [&](ComponentId id) { return m_pendingRemovalcomponents.contains(id); });
+        std::erase_if(m_presentComponents, [&](ComponentId id) { return m_pendingRemovalcomponents.contains(id); });
         m_pendingRemovalcomponents.clear();
     }
 

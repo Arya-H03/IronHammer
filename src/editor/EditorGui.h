@@ -1,16 +1,15 @@
 #pragma once
 
 #include "EditorContext.h"
-#include "editor/panels/ViewportPanel.h"
-#include "editor/panels/InspectorPanel.h"
-#include "editor/panels/DebugPanel.h"
 #include "editor/panels/BottomPanel.h"
+#include "editor/panels/DebugPanel.h"
+#include "editor/panels/InspectorPanel.h"
 #include "editor/panels/MenuBarPanel.h"
+#include "editor/panels/ViewportPanel.h"
 
 class EditorGui
 {
   private:
-
     EditorContext& m_editorContext;
 
     ViewportPanel m_viewportPanel;
@@ -20,14 +19,9 @@ class EditorGui
     MenuBarPanel m_menuBarPanel;
 
   public:
-
     EditorGui(EditorContext& context)
-        : m_editorContext(context)
-        , m_viewportPanel(context)
-        , m_inspectorPanel(context)
-        , m_debugPanel(context)
-        , m_bottomPanel(context)
-        , m_menuBarPanel(context)
+        : m_editorContext(context), m_viewportPanel(context), m_inspectorPanel(context), m_debugPanel(context), m_bottomPanel(context),
+          m_menuBarPanel(context)
     {
     }
 

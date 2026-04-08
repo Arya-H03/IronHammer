@@ -11,12 +11,12 @@ class EntityInspector;
 
 class WorldDebugger : public IDebugTab
 {
-private:
+  private:
     World* m_worldPtr = nullptr;
 
     void DrawIndividualArchetypeGUI(World* worldPtr, Archetype* archetypePtr, EntityInspector* entityInspector) const;
 
-public:
+  public:
     WorldDebugger();
 
     void DrawWorldGuiTab(World* worldPtr, EntityInspector* entityInspector) const;

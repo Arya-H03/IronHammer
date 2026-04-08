@@ -1,13 +1,14 @@
 #pragma once
 
+#include "ecs/archetype/Archetype.h"
+#include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/query/Query.hpp"
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "ecs/archetype/Archetype.h"
-#include "ecs/component/ComponentRegistry.hpp"
-#include "ecs/common/ECSCommon.h"
-#include "ecs/query/Query.hpp"
 
 template <typename... Component>
 struct RequiredComponents
@@ -24,7 +25,6 @@ class ArchetypeRegistry
     inline static size_t defaultArchetypeChunkCapacity = 64;
 
   private:
-
     std::vector<std::unique_ptr<Archetype>> m_archetypes;
     std::unordered_map<ComponentSignatureMask, ArchetypeId> m_signatureToArchetypeIdMap;
     std::unordered_map<QueryKey, std::unique_ptr<Query>, QueryKeyHash> m_queryCache;
@@ -81,7 +81,6 @@ class ArchetypeRegistry
     }
 
   public:
-
     const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes() const { return m_archetypes; }
     Archetype& GetArchetypeById(ArchetypeId id) const { return *m_archetypes[id]; }
 
@@ -100,7 +99,7 @@ class ArchetypeRegistry
     Query* GetOrCreateQuery()
     {
         QueryKey key;
-        (ProcessArgumentsForQueryKey(QueryGroup {}, key), ...);
+        (ProcessArgumentsForQueryKey(QueryGroup{}, key), ...);
 
         auto it = m_queryCache.find(key);
         if (it != m_queryCache.end())

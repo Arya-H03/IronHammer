@@ -6,10 +6,10 @@ class RenderingSystem;
 
 class RenderingSystemDebugger : public IDebugTab
 {
-private:
+  private:
     RenderingSystem* m_renderingSystemPtr;
 
-public:
+  public:
     RenderingSystemDebugger();
 
     void DrawTab(DebugTabContext& context) override;

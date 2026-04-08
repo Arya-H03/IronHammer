@@ -3,13 +3,13 @@
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
+
 #include <vector>
 
 // Deprecated
 class BaseSystem
 {
   protected:
-
     ComponentSignatureMask m_signatureMask;
     std::vector<Archetype*> m_matchingArchetypes;
 
@@ -20,7 +20,6 @@ class BaseSystem
     }
 
   public:
-
     void TryAddMatchingArchetype(Archetype* archetype)
     {
         if ((archetype->GetComponentSignature() & m_signatureMask) == m_signatureMask)

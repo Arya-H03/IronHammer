@@ -4,7 +4,6 @@
 class ISetupSystem
 {
   public:
-
-  virtual void SetupSystem(World* worldPtr) = 0;
-  virtual ~ISetupSystem() = default;
+    virtual void SetupSystem(World* worldPtr) = 0;
+    virtual ~ISetupSystem() = default;
 };

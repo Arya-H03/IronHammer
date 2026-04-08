@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input/InputSystem.h"
+
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <functional>
@@ -18,7 +19,6 @@ enum class InputTrigger
 class InputManager
 {
   private:
-
     using InputActionCallBack = std::function<void()>;
 
     struct KeyboardInputAction
@@ -38,12 +38,12 @@ class InputManager
 
     void RegisterAction(const std::string& actionName, sf::Keyboard::Key actionKey)
     {
-        m_keyboardInputActionMap[actionName] = KeyboardInputAction { actionKey };
+        m_keyboardInputActionMap[actionName] = KeyboardInputAction{actionKey};
     }
 
     void RegisterAction(const std::string& actionName, sf::Mouse::Button actionButton)
     {
-        m_mouseInputActionMap[actionName] = MouseInputAction { actionButton };
+        m_mouseInputActionMap[actionName] = MouseInputAction{actionButton};
     }
 
     void Invoke(MouseInputAction& inputAction, InputTrigger inputTrigger)
@@ -71,7 +71,6 @@ class InputManager
     }
 
   public:
-
     void BindToMouseInputAction(const std::string& actionName, InputTrigger inputTrigger, InputActionCallBack callBack)
     {
         auto it = m_mouseInputActionMap.find(actionName);

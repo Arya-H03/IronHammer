@@ -1,12 +1,12 @@
 #pragma once
+#include "core/utils/Debug.h"
+
 #include <filesystem>
 #include <string>
-#include "core/utils/Debug.h"
 
 class FileHelper
 {
   public:
-
     inline static void DeleteFile(const std::string& filePath)
     {
         try
@@ -26,7 +26,8 @@ class FileHelper
         }
     }
 
-    inline static void RenameFile(const std::string& oldName, const std::string& oldPath, const std::string& newName, const std::string& newPath)
+    inline static void RenameFile(const std::string& oldName, const std::string& oldPath, const std::string& newName,
+                                  const std::string& newPath)
     {
         try
         {

@@ -1,18 +1,18 @@
 #pragma once
+#include "editor/EditorContext.h"
 #include "editor/debuggers/IDebugTab.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
-#include "editor/EditorContext.h"
 #include "engine/Engine.h"
 
-#include <imgui.h>
 #include <SFML/Graphics/Color.hpp>
+#include <imgui.h>
 
 class DebugPanel
 {
-private:
+  private:
     EditorContext& m_editorContext;
 
-public:
+  public:
     DebugPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
 
     void Draw()
@@ -26,15 +26,18 @@ public:
         ImGui::SetNextWindowSize(ImVec2((float)layout.Debug_Width, (float)layout.Debug_Height));
 
         ImGui::Begin("Debugger", nullptr,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar);
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
+                         ImGuiWindowFlags_HorizontalScrollbar);
 
         DebugTabContext context{m_editorContext.world, &m_editorContext.inspector};
 
-        if (ImGui::BeginTabBar("DebugTabs")) {
+        if (ImGui::BeginTabBar("DebugTabs"))
+        {
 
-            for (auto& tab : SystemDebuggerHub::Instance().GetDebugTabs()) {
-                if (tab->GetDisplayMode() == m_editorContext.engineMode || tab->GetDisplayMode() == EngineMode::Both) {
+            for (auto& tab : SystemDebuggerHub::Instance().GetDebugTabs())
+            {
+                if (tab->GetDisplayMode() == m_editorContext.engineMode || tab->GetDisplayMode() == EngineMode::Both)
+                {
                     tab->DrawTab(context);
                 }
             }

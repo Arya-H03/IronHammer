@@ -7,12 +7,12 @@ class FlowFieldSystem;
 
 class FlowFieldDebugger : public IDebugTab
 {
-private:
+  private:
     std::vector<Entity> m_flowFieldCellVisuals;
     std::vector<Entity> m_flowFieldArrowVisuals;
 
-    bool m_toggleFlowField       = true;
-    bool m_toggleFlowFieldCells  = true;
+    bool m_toggleFlowField = true;
+    bool m_toggleFlowFieldCells = true;
     bool m_toggleFlowFieldArrows = true;
 
     FlowFieldSystem* m_flowFieldSystemPtr;
@@ -25,7 +25,7 @@ private:
     void ShowFlowFieldArrows(World* worldPtr);
     void HideFlowFieldArrows(World* worldPtr);
 
-public:
+  public:
     FlowFieldDebugger();
 
     void DrawTab(DebugTabContext& context) override;

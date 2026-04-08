@@ -1,14 +1,15 @@
 #pragma once
 
-#include <SFML/Graphics/RenderTexture.hpp>
+#include "ecs/World.hpp"
+#include "ecs/entity/EntityTemplateManager.h"
+#include "editor/EditorConfig.h"
 #include "editor/EditorGrid.h"
 #include "editor/Gizmo.h"
 #include "editor/Viewport.h"
-#include "engine/Engine.h"
-#include "ecs/World.hpp"
-#include "ecs/entity/EntityTemplateManager.h"
 #include "editor/entityInspector/EntityInspector.h"
-#include "editor/EditorConfig.h"
+#include "engine/Engine.h"
+
+#include <SFML/Graphics/RenderTexture.hpp>
 
 struct EditorContext
 {
@@ -34,7 +35,7 @@ struct EditorContext
 
     EditorContext(Engine& engine) : engine(engine), layout(engine.GetWindowSize())
     {
-        viewportTexture = sf::RenderTexture({ layout.Viewport_Width, layout.Viewport_Height });
+        viewportTexture = sf::RenderTexture({layout.Viewport_Width, layout.Viewport_Height});
         Viewport::SetViewportTexture(&viewportTexture);
     }
 };

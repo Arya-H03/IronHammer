@@ -1,6 +1,7 @@
 #pragma once
-#include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "ecs/component/ComponentRegistry.hpp"
+
 #include <cassert>
 
 struct ArchetypeChunk

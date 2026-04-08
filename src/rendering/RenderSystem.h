@@ -1,43 +1,43 @@
 #pragma once
 
-#include "ecs/system/ISystem.h"
-#include "rendering/RenderingComponents.hpp"
 #include "core/CoreComponents.hpp"
-#include "physics/PhysicsComponents.hpp"
 #include "ecs/World.hpp"
+#include "ecs/system/ISystem.h"
+#include "physics/PhysicsComponents.hpp"
+#include "rendering/RenderingComponents.hpp"
 
-#include <cstddef>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <cstddef>
 
 class RenderingSystem : ISetupSystem
 {
-private:
+  private:
     Query* shapeQuery;
     Query* textQuery;
     Query* colliderQuery;
     Query* spriteQuery;
 
     // Flags
-    bool m_canDrawText      = false;
+    bool m_canDrawText = false;
     bool m_canDrawColliders = false;
-    bool m_canDrawShapes    = true;
-    bool m_canDrawSprites   = true;
+    bool m_canDrawShapes = true;
+    bool m_canDrawSprites = true;
 
     const size_t maxVerticesPerBatch = 10000;
 
-private:
+  private:
     size_t AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch);
     size_t AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch);
-    void   AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch);
+    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch);
 
     void RenderShapes(sf::RenderTarget& renderTarget);
     void RenderColliders(sf::RenderTarget& renderTarget);
     void RenderText(sf::RenderTarget& renderTarget);
     void RenderSprites(sf::RenderTarget& renderTarget);
 
-public:
+  public:
     RenderingSystem(World* m_world);
     ~RenderingSystem();
     bool GetCanDrawText() const { return m_canDrawText; }
