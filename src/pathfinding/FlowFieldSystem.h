@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/CoreComponents.hpp"
-#include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/query/Query.hpp"
@@ -16,8 +15,6 @@
 #include "rendering/RenderingComponents.hpp"
 
 #include <cmath>
-#include <cstdint>
-#include <limits>
 #include <queue>
 
 class FlowFieldSystem : ISetupSystem
@@ -25,9 +22,6 @@ class FlowFieldSystem : ISetupSystem
     friend class FlowFieldDebugger;
 
 private:
-    static constexpr const int TargetCellCost   = 0;
-    static constexpr const int ObstacleCellCost = 100;
-
     std::queue<FlowCell*> m_flowCellQueue;
 
     FlowFieldGenerator m_flowFieldGenerator;
@@ -102,25 +96,34 @@ private:
     void CalculateFlowDirections()
     {
         for (auto& cell : m_flowField.GetCells()) {
-            Vect2<int> flowDir{0, 0};
-            int        cheapestNeighborCost = std::numeric_limits<int>::max();
+            Vect2int     flowDir               = Vect2int::Zero;
+            FlowCellCost cheapestNeighbourCost = static_cast<FlowCellCost>(FlowCellCostEnum::UnWalkable);
 
             for (const auto& dir : EightDirections) {
                 FlowCell* neighborCellPtr = m_flowField.TryGetFlowCellNeighbor(cell, dir);
                 if (!neighborCellPtr) continue;
 
-                int currentCost = neighborCellPtr->GetTotalCost();
-                if (currentCost < cheapestNeighborCost) {
-                    cheapestNeighborCost = currentCost;
-                    flowDir              = dir;
+                FlowCellCost currentNeighbourCost = neighborCellPtr->GetTotalCost();
+                if (currentNeighbourCost < cheapestNeighbourCost) {
+                    cheapestNeighbourCost = currentNeighbourCost;
+                    flowDir               = dir;
                 }
             }
             cell.flowDir = flowDir;
         }
     }
 
+    void SetupNewFlowField(World* worldPtr)
+    {
+        CheckForFlowFieldTags();
+        CalculateCellCosts();
+        CalculateFlowDirections();
+    }
+
+    void CreateNewFlowField() { m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50}; }
+
 public:
-    FlowFieldSystem() { m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50}; }
+    FlowFieldSystem() = default;
     ~FlowFieldSystem() { SystemDebuggerHub::Instance().GetFlowFieldDebugger().UnRegisterFlowField(); }
 
     void SetupSystem(World* worldPtr) override
@@ -128,13 +131,9 @@ public:
         m_flowFieldTargetQuery   = worldPtr->Query<RequiredComponents<CFlowFieldTarget, CTransform, CSprite>>();
         m_flowFieldObstacleQuery = worldPtr->Query<RequiredComponents<CFlowFieldObstacle, CTransform, CSprite>>();
         m_flowFieldAgentQuery    = worldPtr->Query<RequiredComponents<CFlowFieldAgent, CTransform, CRigidBody>>();
-    }
 
-    void InitialFlowFieldSetup(World* worldPtr)
-    {
-        CheckForFlowFieldTags();
-        CalculateCellCosts();
-        CalculateFlowDirections();
+        CreateNewFlowField();
+        SetupNewFlowField(worldPtr);
 
         SystemDebuggerHub::Instance().GetFlowFieldDebugger().RegisterFlowField(this, worldPtr);
     }

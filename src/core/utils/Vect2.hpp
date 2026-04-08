@@ -1,19 +1,19 @@
 #pragma once
 #include "imgui.h"
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Joystick.hpp>
+
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <math.h>
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Joystick.hpp>
 #include <sys/types.h>
 
 template <typename T>
 class Vect2
 {
-  public:
-
+public:
     T x;
     T y;
 
@@ -22,14 +22,11 @@ class Vect2
         x = 0;
         y = 0;
     }
-    Vect2(T X, T Y) : x(X), y(Y) { }
+    Vect2(T X, T Y) : x(X), y(Y) {}
 
-    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2.y) { }
+    Vect2(const sf::Vector2<T>& sfVector2) : x(sfVector2.x), y(sfVector2.y) {}
 
-    Vect2(const ImVec2& imGuiVec2) : x(static_cast<T>(imGuiVec2.x)), y(static_cast<T>(imGuiVec2.y)) { }
-
-    inline static const Vect2<T> Zero = Vect2<T>(0, 0);
-    inline static const Vect2<T> One = Vect2<T>(1, 1);
+    Vect2(const ImVec2& imGuiVec2) : x(static_cast<T>(imGuiVec2.x)), y(static_cast<T>(imGuiVec2.y)) {}
 
     operator ImVec2() const { return ImVec2(static_cast<float>(x), static_cast<float>(y)); }
 
@@ -92,6 +89,17 @@ class Vect2
     Vect2<int> Ceil() { return Vect2<int>(std::ceil(x), std::ceil(y)); }
 
     void Print() { std::cerr << "Vector2: (" << x << ", " << y << ")"; }
+
+    static const Vect2<T> Zero;
+    static const Vect2<T> One;
 };
 
-using Vect2f = Vect2<float>;
+using Vect2f   = Vect2<float>;
+using Vect2int = Vect2<int>;
+using Vect2s   = Vect2<size_t>;
+
+template <typename T>
+const inline Vect2<T> Vect2<T>::Zero = Vect2<T>{0, 0};
+
+template <typename T>
+const inline Vect2<T> Vect2<T>::One = Vect2<T>{1, 1};

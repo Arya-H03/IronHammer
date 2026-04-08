@@ -29,7 +29,6 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_enemyQuery          = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEnterQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
 
-    m_flowFieldSystem.InitialFlowFieldSetup(worldPtr);
     SpawnTestEntities();
 }
 

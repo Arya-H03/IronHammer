@@ -32,6 +32,14 @@ void FlowFieldDebugger::DrawTab(DebugTabContext& context)
             if (m_toggleFlowField) ShowFlowField(context.worldPtr);
             else HideFlowField(context.worldPtr);
         }
+        if (ImGui::Checkbox("Toggle FlowFieldCells", &m_toggleFlowFieldCells)) {
+            if (m_toggleFlowFieldCells) ShowFlowFieldCells(context.worldPtr);
+            else HideFlowFieldCells(context.worldPtr);
+        }
+        if (ImGui::Checkbox("Toggle FlowFieldArrows", &m_toggleFlowFieldArrows)) {
+            if (m_toggleFlowFieldArrows) ShowFlowFieldArrows(context.worldPtr);
+            else HideFlowFieldArrows(context.worldPtr);
+        }
 
         ImGui::EndTabItem();
     };
@@ -43,7 +51,7 @@ void FlowFieldDebugger::UpdateFlowFieldVisualCells(World* worldPtr)
     std::vector<FlowCell>& flowCells = flowField.GetCells();
 
     for (size_t i = 0; i < flowCells.size(); ++i) {
-        Entity  cellEntity = m_flowCellVisuals[i];
+        Entity  cellEntity = m_flowFieldCellVisuals[i];
         CShape* shapePtr   = worldPtr->TryGetComponent<CShape>(cellEntity);
         CText*  textPtr    = worldPtr->TryGetComponent<CText>(cellEntity);
 
@@ -62,32 +70,61 @@ void FlowFieldDebugger::UpdateFlowFieldVisualCells(World* worldPtr)
             shapePtr->fillColor = Colors::DarkSteel_SFML;
         }
 
-        //       textPtr->content = std::to_string(flowCells[i].baseCost + flowCells[i].dynamiqueCost);
-        // textPtr->content = std::to_string(flowCells[i].flowDir.x) + ", " + std::to_string(flowCells[i].flowDir.y);
+        // textPtr->content = std::to_string(flowCells[i].GetTotalCost());
     }
 }
 
 void FlowFieldDebugger::ResetDebugger()
 {
-    m_flowCellVisuals.clear();
-    m_flowDirVisuals.clear();
+    m_flowFieldCellVisuals.clear();
+    m_flowFieldArrowVisuals.clear();
 }
 
 void FlowFieldDebugger::ShowFlowField(World* worldPtr)
 {
-    for (auto& cell : m_flowCellVisuals) { worldPtr->RemoveFromEntity<CNotDrawable>(cell); }
-    for (auto& cell : m_flowDirVisuals) { worldPtr->RemoveFromEntity<CNotDrawable>(cell); }
+    if (!m_toggleFlowFieldCells) {
+        m_toggleFlowFieldCells = true;
+        ShowFlowFieldCells(worldPtr);
+    }
+    if (!m_toggleFlowFieldArrows) {
+        m_toggleFlowFieldArrows = true;
+        ShowFlowFieldArrows(worldPtr);
+    }
 }
 
 void FlowFieldDebugger::HideFlowField(World* worldPtr)
 {
-    for (auto& cell : m_flowCellVisuals) { worldPtr->AddToEntity(cell, CNotDrawable{}); }
-    for (auto& cell : m_flowDirVisuals) { worldPtr->AddToEntity(cell, CNotDrawable{}); }
+    if (m_toggleFlowFieldCells) {
+        m_toggleFlowFieldCells = false;
+        HideFlowFieldCells(worldPtr);
+    }
+    if (m_toggleFlowFieldArrows) {
+        m_toggleFlowFieldArrows = false;
+        HideFlowFieldArrows(worldPtr);
+    }
+}
+
+void FlowFieldDebugger::ShowFlowFieldCells(World* worldPtr)
+{
+    for (auto& cell : m_flowFieldCellVisuals) { worldPtr->RemoveFromEntity<CNotDrawable>(cell); }
+}
+void FlowFieldDebugger::HideFlowFieldCells(World* worldPtr)
+{
+    for (auto& cell : m_flowFieldCellVisuals) { worldPtr->AddToEntity(cell, CNotDrawable{}); }
+}
+void FlowFieldDebugger::ShowFlowFieldArrows(World* worldPtr)
+{
+    for (auto& cell : m_flowFieldArrowVisuals) { worldPtr->RemoveFromEntity<CNotDrawable>(cell); }
+}
+void FlowFieldDebugger::HideFlowFieldArrows(World* worldPtr)
+{
+    for (auto& cell : m_flowFieldArrowVisuals) { worldPtr->AddToEntity(cell, CNotDrawable{}); }
 }
 
 void FlowFieldDebugger::RegisterFlowField(FlowFieldSystem* flowFieldSystem, World* worldPtr)
 {
     m_flowFieldSystemPtr = flowFieldSystem;
+    ResetDebugger();
     CreateVisualGrid(worldPtr);
 }
 
@@ -103,20 +140,20 @@ void FlowFieldDebugger::CreateVisualGrid(World* worldPtr)
     size_t gridCols   = flowField.GetGridCols();
     size_t gridRows   = flowField.GetGridRows();
 
-    m_flowCellVisuals.reserve(gridCols * gridRows);
-    m_flowDirVisuals.reserve(gridCols * gridRows);
+    m_flowFieldCellVisuals.reserve(gridCols * gridRows);
+    m_flowFieldArrowVisuals.reserve(gridCols * gridRows);
 
-    for (size_t i = 0; i < m_flowCellVisuals.capacity(); ++i) {
+    for (size_t i = 0; i < m_flowFieldCellVisuals.capacity(); ++i) {
         const FlowCell& flowCell = flowCells[i];
 
-        m_flowCellVisuals.push_back(worldPtr->CreateEntityWithReturn(
+        m_flowFieldCellVisuals.push_back(worldPtr->CreateEntityWithReturn(
             CTransform{flowCell.worldPosition, Vect2f(1, 1), 0},
             CShape(4, Colors::DarkSteel_SFML, sf::Color(255, 255, 255, 100), cellRadius, 2),
             CText(std::to_string(flowCell.baseCost + flowCell.dynamiqueCost), sf::Color::White,
                   Vect2f{cellRadius / 3, cellRadius / 3}, 12)));
     }
 
-    for (size_t i = 0; i < m_flowDirVisuals.capacity(); ++i) {
+    for (size_t i = 0; i < m_flowFieldArrowVisuals.capacity(); ++i) {
         const FlowCell& flowCell = flowCells[i];
 
         float rotationInDegrees = 0.f;
@@ -124,8 +161,9 @@ void FlowFieldDebugger::CreateVisualGrid(World* worldPtr)
             rotationInDegrees = std::atan2((float)flowCell.flowDir.y, (float)flowCell.flowDir.x) * (180.f / M_PI);
         }
 
-        m_flowDirVisuals.push_back(worldPtr->CreateEntityWithReturn(
-            CTransform{flowCell.worldPosition, Vect2f(1, 1), rotationInDegrees},
-            CSprite("Arrow", Vect2f{cellRadius, cellRadius}, sf::IntRect{{0, 0}, {512, 512}}, Colors::OxidizedGreen_SFML)));
+        m_flowFieldArrowVisuals.push_back(
+            worldPtr->CreateEntityWithReturn(CTransform{flowCell.worldPosition, Vect2f(1, 1), rotationInDegrees},
+                                             CSprite("Arrow", Vect2f{cellRadius, cellRadius},
+                                                     sf::IntRect{{0, 0}, {512, 512}}, Colors::OxidizedGreen_SFML)));
     }
 }
