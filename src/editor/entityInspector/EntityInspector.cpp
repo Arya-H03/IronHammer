@@ -36,6 +36,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
 
     ImGui::SeparatorText("Entity");
     ImGui::Text("Id:%u | Gen:%u", m_currentLiveEntity.id, m_currentLiveEntity.generation);
+
     ImGui::SeparatorText("Archetype");
     ImGui::Text("Id:%u | Chunk:%u | Index:%u", entityLocation.archetypeId, entityLocation.chunkIndex, entityLocation.indexInChunk);
 
@@ -51,6 +52,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
         TableNextField("Entity Template");
         static std::string name = "";
         InputTextWithHint("##EntityTemplateName", "Enter Name", name);
+
         ImGui::SameLine();
         if (ImGui::Button("Create"))
         {
@@ -61,15 +63,17 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
             entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntity, entityLocation, name);
             name = "";
         }
-
         ImGui::EndTable();
     }
 
-    ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
-    ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+    ImGui::SeparatorText("");
 
-    ImGui::SetCursorPos(ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5,
-                               ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
+    ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
+    ImVec2 deleteBtnSize = ImGui::CalcTextSize("Delete");
+    ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+    float xPos = (availableSpace.x - (addComponentBtnSize.x + deleteBtnSize.x)) * 0.5f;
+    ImGui::SetCursorPosX(xPos);
+
     if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
     if (ImGui::BeginPopup("AddComponentPopup"))
     {
@@ -86,6 +90,14 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
         ImGui::EndChild();
         ImGui::EndPopup();
     }
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
+    if (ImGui::Button("Delete"))
+    {
+        currentWorld.DestroyEntity(m_currentLiveEntity);
+    };
+    ImGui::PopStyleColor();
 }
 
 void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager)
@@ -95,6 +107,7 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
     ImGui::SeparatorText("Entity Template");
 
     ImGui::Text("Name: %s", m_currentEntityTemplateInstance->GetName().c_str());
+
     ImGui::Spacing();
     ImGui::Spacing();
 
@@ -105,8 +118,10 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
     if (ImGui::BeginTable("EntityTemplateNameTable", 2, ImGuiTableFlags_SizingFixedFit))
     {
         TableNextField("Change Name");
+
         static std::string newName = "";
         InputTextWithHint("##EntityTemplateName", "Enter Name", newName);
+
         ImGui::SameLine();
         if (ImGui::Button("Change"))
         {
@@ -121,51 +136,13 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
 
     ImGui::SeparatorText("");
 
-    // Calculate total width of both buttons
-    const float buttonSpacing = ImGui::GetStyle().ItemSpacing.x;
+    ImVec2 saveBtnSize = ImGui::CalcTextSize("Save");
+    ImVec2 deleteBtnSize = ImGui::CalcTextSize("Delete");
+    ImVec2 addCompBtnSize = ImGui::CalcTextSize("Add Component");
+    ImVec2 space = ImGui::GetContentRegionAvail();
+    float xPos = (space.x - (saveBtnSize.x + deleteBtnSize.x + addCompBtnSize.x)) * 0.5f;
+    ImGui::SetCursorPosX(xPos);
 
-    ImVec2 saveSize = ImGui::CalcTextSize("Save");
-    ImVec2 deleteSize = ImGui::CalcTextSize("Delete");
-    float saveButtonWidth = saveSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    float deleteButtonWidth = deleteSize.x + ImGui::GetStyle().FramePadding.x * 2.0f;
-    float totalWidth = saveButtonWidth + buttonSpacing + deleteButtonWidth;
-    float columnWidth = ImGui::GetColumnWidth();
-    // Center horizontally
-    float cursorX = ImGui::GetCursorPosX() + (columnWidth - totalWidth) * 0.5f;
-    ImGui::SetCursorPosX(cursorX);
-
-    bool dirtyFlagTemp = false;
-    if (m_currentEntityTemplateInstance->IsDirty())
-    {
-        ImGui::PushStyleColor(ImGuiCol_Border, Colors::OxidizedGreen_ImGui);
-        dirtyFlagTemp = true;
-    }
-    if (ImGui::Button("Save"))
-    {
-        m_currentEntityTemplateInstance->Save(entityTemplateManager);
-    }
-    if (dirtyFlagTemp)
-    {
-        ImGui::PopStyleColor();
-    }
-
-    ImGui::SameLine();
-
-    ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
-    if (ImGui::Button("Delete"))
-    {
-        entityTemplateManager.DeleteEntityTemplate(m_currentEntityTemplateInstance->GetName());
-
-        m_currentEntityTemplateInstance.reset();
-        m_inspectorMode = InspectorMode::None;
-    }
-    ImGui::PopStyleColor();
-
-    ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
-    ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-
-    ImGui::SetCursorPos(ImVec2(availableSpace.x * 0.5 - addComponentBtnSize.x * 0.5,
-                               ImGui::GetCursorPosY() + (availableSpace.y - addComponentBtnSize.y - 10)));
     if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
     if (ImGui::BeginPopup("AddComponentPopup"))
     {
@@ -181,6 +158,33 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
         }
         ImGui::EndChild();
         ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
+    if (ImGui::Button("Delete"))
+    {
+        entityTemplateManager.DeleteEntityTemplate(m_currentEntityTemplateInstance->GetName());
+
+        m_currentEntityTemplateInstance.reset();
+        m_inspectorMode = InspectorMode::None;
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    bool dirtyFlagTemp = false;
+    if (m_currentEntityTemplateInstance->IsDirty())
+    {
+        ImGui::PushStyleColor(ImGuiCol_Border, Colors::OxidizedGreen_ImGui);
+        dirtyFlagTemp = true;
+    }
+    if (ImGui::Button("Save"))
+    {
+        m_currentEntityTemplateInstance->Save(entityTemplateManager);
+    }
+    if (dirtyFlagTemp)
+    {
+        ImGui::PopStyleColor();
     }
 }
 
