@@ -6,7 +6,7 @@
 struct DebugTabContext
 {
     World* worldPtr;
-    EntityInspector* entityInspectorPtr;
+    Inspector* entityInspectorPtr;
 };
 class IDebugTab
 {

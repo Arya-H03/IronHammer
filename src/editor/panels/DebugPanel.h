@@ -29,7 +29,7 @@ class DebugPanel
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
                          ImGuiWindowFlags_HorizontalScrollbar);
 
-        DebugTabContext context{m_editorContext.world, &m_editorContext.inspector};
+        DebugTabContext context{m_editorContext.world, &m_editorContext.entityInspector};
 
         if (ImGui::BeginTabBar("DebugTabs"))
         {

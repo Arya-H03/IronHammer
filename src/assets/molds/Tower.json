@@ -1,8 +1,8 @@
 {
   "Collider": {
     "isTrigger": false,
-    "layer": 1,
-    "mask": 4294967295,
+    "layer": 2,
+    "mask": 4294967287,
     "offset": {
       "x": 0.0,
       "y": 0.0
@@ -12,23 +12,20 @@
       "y": 100.0
     }
   },
-  "FlowObstacle": null,
-  "Movement": {
-    "speed": 10.0
-  },
+  "FlowFieldTarget": null,
   "RigidBody": {
     "bounciness": 0.5,
-    "isStatic": false,
-    "mass": 1.0,
+    "isStatic": true,
+    "mass": 0.0,
     "velocity": {
-      "x": 10.0,
-      "y": 10.0
+      "x": 0.0,
+      "y": 0.0
     }
   },
   "Sprite": {
     "color": [
       255,
-      237,
+      13,
       0,
       255
     ],
@@ -44,10 +41,11 @@
       32
     ]
   },
+  "Tower": null,
   "Transform": {
     "position": {
-      "x": 561.0,
-      "y": 462.0
+      "x": 399.0,
+      "y": 408.0
     },
     "rotation": 0.0,
     "scale": {

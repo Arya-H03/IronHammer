@@ -25,7 +25,7 @@ class ViewportPanel
     {
         if (m_editorContext.engineMode == EngineMode::Edit)
         {
-            Entity liveEntity = m_editorContext.inspector.GetCurrentInspectorEntity();
+            Entity liveEntity = m_editorContext.entityInspector.GetCurrentInspectorEntity();
 
             if (!m_editorContext.world->ValidateEntity(liveEntity, false)) return;
 
@@ -47,7 +47,9 @@ class ViewportPanel
     }
 
   public:
-    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
+    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext)
+    {
+    }
 
     void Draw()
     {
@@ -82,10 +84,10 @@ class ViewportPanel
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_TEMPLATE"))
             {
-                const char* templateName = static_cast<const char*>(payload->Data);
+                const char* moldName = static_cast<const char*>(payload->Data);
 
-                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromTemplate(
-                    *m_editorContext.entityTemplateManager->GetTemplateByName(templateName));
+                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromMold(
+                    *m_editorContext.moldManagerPtr->GetMoldByName(moldName));
 
                 CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);
                 if (transform)

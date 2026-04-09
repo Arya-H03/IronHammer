@@ -1,6 +1,8 @@
 #include "EntityInspector.h"
 
+#include "core/CoreComponents.hpp"
 #include "core/utils/Colors.h"
+#include "core/utils/Debug.h"
 #include "ecs/World.hpp"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
@@ -8,21 +10,24 @@
 #include "engine/Engine.h"
 #include "imgui.h"
 
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <string>
+#include <vector>
 
-const Entity EntityInspector::GetCurrentInspectorEntity() const
+const Entity Inspector::GetCurrentInspectorEntity() const
 {
     return m_currentLiveEntity;
 }
 
-void EntityInspector::DrawComponentDisplay(World& currentWorld, ComponentId componentId, void* componentPtr) const
+void Inspector::DrawComponentDisplay(World& currentWorld, ComponentId componentId, void* componentPtr) const
 {
     ComponentRegistry::GetComponentInfoById(componentId)
         .DisplayComponent(componentPtr, [&]() { currentWorld.RemoveFromEntity(m_currentLiveEntity, componentId, componentPtr); }, nullptr);
 }
 
-void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager,
-                                                    World& currentWorld)
+void Inspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld)
 {
     if (!entityManager.ValidateEntity(m_currentLiveEntity))
     {
@@ -60,7 +65,7 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
             {
                 name = "Entity_" + std::to_string(m_currentLiveEntity.id) + "_" + std::to_string(m_currentLiveEntity.generation);
             }
-            entityTemplateManager.CreateEntityTemplate(currentWorld, m_currentLiveEntity, entityLocation, name);
+            entityTemplateManager.CreateMold(currentWorld, m_currentLiveEntity, entityLocation, name);
             name = "";
         }
         ImGui::EndTable();
@@ -96,22 +101,48 @@ void EntityInspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager
     if (ImGui::Button("Delete"))
     {
         currentWorld.DestroyEntity(m_currentLiveEntity);
+
+        CMolded* moldedComp = currentWorld.TryGetComponent<CMolded>(m_currentLiveEntity);
+        if (moldedComp)
+        {
+            Mold* entityTemplate = entityTemplateManager.GetMoldByName(moldedComp->moldName);
+            assert(entityTemplate);
+
+            std::vector<Entity>& derivedEntites = entityTemplate->derivedEntities;
+            size_t index = SIZE_MAX;
+            for (size_t i = 0; i < derivedEntites.size(); ++i)
+            {
+                if (derivedEntites[i].id == m_currentLiveEntity.id)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            if (index != SIZE_MAX)
+            {
+                derivedEntites[index] = derivedEntites[derivedEntites.size() - 1];
+                derivedEntites.pop_back();
+            }
+            else
+            {
+                LOG_ERROR("Entity was not found in under it's template.")
+            }
+        }
     };
     ImGui::PopStyleColor();
 }
 
-void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& entityTemplateManager)
+void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateManager, World& currentWorld)
 {
-    if (!m_currentEntityTemplateInstance) return;
-
+    if (!m_currentMoldInstance) return;
     ImGui::SeparatorText("Entity Template");
 
-    ImGui::Text("Name: %s", m_currentEntityTemplateInstance->GetName().c_str());
+    ImGui::Text("Name: %s", m_currentMoldInstance->GetName().c_str());
 
     ImGui::Spacing();
     ImGui::Spacing();
 
-    m_currentEntityTemplateInstance->DrawInspector();
+    m_currentMoldInstance->DrawInspector();
 
     ImGui::SeparatorText("");
 
@@ -127,7 +158,7 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
         {
             if (!newName.empty())
             {
-                m_currentEntityTemplateInstance->Rename(entityTemplateManager, newName);
+                m_currentMoldInstance->Rename(entityTemplateManager, newName,currentWorld);
                 newName.clear();
             }
         }
@@ -152,7 +183,7 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
         {
             if (ImGui::Selectable(componentInfo.name))
             {
-                m_currentEntityTemplateInstance->AddComponent(&componentInfo, componentInfo.DefaultConstructComponent());
+                m_currentMoldInstance->AddComponent(&componentInfo, componentInfo.DefaultConstructComponent());
                 ImGui::CloseCurrentPopup();
             }
         }
@@ -161,51 +192,58 @@ void EntityInspector::DrawInspectorGuiForEntityTemplate(EntityTemplateManager& e
     }
 
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
-    if (ImGui::Button("Delete"))
-    {
-        entityTemplateManager.DeleteEntityTemplate(m_currentEntityTemplateInstance->GetName());
-
-        m_currentEntityTemplateInstance.reset();
-        m_inspectorMode = InspectorMode::None;
-    }
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
     bool dirtyFlagTemp = false;
-    if (m_currentEntityTemplateInstance->IsDirty())
+    if (m_currentMoldInstance->IsDirty())
     {
         ImGui::PushStyleColor(ImGuiCol_Border, Colors::OxidizedGreen_ImGui);
         dirtyFlagTemp = true;
     }
     if (ImGui::Button("Save"))
     {
-        m_currentEntityTemplateInstance->Save(entityTemplateManager);
+        if (m_lastEngineMode == EngineMode::Edit)
+        {
+            m_currentMoldInstance->Save(entityTemplateManager, currentWorld);
+        }
+        else
+        {
+            LOG_WARNING("Entity Templates can only be modified outside playmode.");
+        }
     }
     if (dirtyFlagTemp)
     {
         ImGui::PopStyleColor();
     }
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
+    if (ImGui::Button("Delete"))
+    {
+        entityTemplateManager.DeleteMold(m_currentMoldInstance->GetName());
+
+        m_currentMoldInstance.reset();
+        m_inspectorMode = InspectorMode::None;
+    }
+    ImGui::PopStyleColor();
 }
 
-void EntityInspector::InspectLiveEntity(Entity entity, EntityManager& entityManager)
+void Inspector::InspectLiveEntity(Entity entity, EntityManager& entityManager)
 {
     if (m_currentLiveEntity != entity && entityManager.ValidateEntity(entity))
     {
         m_currentLiveEntity = entity;
         m_inspectorMode = InspectorMode::LiveEntity;
-        m_currentEntityTemplateInstance.reset();
+        m_currentMoldInstance.reset();
     }
 }
 
-void EntityInspector::InspectEntityTemplate(EntityTemplate& entityTemplate)
+void Inspector::InspectMold(Mold& entityTemplate)
 {
-    m_currentEntityTemplateInstance = std::make_unique<EntityTemplateInstance>(entityTemplate);
-    m_inspectorMode = InspectorMode::EntityTemplate;
+    m_currentMoldInstance = std::make_unique<MoldInstance>(entityTemplate);
+    m_inspectorMode = InspectorMode::Mold;
     m_currentLiveEntity = {};
 }
 
-void EntityInspector::DrawInspectorGui(EntityManager& entityManager, EntityTemplateManager& entityTemplateManager, World& currentWorld,
+void Inspector::DrawInspectorGui(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld,
                                        EngineMode engineMode)
 {
     if (m_lastEngineMode != engineMode)
@@ -219,8 +257,8 @@ void EntityInspector::DrawInspectorGui(EntityManager& entityManager, EntityTempl
         case InspectorMode::LiveEntity:
             DrawInspectorGuiForLiveEntity(entityManager, entityTemplateManager, currentWorld);
             break;
-        case InspectorMode::EntityTemplate:
-            DrawInspectorGuiForEntityTemplate(entityTemplateManager);
+        case InspectorMode::Mold:
+            DrawInspectorGuiForMoldedInstance(entityTemplateManager, currentWorld);
             break;
         case InspectorMode::None:
             break;

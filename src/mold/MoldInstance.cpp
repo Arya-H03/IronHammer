@@ -1,23 +1,26 @@
-#include "EntityTemplateInstance.h"
+#include "MoldInstance.h"
 
-#include "EntityTemplateManager.h"
+#include "core/CoreComponents.hpp"
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
+#include "mold/MoldManager.h"
 
+#include <cassert>
 #include <vector>
 
-EntityTemplateInstance::EntityTemplateInstance(EntityTemplate& sourceTemplate)
+MoldInstance::MoldInstance(Mold& sourceTemplate)
 {
     m_name = sourceTemplate.entityName;
     DeserializeFrom(sourceTemplate.entityJson);
 }
 
-EntityTemplateInstance::~EntityTemplateInstance()
+MoldInstance::~MoldInstance()
 {
     Clear();
 }
 
-void EntityTemplateInstance::Clear()
+void MoldInstance::Clear()
 {
     for (auto& [info, ptr] : m_components)
     {
@@ -29,7 +32,7 @@ void EntityTemplateInstance::Clear()
     m_isDirty = false;
 }
 
-void EntityTemplateInstance::DeserializeFrom(Json& entityJson)
+void MoldInstance::DeserializeFrom(Json& entityJson)
 {
     for (auto it = entityJson.begin(); it != entityJson.end(); ++it)
     {
@@ -46,7 +49,7 @@ void EntityTemplateInstance::DeserializeFrom(Json& entityJson)
     }
 }
 
-void EntityTemplateInstance::DrawInspector()
+void MoldInstance::DrawInspector()
 {
     for (auto& [info, ptr] : m_components)
     {
@@ -72,7 +75,7 @@ void EntityTemplateInstance::DrawInspector()
     }
 }
 
-void EntityTemplateInstance::AddComponent(const ComponentInfo* info, void* ptr)
+void MoldInstance::AddComponent(const ComponentInfo* info, void* ptr)
 {
     if (m_presentComponents.contains(info->id)) return;
     m_pendingAdditionComponents.emplace_back(info, ptr);
@@ -80,22 +83,50 @@ void EntityTemplateInstance::AddComponent(const ComponentInfo* info, void* ptr)
     m_isDirty = true;
 }
 
-void EntityTemplateInstance::Save(EntityTemplateManager& entityTemplateManager)
+void MoldInstance::Save(MoldManager& entityTemplateManager, World& world)
 {
     if (!m_isDirty) return;
+
+    Mold* entityTemplate = entityTemplateManager.GetMoldByName(m_name);
+    assert(entityTemplate);
+
+    for (const auto& entity : entityTemplate->derivedEntities)
+    {
+        for (auto& [info, ptr] : m_components)
+        {
+            void* liveEntityComponentPtr = world.TryGetComponent(entity, info->id);
+            assert(liveEntityComponentPtr);
+            void* entityTemplateComponentPtr = ptr;
+
+            info->CopyComponent(liveEntityComponentPtr, entityTemplateComponentPtr);
+        }
+    }
 
     Json newEntityJson;
     for (auto& [info, ptr] : m_components)
     {
         if (info && ptr) info->SerializeComponent(newEntityJson, ptr);
     }
-    entityTemplateManager.UpdateEntityTemplate(newEntityJson, m_name);
+
+    entityTemplateManager.RemakeMoldWithJson(newEntityJson, m_name);
     m_isDirty = false;
 }
 
-void EntityTemplateInstance::Rename(EntityTemplateManager& entityTemplateManager, const std::string& newName)
+void MoldInstance::Rename(MoldManager& entityTemplateManager, const std::string& newName, World& world)
 {
     if (newName.empty() || newName == m_name) return;
-    entityTemplateManager.ChangeEntityTemplateName(m_name, newName);
+    entityTemplateManager.ChangeMoldName(m_name, newName);
     m_name = newName;
+
+    Mold* entityTemplate = entityTemplateManager.GetMoldByName(m_name);
+    assert(entityTemplate);
+
+    for (const auto& entity : entityTemplate->derivedEntities)
+    {
+        CMolded* moldDerived = world.TryGetComponent<CMolded>(entity);
+        if (moldDerived)
+        {
+            moldDerived->moldName = newName;
+        }
+    }
 }

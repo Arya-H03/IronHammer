@@ -43,7 +43,7 @@ class Editor
         // One time sync into context
         m_editorContext.renderSystem = &m_editorContext.engine.GetRenderSystem();
         m_editorContext.inputSystem = &m_editorContext.engine.GetInputSystem();
-        m_editorContext.entityTemplateManager = &m_editorContext.engine.GetEntityTemplateManager();
+        m_editorContext.moldManagerPtr = &m_editorContext.engine.GetMoldTemplateManager();
 
         Debug::StartLoggerThread();
 
@@ -58,7 +58,7 @@ class Editor
                                          {
                                              Entity entity = m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world);
                                              if (entity.id != InvalidEntityID)
-                                                 m_editorContext.inspector.InspectLiveEntity(entity,
+                                                 m_editorContext.entityInspector.InspectLiveEntity(entity,
                                                                                              m_editorContext.world->GetEntityManager());
                                          });
 

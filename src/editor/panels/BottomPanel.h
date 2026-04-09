@@ -1,6 +1,5 @@
 #pragma once
 #include "core/utils/Debug.h"
-#include "ecs/common/ECSCommon.h"
 #include "editor/EditorContext.h"
 #include "gui/LogWindow.hpp"
 #include "imgui-SFML.h"
@@ -27,9 +26,9 @@ class BottomPanel
         }
     }
 
-    void DrawEntityTemplateTab()
+    void DrawMoldTab()
     {
-        if (!m_editorContext.entityTemplateManager) return;
+        if (!m_editorContext.moldManagerPtr) return;
 
         if (ImGui::BeginTabItem("Entity Templates"))
         {
@@ -38,16 +37,16 @@ class BottomPanel
             int itemsPerRow = std::max(1, (int)(panelWidth / itemWidth));
             int i = 0;
 
-            for (auto& [name, entityTemplate] : m_editorContext.entityTemplateManager->GetEntityTemplates())
+            for (auto& [name, mold] : m_editorContext.moldManagerPtr->GetMoldMap())
             {
                 ImGui::BeginGroup();
 
                 float cursorX = ImGui::GetCursorPosX();
                 ImGui::SetCursorPosX(cursorX + (itemWidth - iconSize) * 0.5f);
-                if (ImGui::ImageButton(name.c_str(), (ImTextureID)entityTemplate->iconTexture.getNativeHandle(),
+                if (ImGui::ImageButton(name.c_str(), (ImTextureID)mold->iconTexture.getNativeHandle(),
                                        ImVec2(iconSize, iconSize)))
                 {
-                    m_editorContext.inspector.InspectEntityTemplate(*entityTemplate);
+                    m_editorContext.entityInspector.InspectMold(*mold);
                 }
 
                 static bool dragging = false;
@@ -62,7 +61,7 @@ class BottomPanel
 
                 if (dragging)
                 {
-                    DrawEntityTemplatePreview(*entityTemplate);
+                    DrawMoldPreview(*mold);
                 }
 
                 float textWidth = ImGui::CalcTextSize(name.c_str()).x;
@@ -79,7 +78,7 @@ class BottomPanel
         }
     }
 
-    void DrawEntityTemplatePreview(EntityTemplate& entityTemplate)
+    void DrawMoldPreview(Mold& entityTemplate)
     {
 
         ImDrawList* drawList = ImGui::GetForegroundDrawList();
@@ -132,7 +131,9 @@ class BottomPanel
     }
 
   public:
-    BottomPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
+    BottomPanel(EditorContext& editorContext) : m_editorContext(editorContext)
+    {
+    }
 
     void Draw()
     {
@@ -145,7 +146,7 @@ class BottomPanel
         if (ImGui::BeginTabBar("BottomTabs"))
         {
             DrawLogTab();
-            DrawEntityTemplateTab();
+            DrawMoldTab();
 
             ImGui::EndTabBar();
         }

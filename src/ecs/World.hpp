@@ -1,12 +1,18 @@
 #pragma once
 
+#include "core/CoreComponents.hpp"
 #include "core/saving/JsonUtility.h"
+#include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "ecs/entity/CommandBuffer.h"
 #include "ecs/entity/EntityManager.hpp"
+#include "mold/Mold.h"
+
+#include <utility>
+#include <vector>
 
 class World
 {
@@ -17,15 +23,32 @@ class World
     EntityManager m_entityManager;
     CommandBuffer m_commandBuffer;
 
-    void UpdateWorld() { m_commandBuffer.ExecuteAllCommands(m_entityManager); }
+    void UpdateWorld()
+    {
+        m_commandBuffer.ExecuteAllCommands(m_entityManager);
+    }
 
   public:
-    World() : m_entityManager(m_archetypeRegistry) {}
-    ArchetypeRegistry& GetArchetypeRegistry() { return m_archetypeRegistry; }
-    EntityManager& GetEntityManager() { return m_entityManager; }
-    CommandBuffer& GetCommandBuffer() { return m_commandBuffer; }
+    World() : m_entityManager(m_archetypeRegistry)
+    {
+    }
+    ArchetypeRegistry& GetArchetypeRegistry()
+    {
+        return m_archetypeRegistry;
+    }
+    EntityManager& GetEntityManager()
+    {
+        return m_entityManager;
+    }
+    CommandBuffer& GetCommandBuffer()
+    {
+        return m_commandBuffer;
+    }
 
-    bool ValidateEntity(Entity entity, bool log = true) const { return m_entityManager.ValidateEntity(entity, log); }
+    bool ValidateEntity(Entity entity, bool log = true) const
+    {
+        return m_entityManager.ValidateEntity(entity, log);
+    }
 
     template <typename Func>
     void ForEachComponentOfEntity(const EntityStorageLocation& entityLocation, Func&& func)
@@ -52,14 +75,33 @@ class World
         m_commandBuffer.CreateEntityFromComponentsNoReturn(m_entityManager, std::forward<Components>(components)...);
     }
 
-    std::vector<PendingComponent>& CreateEntityFromTemplate(EntityTemplate& entityTemplate)
+    std::vector<PendingComponent>& CreateEntityFromMold(Mold& mold)
     {
-        std::vector<PendingComponent> pendingComponents =
-            ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityTemplate.entityJson);
-        return m_commandBuffer.CreateEntityFromTemplate(m_entityManager, std::move(pendingComponents));
+        std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(mold.entityJson);
+
+        CMolded* entityTemplateComp = ComponentRegistry::GetComponentFromPendings<CMolded>(pendingComponents);
+        if (!entityTemplateComp)
+        {
+            const ComponentInfo* componentInfoPtr = &ComponentRegistry::GetComponentInfo<CMolded>();
+            CMolded* componentDataPtr = new CMolded(mold.entityName);
+            pendingComponents.push_back(PendingComponent{componentInfoPtr, componentDataPtr});
+        }
+        else
+        {
+            LOG_WARNING("Tired to create entity from a template that has CEntityTemplate")
+        }
+
+        std::pair<Entity, std::vector<PendingComponent>&> result =
+            m_commandBuffer.CreateEntityFromMold(m_entityManager, std::move(pendingComponents));
+        mold.derivedEntities.push_back(result.first);
+
+        return result.second;
     }
 
-    void DestroyEntity(Entity entity) { m_commandBuffer.DestroyEntity(entity); }
+    void DestroyEntity(Entity entity)
+    {
+        m_commandBuffer.DestroyEntity(entity);
+    }
 
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)
@@ -95,17 +137,27 @@ class World
         return m_entityManager.TryGetComponent<Component>(entity);
     }
 
-    Json SerializeEntity(EntityStorageLocation entityLocation) { return m_entityManager.SerializeEntity(entityLocation); }
-    Json SerializeWorld() { return m_entityManager.SerializeAllEntites(); }
+    void* TryGetComponent(Entity entity, ComponentId id)
+    {
+        return m_entityManager.TryGetComponent(entity, id);
+    }
 
-    // Deserialize completes on next frame
+    Json SerializeEntity(EntityStorageLocation entityLocation)
+    {
+        return m_entityManager.SerializeEntity(entityLocation);
+    }
+    Json SerializeWorld()
+    {
+        return m_entityManager.SerializeAllEntites();
+    }
+
     void DeserializeWorld(Json worldJson)
     {
         for (auto& entityJson : worldJson["entities"])
         {
             std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(entityJson);
 
-            m_commandBuffer.CreateEntityFromTemplate(m_entityManager, std::move(pendingComponents));
+            m_commandBuffer.CreateEntityFromMold(m_entityManager, std::move(pendingComponents));
         }
     }
 };

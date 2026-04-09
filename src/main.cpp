@@ -5,6 +5,7 @@
 // Through rites arcane, your wisdom we discern,in your hallowed core the sacred mysteries yearn.
 
 #include "app/IronHammer.h"
+
 int main()
 {
     IronHammer app;

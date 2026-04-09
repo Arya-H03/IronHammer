@@ -49,6 +49,8 @@ struct DeSerializeVisitor
     const Json& json;
 
     // Primitives
+    // Won't work with const char*
+    // Consider making a new specialization for it ????
     template <typename T>
     void Field(const char* name, T& value)
     {

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/CoreComponents.hpp"
 #include "core/saving/JsonUtility.h"
 #include "core/utils/Debug.h"
 #include "ecs/archetype/Archetype.h"
@@ -41,7 +42,10 @@ class EntityManager
         m_entityStorageLocations.reserve(initialEntitySize);
     }
 
-    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const { return m_entityStorageLocations; }
+    const std::vector<EntityStorageLocation>& GetAllEntityLocations() const
+    {
+        return m_entityStorageLocations;
+    }
 
     EntityStorageLocation GetEntityLocation(Entity entity) const
     {
@@ -118,6 +122,15 @@ class EntityManager
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         if (!archetype.HasComponent<Component>()) return nullptr;
         return archetype.GetComponentPtrByTemplate<Component>(entityLocation);
+    }
+
+    void* TryGetComponent(Entity entity, ComponentId id)
+    {
+        if (!ValidateEntity(entity)) return nullptr;
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        if (!archetype.HasComponent(id)) return nullptr;
+        return archetype.GetComponentPtrById(entityLocation, id);
     }
 
     Entity GenerateEntity()
@@ -310,7 +323,6 @@ class EntityManager
                                        const ComponentInfo& componentInfo = ComponentRegistry::GetComponentInfoById(id);
                                        componentInfo.SerializeComponent(entityJson, ptr);
                                    });
-
         return entityJson;
     }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ecs/World.hpp"
-#include "ecs/entity/EntityTemplateManager.h"
+#include "mold/MoldManager.h"
 #include "editor/EditorConfig.h"
 #include "editor/EditorGrid.h"
 #include "editor/Gizmo.h"
@@ -23,9 +23,9 @@ struct EditorContext
     // Sync once
     RenderingSystem* renderSystem = nullptr;
     InputSystem* inputSystem = nullptr;
-    EntityTemplateManager* entityTemplateManager = nullptr;
+    MoldManager* moldManagerPtr = nullptr;
 
-    EntityInspector inspector;
+    Inspector entityInspector;
     EditorConfig::Layout layout;
     EditorGridSystem editorGrid;
 

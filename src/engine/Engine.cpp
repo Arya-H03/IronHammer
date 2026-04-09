@@ -67,9 +67,9 @@ InputSystem& Engine::GetInputSystem()
 {
     return m_inputSystem;
 }
-EntityTemplateManager& Engine::GetEntityTemplateManager()
+MoldManager& Engine::GetMoldTemplateManager()
 {
-    return m_entityTemplateManager;
+    return m_moldManager;
 }
 
 void Engine::Init()
@@ -82,10 +82,13 @@ void Engine::Init()
 
     ComponentRegistry::RegisterAllComponents();
 
-    m_entityTemplateManager.LoadAllEntityTemplates();
-    LoadEditorSceneData();
+    m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize), "src/assets/sceneData/test.Json");
 
-    m_sceneManager.RegisterScene("Game", std::make_unique<GameScene>(m_windowSize));
+    m_moldManager.LoadAllMoldsFromDisk();
+    LoadEditorSceneData();
+    m_editorWorld->UpdateWorld();
+    m_moldManager.FillAllMoldsWithDerivedEntities(*m_editorWorld);
+
     m_sceneManager.ChangeScene("Game", m_currentWorld);
 }
 
@@ -143,17 +146,17 @@ void Engine::TogglePlayMode()
 void Engine::SaveEditWorldData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.SaveScene(*m_editorWorld, "src/assets/sceneData/test.Json");
+    m_sceneManager.SaveWorldToSceneFile("Game", *m_editorWorld);
 }
 void Engine::LoadEditorSceneData()
 {
     if (m_engineMode == EngineMode::Play) return;
-    m_sceneManager.LoadScene(*m_editorWorld, "src/assets/sceneData/test.Json");
+    m_sceneManager.LoadSceneDataIntoWorld("Game", *m_editorWorld);
 }
 
 void Engine::LoadTempSceneData()
 {
-    m_sceneManager.LoadScene(*m_tempWorld, "src/assets/sceneData/test.Json");
+    m_sceneManager.LoadSceneDataIntoWorld("Game", *m_tempWorld);
 }
 
 void Engine::BeginFrame()

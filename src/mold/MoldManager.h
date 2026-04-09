@@ -5,8 +5,11 @@
 #include "core/utils/Debug.h"
 #include "core/utils/FileHelper.h"
 #include "ecs/World.hpp"
+#include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
+#include "ecs/query/Query.hpp"
+#include "mold/Mold.h"
 #include "rendering/RenderingComponents.hpp"
 
 #include <SFML/Graphics/CircleShape.hpp>
@@ -17,36 +20,34 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Angle.hpp>
 #include <algorithm>
-#include <cstdint>
 #include <filesystem>
-#include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
-class EntityTemplateManager
+class MoldManager
 {
   private:
-    const std::string storageFolder = "src/assets/entityTemplates/";
-    std::unordered_map<std::string, std::unique_ptr<EntityTemplate>> m_templateMap;
-    const uint16_t m_iconTextureSize = 64;
-    const float m_iconTexturePadding = 0.8f;
+    const std::string moldsStorageFolder = "src/assets/molds/";
+    std::unordered_map<std::string, std::unique_ptr<Mold>> m_moldMap;
 
   public:
-    EntityTemplateManager() = default;
+    MoldManager() = default;
 
-    const std::unordered_map<std::string, std::unique_ptr<EntityTemplate>>& GetEntityTemplates() const { return m_templateMap; }
-
-    EntityTemplate* GetTemplateByName(const std::string& name)
+    const std::unordered_map<std::string, std::unique_ptr<Mold>>& GetMoldMap() const
     {
-        auto it = m_templateMap.find(name);
-        if (it == m_templateMap.end()) return nullptr;
+        return m_moldMap;
+    }
+
+    Mold* GetMoldByName(const std::string& name)
+    {
+        auto it = m_moldMap.find(name);
+        if (it == m_moldMap.end()) return nullptr;
         return it->second.get();
     }
 
-    bool CreateEntityTemplate(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& name)
+    bool CreateMold(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& name)
     {
-        if (m_templateMap.contains(name))
+        if (m_moldMap.contains(name))
         {
             LOG_WARNING("Tried to create an Entity Template with an already existing name: " + name);
             return false;
@@ -54,20 +55,20 @@ class EntityTemplateManager
 
         Json entityJson = world.SerializeEntity(entityLocation);
 
-        const sf::Texture texture = GenerateEntityTemplateIconTexture(world, entity);
-        m_templateMap.emplace(name, std::make_unique<EntityTemplate>(std::move(texture), name, entityJson));
+        const sf::Texture texture = GenerateMoldIconTextureFromWorld(world, entity);
+        m_moldMap.emplace(name, std::make_unique<Mold>(std::move(texture), name, entityJson));
 
-        JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
+        JsonUtility::SaveJsonObjectToFile(entityJson, moldsStorageFolder + name + ".json");
 
         return true;
     }
 
-    const sf::Texture GenerateEntityTemplateIconTexture(World& world, Entity entity)
+    const sf::Texture GenerateMoldIconTextureFromWorld(World& world, Entity entity)
     {
         CSprite* csprite = world.TryGetComponent<CSprite>(entity);
         CTransform* ctransform = world.TryGetComponent<CTransform>(entity);
 
-        sf::RenderTexture renderTexture({m_iconTextureSize, m_iconTextureSize});
+        sf::RenderTexture renderTexture({MoldIconTextureSize, MoldIconTextureSize});
         renderTexture.clear(sf::Color(40, 40, 40));
 
         if (!csprite || !ctransform)
@@ -88,13 +89,13 @@ class EntityTemplateManager
         sprite.setTextureRect(csprite->textureRect);
         sprite.setColor(csprite->color);
         sprite.setOrigin({csprite->textureRect.size.x * 0.5f, csprite->textureRect.size.y * 0.5f});
-        sprite.setPosition({m_iconTextureSize * 0.5f, m_iconTextureSize * 0.5f});
+        sprite.setPosition({MoldIconTextureSize * 0.5f, MoldIconTextureSize * 0.5f});
         sprite.setRotation(sf::degrees(-ctransform->rotation)); // Negate rotation to match rendering
 
         float spriteWidth = csprite->size.x * ctransform->scale.x;
         float spriteHeight = csprite->size.y * ctransform->scale.y;
-        float scaleX = spriteWidth / (m_iconTexturePadding * m_iconTextureSize);
-        float scaleY = spriteHeight / (m_iconTexturePadding * m_iconTextureSize);
+        float scaleX = spriteWidth / (MoldIconTexturePadding * MoldIconTextureSize);
+        float scaleY = spriteHeight / (MoldIconTexturePadding * MoldIconTextureSize);
         float fitScale = std::max(scaleX, scaleY); // fit to icon size based on longest axis
         sprite.setScale({spriteWidth / (csprite->textureRect.size.x * fitScale), spriteHeight / (csprite->textureRect.size.y * fitScale)});
 
@@ -104,7 +105,7 @@ class EntityTemplateManager
         return renderTexture.getTexture();
     }
 
-    const sf::Texture GenerateEntityTemplateIconTexture(Json entityJson) const
+    const sf::Texture GenerateMoldIconTextureFromJson(Json entityJson) const
     {
         PendingComponent pendingCSprite = ComponentRegistry::GetPendingComponentFromEntityJson<CSprite>(entityJson);
         CSprite* csprite = ComponentRegistry::GetComponentFromPending<CSprite>(pendingCSprite);
@@ -112,7 +113,7 @@ class EntityTemplateManager
         PendingComponent pendingCTransform = ComponentRegistry::GetPendingComponentFromEntityJson<CTransform>(entityJson);
         CTransform* ctransform = ComponentRegistry::GetComponentFromPending<CTransform>(pendingCTransform);
 
-        sf::RenderTexture renderTexture({m_iconTextureSize, m_iconTextureSize});
+        sf::RenderTexture renderTexture({MoldIconTextureSize, MoldIconTextureSize});
         renderTexture.clear(sf::Color(40, 40, 40)); // Icon  background
 
         if (!csprite || !ctransform)
@@ -133,13 +134,13 @@ class EntityTemplateManager
         sprite.setTextureRect(csprite->textureRect);
         sprite.setColor(csprite->color);
         sprite.setOrigin({csprite->textureRect.size.x * 0.5f, csprite->textureRect.size.y * 0.5f});
-        sprite.setPosition({m_iconTextureSize * 0.5f, m_iconTextureSize * 0.5f});
+        sprite.setPosition({MoldIconTextureSize * 0.5f, MoldIconTextureSize * 0.5f});
         sprite.setRotation(sf::degrees(-ctransform->rotation)); // Negate rotation to match rendering
 
         float spriteWidth = csprite->size.x * ctransform->scale.x;
         float spriteHeight = csprite->size.y * ctransform->scale.y;
-        float scaleX = spriteWidth / (m_iconTexturePadding * m_iconTextureSize);
-        float scaleY = spriteHeight / (m_iconTexturePadding * m_iconTextureSize);
+        float scaleX = spriteWidth / (MoldIconTexturePadding * MoldIconTextureSize);
+        float scaleY = spriteHeight / (MoldIconTexturePadding * MoldIconTextureSize);
         float fitScale = std::max(scaleX, scaleY); // fit to icon size based on longest axis
         sprite.setScale({spriteWidth / (csprite->textureRect.size.x * fitScale), spriteHeight / (csprite->textureRect.size.y * fitScale)});
 
@@ -149,9 +150,9 @@ class EntityTemplateManager
         return renderTexture.getTexture();
     }
 
-    void UpdateEntityTemplate(Json& entityJson, const std::string& name)
+    void RemakeMoldWithJson(Json& entityJson, const std::string& name)
     {
-        auto* templatePtr = GetTemplateByName(name);
+        auto* templatePtr = GetMoldByName(name);
         if (!templatePtr)
         {
             LOG_WARNING("Tried to update non-existent template: " + name);
@@ -159,50 +160,50 @@ class EntityTemplateManager
         }
 
         templatePtr->entityJson = entityJson;
-        JsonUtility::SaveJsonObjectToFile(entityJson, storageFolder + name + ".json");
+        JsonUtility::SaveJsonObjectToFile(entityJson, moldsStorageFolder + name + ".json");
 
-        const sf::Texture texture = GenerateEntityTemplateIconTexture(entityJson);
+        const sf::Texture texture = GenerateMoldIconTextureFromJson(entityJson);
         templatePtr->iconTexture = std::move(texture);
     }
 
-    void DeleteEntityTemplate(const std::string& name)
+    void DeleteMold(const std::string& name)
     {
-        auto it = m_templateMap.find(name);
-        if (it == m_templateMap.end())
+        auto it = m_moldMap.find(name);
+        if (it == m_moldMap.end())
         {
             LOG_WARNING("Tried to delete non-existent template: " + name);
             return;
         }
 
-        FileHelper::DeleteFile(storageFolder + name + ".json");
-        m_templateMap.erase(it);
+        FileHelper::DeleteFile(moldsStorageFolder + name + ".json");
+        m_moldMap.erase(it);
     }
 
-    void ChangeEntityTemplateName(const std::string& oldName, const std::string& newName)
+    void ChangeMoldName(const std::string& oldName, const std::string& newName)
     {
-        if (m_templateMap.contains(newName))
+        if (m_moldMap.contains(newName))
         {
             LOG_WARNING("Template already exists: " + newName);
             return;
         }
 
-        auto pair = m_templateMap.extract(oldName);
+        auto pair = m_moldMap.extract(oldName);
         if (!pair)
         {
             LOG_WARNING("Template not found: " + oldName);
             return;
         }
 
-        FileHelper::RenameFile(oldName, storageFolder + oldName + ".json", newName, storageFolder + newName + ".json");
+        FileHelper::RenameFile(oldName, moldsStorageFolder + oldName + ".json", newName, moldsStorageFolder + newName + ".json");
 
         pair.key() = newName;
         pair.mapped()->entityName = newName;
-        m_templateMap.insert(std::move(pair));
+        m_moldMap.insert(std::move(pair));
     }
 
-    void LoadAllEntityTemplates()
+    void LoadAllMoldsFromDisk()
     {
-        for (const auto& entry : std::filesystem::directory_iterator(storageFolder))
+        for (const auto& entry : std::filesystem::directory_iterator(moldsStorageFolder))
         {
             if (entry.is_regular_file() && entry.path().extension() == ".json")
             {
@@ -211,10 +212,28 @@ class EntityTemplateManager
 
                 Json entityJson = JsonUtility::LoadJsonObjectFromFile(filePath);
 
-                const sf::Texture texture = GenerateEntityTemplateIconTexture(entityJson);
-                auto newTemplate = std::make_unique<EntityTemplate>(std::move(texture), filename, entityJson);
-                m_templateMap.emplace(filename, std::move(newTemplate));
+                const sf::Texture texture = GenerateMoldIconTextureFromJson(entityJson);
+                auto newTemplate = std::make_unique<Mold>(std::move(texture), filename, entityJson);
+                m_moldMap.emplace(filename, std::move(newTemplate));
             }
         }
+    }
+
+    void FillAllMoldsWithDerivedEntities(World& world)
+    {
+        Query* moldDerivedQuery = world.Query<RequiredComponents<CMolded>>();
+        moldDerivedQuery->ForEachWithEntity<CMolded>(
+            [&](Entity entity, CMolded& moldDerived)
+            {
+                auto it = m_moldMap.find(moldDerived.moldName);
+                if (it != m_moldMap.end())
+                {
+                    it->second->derivedEntities.push_back(entity);
+                }
+                else
+                {
+                    LOG_ERROR("Couldn't find the mold for entity.");
+                }
+            });
     }
 };

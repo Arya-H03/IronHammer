@@ -61,6 +61,34 @@ inline bool ComponentHeader(const char* label, T* ptr, const std::function<void(
     }
     return open;
 }
+
+template <typename T>
+inline bool ComponentHeader(const char* label, T* ptr, bool* isDirty = nullptr)
+{
+    std::ostringstream oss;
+    oss << ptr;
+    std::string typeInfo = std::format("{} Bytes at {}", sizeof(T), oss.str());
+
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+    ImGui::PopStyleColor();
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::Text("%s", typeInfo.c_str());
+        ImGui::EndTooltip();
+    }
+
+    if (open)
+    {
+        float headerWidth = ImGui::GetContentRegionAvail().x;
+
+        std::string resetLabel = std::string("Reset##") + label;
+        std::string removeLabel = std::string("Remove##") + label;
+    }
+    return open;
+}
+
 inline void TableNextField(const char* tag)
 {
     ImGui::TableNextRow();
@@ -154,6 +182,15 @@ inline void InputText(const char* label, std::string& str, bool* isDirty = nullp
         str = buffer;
         if (isDirty != nullptr) *isDirty = true;
     }
+    ImGui::PopItemWidth();
+}
+
+inline void TextBox(const char* content)
+{
+    ImGui::Text(" ");
+    ImGui::SameLine();
+    ImGui::PushItemWidth(inputFieldWidth);
+    ImGui::Text("%s", content);
     ImGui::PopItemWidth();
 }
 

@@ -95,12 +95,13 @@ class CommandBuffer
     CommandBuffer() = default;
 
     // Create from EntityTemplate ///////
-    std::vector<PendingComponent>& CreateEntityFromTemplate(EntityManager& entityManager, std::vector<PendingComponent>&& components)
+    std::pair<Entity, std::vector<PendingComponent>&> CreateEntityFromMold(EntityManager& entityManager,
+                                                                               std::vector<PendingComponent>&& components)
     {
         Entity entity = entityManager.GenerateEntity();
         m_createEntityCommandsTypeErased.push_back({entity, std::move(components)});
         auto& command = m_createEntityCommandsTypeErased.back();
-        return command.pendingComponents;
+        return {entity, command.pendingComponents};
     }
     //////////////////////////////////////
 
@@ -150,7 +151,10 @@ class CommandBuffer
     }
     /////////////////////////////////////
 
-    void DestroyEntity(Entity entity) { m_destroyEntityCommands.push_back({entity}); }
+    void DestroyEntity(Entity entity)
+    {
+        m_destroyEntityCommands.push_back({entity});
+    }
 
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component)

@@ -2,6 +2,9 @@
 #include "core/reflection/ComponentReflection.h"
 #include "core/utils/Vect2.hpp"
 
+#include <string>
+#include <tuple>
+
 struct CTransform
 {
     static constexpr const char* name = "Transform";
@@ -11,7 +14,9 @@ struct CTransform
     float rotation = 0.f;
 
     CTransform() = default;
-    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot) {}
+    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot)
+    {
+    }
 };
 
 template <>
@@ -28,11 +33,31 @@ struct CMovement
     float speed = 0.f;
 
     CMovement() = default;
-    CMovement(float spd) : speed(spd) {}
+    CMovement(float spd) : speed(spd)
+    {
+    }
 };
 
 template <>
 struct Reflect<CMovement>
 {
     static constexpr auto fields = std::make_tuple(std::pair{"speed", &CMovement::speed});
+};
+
+struct CMolded
+{
+    static constexpr const char* name = "Molded";
+
+    std::string moldName = "";
+
+    CMolded() = default;
+    CMolded(const std::string& name) : moldName(name)
+    {
+    }
+};
+
+template <>
+struct Reflect<CMolded>
+{
+    static constexpr auto fields = std::make_tuple(std::pair{"moldName", &CMolded::moldName});
 };

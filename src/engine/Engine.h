@@ -3,7 +3,7 @@
 #include "core/FrameRateHandler.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.hpp"
-#include "ecs/entity/EntityTemplateManager.h"
+#include "mold/MoldManager.h"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "scene/SceneManager.h"
@@ -41,7 +41,7 @@ class Engine
     RenderingSystem m_renderSystem;
     InputSystem m_inputSystem;
     SceneManager m_sceneManager;
-    EntityTemplateManager m_entityTemplateManager;
+    MoldManager m_moldManager;
 
     void EnterPlayMode();
     void ExitPlayMode();
@@ -62,7 +62,7 @@ class Engine
     RenderingSystem& GetRenderSystem();
     SceneManager& GetSceneManager();
     InputSystem& GetInputSystem();
-    EntityTemplateManager& GetEntityTemplateManager();
+    MoldManager& GetMoldTemplateManager();
 
     void TogglePlayMode();
     void PausePlayMode();

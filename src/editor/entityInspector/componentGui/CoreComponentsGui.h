@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/CoreComponents.hpp"
+#include "editor/entityInspector/EntityInspectorHelper.h"
 #include "editor/entityInspector/componentGui/ComponentGui.h"
 
 template <>
@@ -35,6 +36,23 @@ struct ComponentInspectorGui<CMovement>
             {
                 TableNextField("Speed");
                 EntityInspectorHelpers::DragFloatWithLimits("##MoveSpeed", &movement.speed, 0.1f, 0.f, 10000.f, isDirty);
+                ImGui::EndTable();
+            }
+        }
+    }
+};
+
+template <>
+struct ComponentInspectorGui<CMolded>
+{
+    static void Display(CMolded& moldDerived, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        if (ComponentHeader<CMolded>(CMolded::name, &moldDerived, isDirty))
+        {
+            if (ImGui::BeginTable("MoldDerivedTable", 2, ImGuiTableFlags_SizingFixedFit))
+            {
+                TableNextField("Mold");
+                EntityInspectorHelpers::TextBox(moldDerived.moldName.c_str());
                 ImGui::EndTable();
             }
         }

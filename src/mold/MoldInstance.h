@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/saving/JsonUtility.h"
+#include "ecs/World.hpp"
 #include "ecs/common/ECSCommon.h"
 
 #include <string>
@@ -8,11 +9,11 @@
 #include <utility>
 #include <vector>
 
-class EntityTemplate;
+class Mold;
 class ComponentInfo;
-class EntityTemplateManager;
+class MoldManager;
 
-class EntityTemplateInstance
+class MoldInstance
 {
   private:
     std::vector<std::pair<const ComponentInfo*, void*>> m_components;
@@ -28,17 +29,23 @@ class EntityTemplateInstance
     void Clear();
 
   public:
-    explicit EntityTemplateInstance(EntityTemplate& sourceTemplate);
-    ~EntityTemplateInstance();
+    explicit MoldInstance(Mold& sourceTemplate);
+    ~MoldInstance();
 
-    EntityTemplateInstance(const EntityTemplateInstance&) = delete;
-    EntityTemplateInstance& operator=(const EntityTemplateInstance&) = delete;
+    MoldInstance(const MoldInstance&) = delete;
+    MoldInstance& operator=(const MoldInstance&) = delete;
 
     void DrawInspector();
-    void Save(EntityTemplateManager& entityTemplateManager);
-    void Rename(EntityTemplateManager& entityTemplateManager, const std::string& newName);
+    void Save(MoldManager& entityTemplateManager, World& world);
+    void Rename(MoldManager& entityTemplateManager, const std::string& newName, World& world);
     void AddComponent(const ComponentInfo* info, void* ptr);
 
-    const std::string& GetName() const { return m_name; }
-    bool IsDirty() const { return m_isDirty; }
+    const std::string& GetName() const
+    {
+        return m_name;
+    }
+    bool IsDirty() const
+    {
+        return m_isDirty;
+    }
 };

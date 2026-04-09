@@ -32,6 +32,7 @@ using DeSerializeComponentFn = void* (*)(nlohmann::json&);
 using EmplaceComponentFn = void (*)(void*, void*, size_t);
 using DefaultConstructComponentFn = void* (*)();
 using DestroyComponentFn = void (*)(void*);
+using CopyComponentFn = void (*)(void*, void*);
 
 struct ComponentInfo
 {
@@ -45,15 +46,17 @@ struct ComponentInfo
     EmplaceComponentFn EmplaceComponent;
     DefaultConstructComponentFn DefaultConstructComponent;
     DestroyComponentFn DestroyComponent;
+    CopyComponentFn CopyComponent;
 };
 struct PendingComponent
 {
     const ComponentInfo* componentInfoPtr = nullptr;
-
     void* componentDataPtr = nullptr;
 
     PendingComponent() = default;
-    PendingComponent(const ComponentInfo* info, void* data) : componentInfoPtr(info), componentDataPtr(data) {}
+    PendingComponent(const ComponentInfo* info, void* data) : componentInfoPtr(info), componentDataPtr(data)
+    {
+    }
 
     PendingComponent(PendingComponent&& other) noexcept : componentInfoPtr(other.componentInfoPtr), componentDataPtr(other.componentDataPtr)
     {
@@ -190,14 +193,28 @@ class ComponentRegistry
             return new Component();
         };
 
+        newComponentInfo.CopyComponent = [](void* dst, void* src)
+        {
+            Component* srcComponent = reinterpret_cast<Component*>(src);
+            Component* dstComponent = reinterpret_cast<Component*>(dst);
+
+            *dstComponent = *srcComponent;
+        };
+
         if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);
         componentInfos[newComponentInfo.id] = newComponentInfo;
     }
 
   public:
-    inline static const std::vector<ComponentInfo>& GetComponentInfos() { return componentInfos; }
+    inline static const std::vector<ComponentInfo>& GetComponentInfos()
+    {
+        return componentInfos;
+    }
 
-    static const char* GetComponentNameById(ComponentId id) { return componentInfos[id].name; }
+    static const char* GetComponentNameById(ComponentId id)
+    {
+        return componentInfos[id].name;
+    }
 
     static void RegisterAllComponents()
     {
@@ -217,6 +234,7 @@ class ComponentRegistry
         RegisterComponent<CFlowFieldObstacle>();
         RegisterComponent<CFlowFieldTarget>();
         RegisterComponent<CFlowFieldAgent>();
+        RegisterComponent<CMolded>();
     }
 
     template <typename ComponentType>
@@ -275,6 +293,7 @@ class ComponentRegistry
             }
             pendingComponents.emplace_back(componentInfo, componentPtr);
         }
+
         return pendingComponents;
     }
 
@@ -325,7 +344,17 @@ class ComponentRegistry
         return nullptr;
     }
 
-    static const ComponentInfo& GetComponentInfoById(ComponentId id) { return componentInfos[id]; }
+    static const ComponentInfo& GetComponentInfoById(ComponentId id)
+    {
+        return componentInfos[id];
+    }
+
+    template <typename Component>
+    static const ComponentInfo& GetComponentInfo()
+    {
+        ComponentId id = GetComponentID<Component>();
+        return componentInfos[id];
+    }
 
     // Deprecated
     template <typename ComponentType>

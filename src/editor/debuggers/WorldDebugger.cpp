@@ -20,7 +20,7 @@ void WorldDebugger::DrawTab(DebugTabContext& context)
         ImGui::EndTabItem();
     }
 }
-void WorldDebugger::DrawIndividualArchetypeGUI(World* worldPtr, Archetype* archetypePtr, EntityInspector* entityInspectorPtr) const
+void WorldDebugger::DrawIndividualArchetypeGUI(World* worldPtr, Archetype* archetypePtr, Inspector* inspectorPtr) const
 {
     ImGui::TextColored(ImVec4(0.75f, 0.75f, 0.75f, 1.0f), "Capacity: %zu", archetypePtr->m_chunkCapacity * archetypePtr->m_chunks.size());
     ImGui::SameLine();
@@ -71,10 +71,10 @@ void WorldDebugger::DrawIndividualArchetypeGUI(World* worldPtr, Archetype* arche
             }
 
             ImGui::SameLine();
-            bool isSelected = (entityInspectorPtr->GetCurrentInspectorEntity() == currentEntity);
+            bool isSelected = (inspectorPtr->GetCurrentInspectorEntity() == currentEntity);
             if (ImGui::Selectable("Entity", isSelected))
             {
-                entityInspectorPtr->InspectLiveEntity(currentEntity, worldPtr->GetEntityManager());
+                inspectorPtr->InspectLiveEntity(currentEntity, worldPtr->GetEntityManager());
             }
             ImGui::SameLine();
             ImGui::Text("%u", currentEntity.id);
@@ -85,9 +85,9 @@ void WorldDebugger::DrawIndividualArchetypeGUI(World* worldPtr, Archetype* arche
     }
 }
 
-void WorldDebugger::DrawWorldGuiTab(World* worldPtr, EntityInspector* entityInspector) const
+void WorldDebugger::DrawWorldGuiTab(World* worldPtr, Inspector* inspectorPtr) const
 {
-    if (!worldPtr || !entityInspector)
+    if (!worldPtr || !inspectorPtr)
     {
         return;
     }
@@ -101,7 +101,7 @@ void WorldDebugger::DrawWorldGuiTab(World* worldPtr, EntityInspector* entityInsp
 
         if (ImGui::CollapsingHeader(nodeTitle.c_str()))
         {
-            DrawIndividualArchetypeGUI(worldPtr, archetype.get(), entityInspector);
+            DrawIndividualArchetypeGUI(worldPtr, archetype.get(), inspectorPtr);
         }
     }
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/saving/JsonUtility.h"
 
 #include <SFML/Graphics/Texture.hpp>
 #include <bitset>
@@ -20,7 +19,10 @@ struct Entity
     EntityID id = InvalidEntityID;
     uint32_t generation = InvalidEntityID;
 
-    bool operator==(const Entity otherEntity) const { return id == otherEntity.id && generation == otherEntity.generation; }
+    bool operator==(const Entity otherEntity) const
+    {
+        return id == otherEntity.id && generation == otherEntity.generation;
+    }
 };
 
 struct EntityStorageLocation
@@ -29,17 +31,8 @@ struct EntityStorageLocation
     uint32_t chunkIndex = UINT32_MAX;
     uint32_t indexInChunk = UINT32_MAX;
 
-    static constexpr EntityStorageLocation InvalidLocation() { return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX}; }
-};
-
-struct EntityTemplate
-{
-    sf::Texture iconTexture;
-    std::string entityName;
-    Json entityJson;
-
-    EntityTemplate(sf::Texture tex, const std::string& name, const Json& json)
-        : iconTexture(std::move(tex)), entityName(name), entityJson(json)
+    static constexpr EntityStorageLocation InvalidLocation()
     {
+        return {InvalidArchetypeID, UINT32_MAX, UINT32_MAX};
     }
 };
