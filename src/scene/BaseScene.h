@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "input/InputManager.h"
 
 #include <SFML/Graphics/RenderWindow.hpp>

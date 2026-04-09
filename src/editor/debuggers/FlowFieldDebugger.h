@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "editor/debuggers/IDebugTab.h"
 
 class FlowFieldSystem;

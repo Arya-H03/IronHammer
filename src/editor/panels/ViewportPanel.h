@@ -86,7 +86,7 @@ class ViewportPanel
             {
                 const char* moldName = static_cast<const char*>(payload->Data);
 
-                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromMold(
+                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromMoldObject(
                     *m_editorContext.moldManagerPtr->GetMoldByName(moldName));
 
                 CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);

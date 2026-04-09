@@ -1,6 +1,6 @@
 #include "editor/debuggers/WorldDebugger.h"
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "editor/entityInspector/EntityInspector.h"

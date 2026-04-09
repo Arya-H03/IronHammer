@@ -4,7 +4,7 @@
 #include "core/saving/JsonUtility.h"
 #include "core/utils/Debug.h"
 #include "core/utils/FileHelper.h"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"

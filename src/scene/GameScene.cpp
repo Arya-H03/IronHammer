@@ -2,7 +2,7 @@
 
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "editor/Viewport.h"

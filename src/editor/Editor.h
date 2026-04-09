@@ -1,20 +1,14 @@
 #pragma once
 
 #include "EditorContext.h"
-#include "EditorGrid.h"
 #include "EditorGui.h"
-#include "core/CoreComponents.hpp"
 #include "core/utils/Debug.h"
-#include "core/utils/Vect2.hpp"
-#include "ecs/common/ECSCommon.h"
-#include "editor/Gizmo.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "engine/Engine.h"
 #include "input/InputManager.h"
 
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
-#include <string>
 
 class Editor
 {

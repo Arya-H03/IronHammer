@@ -1,7 +1,7 @@
 #pragma once
 #include "core/saving/JsonUtility.h"
 #include "core/utils/Debug.h"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "scene/BaseScene.h"
 
 #include <fstream>

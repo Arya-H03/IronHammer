@@ -3,7 +3,7 @@
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "engine/Engine.h"
 #include "pathfinding/FlowField.h"
 #include "pathfinding/FlowFieldSystem.h"

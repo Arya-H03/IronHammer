@@ -3,7 +3,7 @@
 #include "core/CoreComponents.hpp"
 #include "core/utils/Colors.h"
 #include "core/utils/Debug.h"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/archetype/Archetype.h"
 #include "ecs/common/ECSCommon.h"
 #include "editor/entityInspector/EntityInspectorHelper.h"

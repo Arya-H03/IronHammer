@@ -3,7 +3,7 @@
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "physics/CollisionCommon.h"
 
 #include <cstdint>

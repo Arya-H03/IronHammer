@@ -9,7 +9,6 @@
 #include "editor/entityInspector/componentGui/PhysicsComponentsGui.h"
 #include "editor/entityInspector/componentGui/RenderingComponentsGui.h"
 #include "game/GameComponents.hpp"
-#include "mold/Mold.h"
 #include "nlohmann/json_fwd.hpp"
 #include "physics/PhysicsComponents.hpp"
 #include "rendering/RenderingComponents.hpp"

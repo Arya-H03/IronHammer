@@ -3,7 +3,6 @@
 #include "core/utils/Debug.h"
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
 #include "input/InputSystem.h"
@@ -23,7 +22,7 @@
 #include <memory>
 
 Engine::Engine()
-    : m_editorWorld(std::make_unique<World>()), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld), m_inputSystem(m_window)
+    : m_editorWorld(std::make_unique<World>(&m_moldManager)), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld), m_inputSystem(m_window)
 {
     Init();
 }
@@ -102,7 +101,7 @@ void Engine::PausePlayMode()
 void Engine::EnterPlayMode()
 {
     m_tempWorld.reset();
-    m_tempWorld = std::make_unique<World>();
+    m_tempWorld = std::make_unique<World>(&m_moldManager);
     LoadTempSceneData();
 
     m_currentWorld = m_tempWorld.get();

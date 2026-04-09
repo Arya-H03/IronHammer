@@ -1,7 +1,7 @@
 #include "MoldInstance.h"
 
 #include "core/CoreComponents.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "mold/MoldManager.h"

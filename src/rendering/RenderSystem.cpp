@@ -4,7 +4,7 @@
 #include "assets/AssetManager.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Vect2.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
 
 #include <SFML/Graphics/Color.hpp>

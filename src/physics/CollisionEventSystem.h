@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/system/ISystem.h"
 #include "physics/CollisionCommon.h"

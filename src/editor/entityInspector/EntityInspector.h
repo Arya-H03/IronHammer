@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityManager.hpp"
 #include "mold/MoldInstance.h"

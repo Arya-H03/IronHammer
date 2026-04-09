@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/saving/JsonUtility.h"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 
 #include <string>

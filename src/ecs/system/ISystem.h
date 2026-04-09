@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 class ISetupSystem
 {
   public:

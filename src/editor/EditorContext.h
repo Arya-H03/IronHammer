@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ecs/World.hpp"
-#include "mold/MoldManager.h"
+#include "ecs/World.h"
 #include "editor/EditorConfig.h"
 #include "editor/EditorGrid.h"
 #include "editor/Gizmo.h"
 #include "editor/Viewport.h"
 #include "editor/entityInspector/EntityInspector.h"
 #include "engine/Engine.h"
+#include "mold/MoldManager.h"
 
 #include <SFML/Graphics/RenderTexture.hpp>
 

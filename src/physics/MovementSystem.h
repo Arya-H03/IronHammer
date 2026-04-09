@@ -1,7 +1,7 @@
 #pragma once
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/system/ISystem.h"
 #include "physics/PhysicsComponents.hpp"
 

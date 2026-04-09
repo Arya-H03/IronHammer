@@ -1,5 +1,5 @@
 #pragma once
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "editor/entityInspector/EntityInspector.h"
 #include "engine/Engine.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/World.hpp"
+#include "ecs/World.h"
 #include "ecs/query/Query.hpp"
 #include "pathfinding/FlowFieldSystem.h"
 #include "physics/CollisionSystem.h"
