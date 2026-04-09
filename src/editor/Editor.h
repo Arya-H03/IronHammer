@@ -47,14 +47,14 @@ class Editor
         m_inputManager.CreateInputAction("Save", sf::Keyboard::Key::S, InputTrigger::Pressed,
                                          [&]() { m_editorContext.engine.SaveEditWorldData(); });
 
-        m_inputManager.CreateInputAction("SelectLiveEntity", sf::Mouse::Button::Left, InputTrigger::Pressed,
-                                         [&]()
-                                         {
-                                             Entity entity = m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.world);
-                                             if (entity.id != InvalidEntityID)
-                                                 m_editorContext.entityInspector.InspectLiveEntity(entity,
-                                                                                             m_editorContext.world->GetEntityManager());
-                                         });
+        m_inputManager.CreateInputAction(
+            "SelectLiveEntity", sf::Mouse::Button::Left, InputTrigger::Pressed,
+            [&]()
+            {
+                Entity entity = m_editorContext.editorGrid.GetEntityAtMousePosition(m_editorContext.currentWorld);
+                if (entity.id != InvalidEntityID)
+                    m_editorContext.entityInspector.InspectLiveEntity(entity, m_editorContext.currentWorld->GetEntityManager());
+            });
 
         m_inputManager.CreateInputAction("GizmoPositionMode", sf::Keyboard::Key::W, InputTrigger::Pressed,
                                          [&]() { m_editorContext.viewPortGizmMode = GismoMode::Position; });
@@ -62,15 +62,19 @@ class Editor
                                          [&]() { m_editorContext.viewPortGizmMode = GismoMode::Scale; });
     }
 
-    ~Editor() { SystemDebuggerHub::Instance().GetEditorDebugger().UnRegisterEditor(); }
+    ~Editor()
+    {
+        SystemDebuggerHub::Instance().GetEditorDebugger().UnRegisterEditor();
+    }
 
     void Update()
     {
         // Sync runtime into context
-        m_editorContext.world = m_editorContext.engine.GetCurrentWorld();
+        m_editorContext.currentWorld = m_editorContext.engine.GetCurrentWorld();
+        m_editorContext.editorWorld = m_editorContext.engine.GetEditorWorld();
         m_editorContext.engineMode = m_editorContext.engine.GetEngineMode();
         m_editorContext.isPlayModePaused = m_editorContext.engine.GetIsPlayModePaused();
-        m_editorContext.editorGrid.SetupSystem(m_editorContext.world);
+        m_editorContext.editorGrid.SetupSystem(m_editorContext.currentWorld);
         m_editorContext.editorGrid.UpdateViewportGrid();
 
         m_inputManager.Update(*m_editorContext.inputSystem);

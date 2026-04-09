@@ -83,7 +83,7 @@ class EditorGridSystem : ISetupSystem
     Entity GetEntityAtMousePosition(World* worldPtr)
     {
         if (!worldPtr) return Entity{};
-        if (!Viewport::IsMouseInside()) return Entity{};
+        if (!Viewport::IsMouseInsideViewport()) return Entity{};
 
         Vect2f mousePos = Viewport::ScreenToViewportMouse();
 

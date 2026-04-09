@@ -16,7 +16,8 @@ struct EditorContext
     Engine& engine;
 
     // Synced every frame
-    World* world = nullptr;
+    World* currentWorld = nullptr;
+    World* editorWorld = nullptr;
     EngineMode engineMode = EngineMode::Edit;
     bool isPlayModePaused = false;
 

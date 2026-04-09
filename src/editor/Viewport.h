@@ -33,7 +33,7 @@ class Viewport
 
     inline static Vect2<uint16_t> GetSize() { return m_size; }
 
-    inline static bool IsMouseInside()
+    inline static bool IsMouseInsideViewport()
     {
         Vect2f mouse = ImGui::GetMousePos();
 

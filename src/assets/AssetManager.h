@@ -19,6 +19,7 @@ class AssetManager
     {
         // This is for testing
         CreateTexture("Square", "assets/Square.png");
+        CreateTexture("Circle", "assets/Circle.png");
         CreateTexture("PlayBtn", "assets/play-button.png");
         CreateTexture("PauseBtn", "assets/pause-button.png");
         CreateTexture("CrossBtn", "assets/cross-button.png");

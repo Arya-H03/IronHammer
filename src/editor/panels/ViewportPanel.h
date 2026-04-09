@@ -1,4 +1,5 @@
 #pragma once
+#include "core/CoreComponents.hpp"
 #include "core/utils/Debug.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
@@ -6,7 +7,9 @@
 #include "editor/Viewport.h"
 #include "editor/ViewportGizmo.h"
 #include "engine/Engine.h"
+#include "rendering/RenderingComponents.hpp"
 
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -27,9 +30,9 @@ class ViewportPanel
         {
             Entity liveEntity = m_editorContext.entityInspector.GetCurrentInspectorEntity();
 
-            if (!m_editorContext.world->ValidateEntity(liveEntity, false)) return;
+            if (!m_editorContext.currentWorld->ValidateEntity(liveEntity, false)) return;
 
-            CTransform* transformPtr = m_editorContext.world->TryGetComponent<CTransform>(liveEntity);
+            CTransform* transformPtr = m_editorContext.currentWorld->TryGetComponent<CTransform>(liveEntity);
             if (!transformPtr) return;
 
             switch (m_editorContext.viewPortGizmMode)
@@ -46,18 +49,39 @@ class ViewportPanel
         }
     }
 
-  public:
-    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext)
+    void HandleViewportMenuPopup()
     {
+        if (ImGui::GetIO().MouseClicked[1] && Viewport::IsMouseInsideViewport())
+        {
+            ImGui::OpenPopup("Test");
+        }
+
+        if (ImGui::BeginPopup("Test"))
+        {
+            if (ImGui::BeginMenu("Create"))
+            {
+                // Later with Camera/View implmentation make sure,
+                // The entities spawn at the middle of the viewport relative to world
+                if (ImGui::MenuItem("Square"))
+                {
+                    m_editorContext.editorWorld->CreateEntityNoReturn(
+                        CTransform{{500, 500}, {1, 1}, 0}, CSprite{"Square", {50, 50}, sf::IntRect{{0, 0}, {256, 256}}, sf::Color::White});
+                }
+
+                if (ImGui::MenuItem("Circle"))
+                {
+                    m_editorContext.editorWorld->CreateEntityNoReturn(
+                        CTransform{{500, 500}, {1, 1}, 0}, CSprite{"Circle", {50, 50}, sf::IntRect{{0, 0}, {256, 256}}, sf::Color::White});
+                }
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndPopup();
+        }
     }
 
-    void Draw()
+    void HandleViewportImage()
     {
-        ImGui::SetNextWindowPos(ImVec2((float)m_editorContext.layout.Viewport_X, (float)m_editorContext.layout.Viewport_Y));
-        ImGui::SetNextWindowSize(ImVec2((float)m_editorContext.layout.Viewport_Width, (float)m_editorContext.layout.Viewport_Height));
-
-        ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         sf::Vector2u size = m_editorContext.viewportTexture.getSize();
 
@@ -79,15 +103,18 @@ class ViewportPanel
 
         Viewport::UpdateViewportImage(ImGui::GetCursorScreenPos(), drawSize);
         ImGui::Image(m_editorContext.viewportTexture.getTexture().getNativeHandle(), drawSize, ImVec2(0, 1), ImVec2(1, 0));
+    }
 
+    void HandleViewportDragDrop()
+    {
         if (ImGui::BeginDragDropTarget())
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_TEMPLATE"))
             {
                 const char* moldName = static_cast<const char*>(payload->Data);
 
-                std::vector<PendingComponent>& components = m_editorContext.world->CreateEntityFromMoldObject(
-                    *m_editorContext.moldManagerPtr->GetMoldByName(moldName));
+                std::vector<PendingComponent>& components =
+                    m_editorContext.currentWorld->CreateEntityFromMoldObject(*m_editorContext.moldManagerPtr->GetMoldByName(moldName));
 
                 CTransform* transform = ComponentRegistry::GetComponentFromPendings<CTransform>(components);
                 if (transform)
@@ -109,10 +136,24 @@ class ViewportPanel
                     LOG_ERROR("Tried to drop an Entity in Viewport with no transform");
                 }
             }
-
             ImGui::EndDragDropTarget();
         }
+    }
 
+  public:
+    ViewportPanel(EditorContext& editorContext) : m_editorContext(editorContext)
+    {
+    }
+
+    void Draw()
+    {
+        ImGui::SetNextWindowPos(ImVec2((float)m_editorContext.layout.Viewport_X, (float)m_editorContext.layout.Viewport_Y));
+        ImGui::SetNextWindowSize(ImVec2((float)m_editorContext.layout.Viewport_Width, (float)m_editorContext.layout.Viewport_Height));
+        ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+
+        HandleViewportImage();
+        HandleViewportMenuPopup();
+        HandleViewportDragDrop();
         DrawGismo();
 
         ImGui::End();
