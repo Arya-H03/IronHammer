@@ -12,23 +12,28 @@
 class SceneManager
 {
   private:
-    std::unordered_map<std::string, std::unique_ptr<BaseScene>> m_scenes;
+    std::unordered_map<std::string, std::unique_ptr<BaseScene>> m_sceneObjectMap;
+    std::unordered_map<std::string, std::string> m_sceneFilePathMap;
     BaseScene* m_currentScene = nullptr;
 
   public:
-    BaseScene* GetCurrentScenePtr() const { return m_currentScene; }
-
-    void RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene)
+    BaseScene* GetCurrentScenePtr() const
     {
-        m_scenes[name] = std::move(scene);
+        return m_currentScene;
+    }
+
+    void RegisterScene(const std::string& name, std::unique_ptr<BaseScene> scene, const std::string& sceneFilePath)
+    {
+        m_sceneObjectMap[name] = std::move(scene);
+        m_sceneFilePathMap[name] = sceneFilePath;
         LOG_INFO(name + " Scene was registered");
     }
 
     void ChangeScene(const std::string& name, World* worldPtr)
     {
-        auto it = m_scenes.find(name);
+        auto it = m_sceneObjectMap.find(name);
         // Return if scene not found or already playing
-        if (it == m_scenes.end()) return;
+        if (it == m_sceneObjectMap.end()) return;
 
         if (m_currentScene) m_currentScene->OnChangeFrom(worldPtr);
 
@@ -38,14 +43,16 @@ class SceneManager
         LOG_INFO("Changed to Scene " + name);
     }
 
-    void SaveScene(World& world, const std::string& filePath)
+    void SaveWorldToSceneFile(const std::string& sceneName, World& world)
     {
         Json sceneJson = world.SerializeWorld();
-        JsonUtility::SaveJsonObjectToFile(sceneJson, filePath);
+        JsonUtility::SaveJsonObjectToFile(sceneJson, m_sceneFilePathMap[sceneName]);
     }
 
-    void LoadScene(World& world, const std::string& filePath)
+    void LoadSceneDataIntoWorld(const std::string& sceneName, World& world)
     {
+        const std::string& filePath = m_sceneFilePathMap[sceneName];
+
         std::ifstream file(filePath);
         if (!file.is_open())
         {
@@ -53,7 +60,7 @@ class SceneManager
             return;
         }
 
-        Json sceneJson = JsonUtility::LoadJsonObjectFromFile(filePath);
-        world.DeserializeWorld(sceneJson);
+        Json sceneData = JsonUtility::LoadJsonObjectFromFile(filePath);
+        world.DeserializeWorld(sceneData);
     }
 };
