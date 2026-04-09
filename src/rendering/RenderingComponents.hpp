@@ -10,6 +10,7 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <cfloat>
 #include <cstddef>
 #include <string>
 
@@ -30,14 +31,18 @@ struct CSprite
         texturePtr = AssetManager::Instance().LoadTexture(textureName);
     }
 
-    void OnAfterDeserialize() { texturePtr = textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(textureName); }
+    void OnAfterDeserialize()
+    {
+        texturePtr = textureName.empty() ? nullptr : AssetManager::Instance().LoadTexture(textureName);
+    }
 };
 
 template <>
 struct Reflect<CSprite>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"textureName", &CSprite::textureName}, std::pair{"size", &CSprite::size},
-                                                   std::pair{"textureRect", &CSprite::textureRect}, std::pair{"color", &CSprite::color});
+    static constexpr auto fields =
+        std::make_tuple(Descriptor{"textureName", &CSprite::textureName, true}, Descriptor{"size", &CSprite::size, true},
+                        Descriptor{"textureRect", &CSprite::textureRect, true}, Descriptor{"color", &CSprite::color, true});
 };
 
 struct CShape
@@ -61,9 +66,9 @@ template <>
 struct Reflect<CShape>
 {
     static constexpr auto fields =
-        std::make_tuple(std::pair{"points", &CShape::points}, std::pair{"radius", &CShape::radius},
-                        std::pair{"outlineThickness", &CShape::outlineThickness}, std::pair{"fillColor", &CShape::fillColor},
-                        std::pair{"outlineColor", &CShape::outlineColor});
+        std::make_tuple(Descriptor{"points", &CShape::points, true}, Descriptor{"radius", &CShape::radius, true},
+                        Descriptor{"outlineThickness", &CShape::outlineThickness, true}, Descriptor{"fillColor", &CShape::fillColor, true},
+                        Descriptor{"outlineColor", &CShape::outlineColor, true});
 };
 
 struct CText
@@ -85,8 +90,9 @@ struct CText
 template <>
 struct Reflect<CText>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"content", &CText::content}, std::pair{"fontSize", &CText::fontSize},
-                                                   std::pair{"offset", &CText::offset}, std::pair{"textColor", &CText::textColor});
+    static constexpr auto fields =
+        std::make_tuple(Descriptor{"content", &CText::content, true}, Descriptor{"fontSize", &CText::fontSize, true},
+                        Descriptor{"offset", &CText::offset, true}, Descriptor{"textColor", &CText::textColor, true});
 };
 
 struct CNotDrawable

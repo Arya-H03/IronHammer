@@ -22,8 +22,9 @@ struct CTransform
 template <>
 struct Reflect<CTransform>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"position", &CTransform::position}, std::pair{"scale", &CTransform::scale},
-                                                   std::pair{"rotation", &CTransform::rotation});
+    static constexpr auto fields =
+        std::make_tuple(Descriptor{"position", &CTransform::position, false}, Descriptor{"scale", &CTransform::scale, true},
+                        Descriptor{"rotation", &CTransform::rotation, true});
 };
 
 struct CMovement
@@ -41,7 +42,7 @@ struct CMovement
 template <>
 struct Reflect<CMovement>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"speed", &CMovement::speed});
+    static constexpr auto fields = std::make_tuple(Descriptor{"speed", &CMovement::speed, true});
 };
 
 struct CMolded
@@ -59,5 +60,5 @@ struct CMolded
 template <>
 struct Reflect<CMolded>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"moldName", &CMolded::moldName});
+    static constexpr auto fields = std::make_tuple(Descriptor{"moldName", &CMolded::moldName, true});
 };

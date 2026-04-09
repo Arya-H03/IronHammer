@@ -9,6 +9,7 @@
 #include "editor/entityInspector/componentGui/PhysicsComponentsGui.h"
 #include "editor/entityInspector/componentGui/RenderingComponentsGui.h"
 #include "game/GameComponents.hpp"
+#include "mold/Mold.h"
 #include "nlohmann/json_fwd.hpp"
 #include "physics/PhysicsComponents.hpp"
 #include "rendering/RenderingComponents.hpp"
@@ -19,6 +20,7 @@
 #include <cstring>
 #include <functional>
 #include <imgui.h>
+#include <libelf.h>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -33,6 +35,7 @@ using EmplaceComponentFn = void (*)(void*, void*, size_t);
 using DefaultConstructComponentFn = void* (*)();
 using DestroyComponentFn = void (*)(void*);
 using CopyComponentFn = void (*)(void*, void*);
+using MoldComponentFn = void (*)(void*, void*);
 
 struct ComponentInfo
 {
@@ -47,6 +50,7 @@ struct ComponentInfo
     DefaultConstructComponentFn DefaultConstructComponent;
     DestroyComponentFn DestroyComponent;
     CopyComponentFn CopyComponent;
+    MoldComponentFn MoldComponent;
 };
 struct PendingComponent
 {
@@ -199,6 +203,15 @@ class ComponentRegistry
             Component* dstComponent = reinterpret_cast<Component*>(dst);
 
             *dstComponent = *srcComponent;
+        };
+
+        newComponentInfo.MoldComponent = [](void* dst, void* src)
+        {
+            Component* srcComponent = reinterpret_cast<Component*>(src);
+            Component* dstComponent = reinterpret_cast<Component*>(dst);
+
+            MoldingVisitor visitor;
+            ReflectVisit(*dstComponent, *srcComponent, visitor);
         };
 
         if (componentInfos.size() <= newComponentInfo.id) componentInfos.resize(newComponentInfo.id + 1);

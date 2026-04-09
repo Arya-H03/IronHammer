@@ -62,13 +62,18 @@ struct CFlowFieldAgent
     float speed = 0.f;
 
     CFlowFieldAgent() = default;
-    CFlowFieldAgent(float spd) : speed(spd) {}
+    CFlowFieldAgent(float spd) : speed(spd)
+    {
+    }
 
-    void Reset() { speed = 0; }
+    void Reset()
+    {
+        speed = 0;
+    }
 };
 
 template <>
 struct Reflect<CFlowFieldAgent>
 {
-    static constexpr auto fields = std::make_tuple(std::pair{"speed", &CFlowFieldAgent::speed});
+    static constexpr auto fields = std::make_tuple(Descriptor{"speed", &CFlowFieldAgent::speed, true});
 };

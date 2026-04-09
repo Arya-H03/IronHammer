@@ -48,15 +48,19 @@ struct CCollider
     {
     }
 
-    void OnAfterDeserialize() { halfSize = Vect2f{size.x * 0.5f, size.y * 0.5f}; }
+    void OnAfterDeserialize()
+    {
+        halfSize = Vect2f{size.x * 0.5f, size.y * 0.5f};
+    }
 };
 
 template <>
 struct Reflect<CCollider>
 {
     static constexpr auto fields =
-        std::make_tuple(std::pair{"size", &CCollider::size}, std::pair{"offset", &CCollider::offset}, std::pair{"layer", &CCollider::layer},
-                        std::pair{"mask", &CCollider::mask}, std::pair{"isTrigger", &CCollider::isTrigger});
+        std::make_tuple(Descriptor{"size", &CCollider::size, true}, Descriptor{"offset", &CCollider::offset, true},
+                        Descriptor{"layer", &CCollider::layer, true}, Descriptor{"mask", &CCollider::mask, true},
+                        Descriptor{"isTrigger", &CCollider::isTrigger, true});
 };
 
 struct CRigidBody
@@ -98,8 +102,8 @@ template <>
 struct Reflect<CRigidBody>
 {
     static constexpr auto fields =
-        std::make_tuple(std::pair{"velocity", &CRigidBody::velocity}, std::pair{"mass", &CRigidBody::mass},
-                        std::pair{"bounciness", &CRigidBody::bounciness}, std::pair{"isStatic", &CRigidBody::isStatic});
+        std::make_tuple(Descriptor{"velocity", &CRigidBody::velocity, true}, Descriptor{"mass", &CRigidBody::mass, true},
+                        Descriptor{"bounciness", &CRigidBody::bounciness, true}, Descriptor{"isStatic", &CRigidBody::isStatic, true});
 };
 
 struct CCollisionEnter
@@ -110,7 +114,9 @@ struct CCollisionEnter
     Entity entity2;
 
     CCollisionEnter() = default;
-    CCollisionEnter(Entity a, Entity b) : entity1(a), entity2(b) {}
+    CCollisionEnter(Entity a, Entity b) : entity1(a), entity2(b)
+    {
+    }
 };
 
 template <>
@@ -127,7 +133,9 @@ struct CCollisionExit
     Entity entity2;
 
     CCollisionExit() = default;
-    CCollisionExit(Entity a, Entity b) : entity1(a), entity2(b) {}
+    CCollisionExit(Entity a, Entity b) : entity1(a), entity2(b)
+    {
+    }
 };
 
 template <>
@@ -144,7 +152,9 @@ struct CCollisionStay
     Entity entity2;
 
     CCollisionStay() = default;
-    CCollisionStay(Entity a, Entity b) : entity1(a), entity2(b) {}
+    CCollisionStay(Entity a, Entity b) : entity1(a), entity2(b)
+    {
+    }
 };
 
 template <>

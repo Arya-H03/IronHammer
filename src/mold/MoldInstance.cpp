@@ -98,7 +98,7 @@ void MoldInstance::Save(MoldManager& entityTemplateManager, World& world)
             assert(liveEntityComponentPtr);
             void* entityTemplateComponentPtr = ptr;
 
-            info->CopyComponent(liveEntityComponentPtr, entityTemplateComponentPtr);
+            info->MoldComponent(liveEntityComponentPtr, entityTemplateComponentPtr);
         }
     }
 
