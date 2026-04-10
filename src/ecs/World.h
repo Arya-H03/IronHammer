@@ -52,12 +52,11 @@ class World
 
     template <typename Component>
     void AddToEntity(Entity entity, Component&& component);
+    void AddToEntity(Entity entity, ComponentId componentId, void* componentPtr);
 
     template <typename Component>
     void RemoveFromEntity(Entity entity);
-
-    void AddToEntity(Entity entity, ComponentId componentId, void* componentPtr);
-    void RemoveFromEntity(Entity entity, ComponentId componentId, void* componentPtr);
+    void RemoveFromEntity(Entity entity, ComponentId componentId);
 
     template <typename Component>
     bool HasComponent(Entity entity);

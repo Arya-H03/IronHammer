@@ -66,13 +66,13 @@ inline void World::CreateEntityNoReturn(Components&&... components)
 
 inline std::vector<PendingComponent>& World::CreateEntityFromMoldObject(Mold& mold)
 {
-    std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(mold.entityJson);
+    std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(mold.moldJson);
 
     CMolded* entityTemplateComp = ComponentRegistry::GetComponentFromPendings<CMolded>(pendingComponents);
     if (!entityTemplateComp)
     {
         const ComponentInfo* componentInfoPtr = &ComponentRegistry::GetComponentInfo<CMolded>();
-        CMolded* componentDataPtr = new CMolded(mold.entityName);
+        CMolded* componentDataPtr = new CMolded(mold.moldName);
         pendingComponents.push_back(PendingComponent{componentInfoPtr, componentDataPtr});
     }
     else
@@ -96,13 +96,13 @@ inline std::vector<PendingComponent>* World::CreateEntityFromMoldName(const std:
         return nullptr;
     }
 
-    std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(mold->entityJson);
+    std::vector<PendingComponent> pendingComponents = ComponentRegistry::GetAllPendingComponentsFromEntityJson(mold->moldJson);
 
     CMolded* entityTemplateComp = ComponentRegistry::GetComponentFromPendings<CMolded>(pendingComponents);
     if (!entityTemplateComp)
     {
         const ComponentInfo* componentInfoPtr = &ComponentRegistry::GetComponentInfo<CMolded>();
-        CMolded* componentDataPtr = new CMolded(mold->entityName);
+        CMolded* componentDataPtr = new CMolded(mold->moldName);
         pendingComponents.push_back(PendingComponent{componentInfoPtr, componentDataPtr});
     }
     else
@@ -139,9 +139,9 @@ inline void World::AddToEntity(Entity entity, ComponentId componentId, void* com
     m_commandBuffer.AddToEntity(entity, componentId, componentPtr);
 }
 
-inline void World::RemoveFromEntity(Entity entity, ComponentId componentId, void* componentPtr)
+inline void World::RemoveFromEntity(Entity entity, ComponentId componentId)
 {
-    m_commandBuffer.RemoveFromEntity(entity, componentId, componentPtr);
+    m_commandBuffer.RemoveFromEntity(entity, componentId);
 }
 
 template <typename Component>

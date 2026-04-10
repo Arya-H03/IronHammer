@@ -69,7 +69,6 @@ class CommandBuffer
     {
         Entity entity;
         ComponentId componentID;
-        void* componentPtr;
     };
 
     std::vector<CreateEntityCommandTypeErased> m_createEntityCommandsTypeErased;
@@ -96,7 +95,7 @@ class CommandBuffer
 
     // Create from EntityTemplate ///////
     std::pair<Entity, std::vector<PendingComponent>&> CreateEntityFromMold(EntityManager& entityManager,
-                                                                               std::vector<PendingComponent>&& components)
+                                                                           std::vector<PendingComponent>&& components)
     {
         Entity entity = entityManager.GenerateEntity();
         m_createEntityCommandsTypeErased.push_back({entity, std::move(components)});
@@ -187,9 +186,9 @@ class CommandBuffer
                                                        { entityManager.RemoveComponentFrom<Component>(entity); }});
     }
 
-    void RemoveFromEntity(Entity entity, ComponentId componentId, void* componentPtr)
+    void RemoveFromEntity(Entity entity, ComponentId componentId)
     {
-        m_removeFromEntityCommandsTypeErased.push_back({entity, componentId, componentPtr});
+        m_removeFromEntityCommandsTypeErased.push_back({entity, componentId});
     }
 
     void ExecuteAllCommands(EntityManager& entityManager)
@@ -226,7 +225,7 @@ class CommandBuffer
 
         for (auto& command : m_removeFromEntityCommandsTypeErased)
         {
-            entityManager.RemoveComponentFrom(command.entity, command.componentID, command.componentPtr);
+            entityManager.RemoveComponentFrom(command.entity, command.componentID);
         }
 
         Clear();

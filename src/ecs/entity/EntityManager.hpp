@@ -289,7 +289,7 @@ class EntityManager
         m_entityStorageLocations[entity.id] = newEntityLocation;                   // Poped Entity
     }
 
-    void RemoveComponentFrom(Entity entity, ComponentId componentId, void* componentPtr)
+    void RemoveComponentFrom(Entity entity, ComponentId componentId)
     {
         if (!ValidateEntity(entity)) return;
         if (!HasComponent(entity, componentId)) return;
