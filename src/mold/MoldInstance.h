@@ -16,33 +16,36 @@ class MoldManager;
 class MoldInstance
 {
   private:
-    std::vector<std::pair<const ComponentInfo*, void*>> m_components;
+    std::vector<std::pair<const ComponentInfo*, void*>> m_moldInstanceComponents;
     std::unordered_set<ComponentId> m_presentComponents;
 
     std::unordered_set<ComponentId> m_pendingRemovalcomponents;
     std::vector<std::pair<const ComponentInfo*, void*>> m_pendingAdditionComponents;
 
-    std::string m_name;
+    Mold& m_sourceMoldRef;
     bool m_isDirty = false;
 
     void DeserializeFrom(Json& j);
     void Clear();
 
+    void RemoveComponentFromMoldInstance(ComponentId componentId);
+
   public:
-    explicit MoldInstance(Mold& sourceTemplate);
+    explicit MoldInstance(Mold& sourceMold);
     ~MoldInstance();
 
     MoldInstance(const MoldInstance&) = delete;
     MoldInstance& operator=(const MoldInstance&) = delete;
 
     void DrawInspector();
-    void Save(MoldManager& entityTemplateManager, World& world);
-    void Rename(MoldManager& entityTemplateManager, const std::string& newName, World& world);
-    void AddComponent(const ComponentInfo* info, void* ptr);
+
+    void SaveMoldsInstanceToMold(MoldManager& entityTemplateManager, World& world);
+    void RenameMoldInstance(MoldManager& entityTemplateManager, const std::string& newName, World& world);
+    void AddComponentToMoldInstance(const ComponentInfo* info, void* ptr);
 
     const std::string& GetName() const
     {
-        return m_name;
+        return m_sourceMoldRef.moldName;
     }
     bool IsDirty() const
     {

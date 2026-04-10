@@ -12,17 +12,13 @@
 #include "mold/Mold.h"
 #include "rendering/RenderingComponents.hpp"
 
-#include <SFML/Graphics/CircleShape.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
-#include <SFML/Graphics/Shape.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/System/Angle.hpp>
 #include <algorithm>
+#include <cassert>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 class MoldManager
 {
@@ -45,20 +41,46 @@ class MoldManager
         return it->second.get();
     }
 
-    bool CreateMold(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& name)
+    bool CreateMold(World& world, Entity entity, const EntityStorageLocation& entityLocation, const std::string& newMoldName)
     {
-        if (m_moldMap.contains(name))
+        if (m_moldMap.contains(newMoldName))
         {
-            LOG_WARNING("Tried to create an Entity Template with an already existing name: " + name);
+            LOG_WARNING("Tried to create an Mold with an already existing name: " + newMoldName);
             return false;
         }
 
         Json entityJson = world.SerializeEntity(entityLocation);
 
-        const sf::Texture texture = GenerateMoldIconTextureFromWorld(world, entity);
-        m_moldMap.emplace(name, std::make_unique<Mold>(std::move(texture), name, entityJson));
+        // Maybe later: Right now serialize the whole entity and then
+        // earse the CMolded component. Consider adding a template pack to World.Serialize()
+        // to handle certain components to be excluded from serialization.
+        entityJson.erase(CMolded::name);
 
-        JsonUtility::SaveJsonObjectToFile(entityJson, moldsStorageFolder + name + ".json");
+        const sf::Texture texture = GenerateMoldIconTextureFromWorld(world, entity);
+        m_moldMap.emplace(newMoldName, std::make_unique<Mold>(std::move(texture), newMoldName, entityJson));
+        JsonUtility::SaveJsonObjectToFile(entityJson, moldsStorageFolder + newMoldName + ".json");
+
+        if (world.HasComponent<CMolded>(entity))
+        {
+            CMolded* moldedComp = world.TryGetComponent<CMolded>(entity);
+            auto it = m_moldMap.find(moldedComp->moldName);
+            if (it != m_moldMap.end())
+            {
+                Mold* oldMold = it->second.get();
+                oldMold->RemoveDerivedEntity(entity);
+                m_moldMap[newMoldName]->derivedEntities.push_back(entity);
+                moldedComp->moldName = newMoldName;
+            }
+            else
+            {
+                LOG_WARNING("Tired to change the name of a mold which doesn't exist.");
+            }
+        }
+        else
+        {
+            world.AddToEntity(entity, CMolded{newMoldName});
+            m_moldMap[newMoldName]->derivedEntities.push_back(entity);
+        }
 
         return true;
     }
@@ -159,20 +181,25 @@ class MoldManager
             return;
         }
 
-        templatePtr->entityJson = entityJson;
+        templatePtr->moldJson = entityJson;
         JsonUtility::SaveJsonObjectToFile(entityJson, moldsStorageFolder + name + ".json");
 
         const sf::Texture texture = GenerateMoldIconTextureFromJson(entityJson);
         templatePtr->iconTexture = std::move(texture);
     }
 
-    void DeleteMold(const std::string& name)
+    void DeleteMold(World& editorWorld, const std::string& name)
     {
         auto it = m_moldMap.find(name);
         if (it == m_moldMap.end())
         {
-            LOG_WARNING("Tried to delete non-existent template: " + name);
+            LOG_WARNING("Tried to delete none existent template: " + name);
             return;
+        }
+
+        for (const auto entity : it->second->derivedEntities)
+        {
+            editorWorld.RemoveFromEntity<CMolded>(entity);
         }
 
         FileHelper::DeleteFile(moldsStorageFolder + name + ".json");
@@ -197,7 +224,7 @@ class MoldManager
         FileHelper::RenameFile(oldName, moldsStorageFolder + oldName + ".json", newName, moldsStorageFolder + newName + ".json");
 
         pair.key() = newName;
-        pair.mapped()->entityName = newName;
+        pair.mapped()->moldName = newName;
         m_moldMap.insert(std::move(pair));
     }
 
@@ -219,6 +246,8 @@ class MoldManager
         }
     }
 
+    // Call in engine Init() after entites has been deserialzied into editor and,
+    // editor world update has been called once.
     void FillAllMoldsWithDerivedEntities(World& world)
     {
         Query* moldDerivedQuery = world.Query<RequiredComponents<CMolded>>();

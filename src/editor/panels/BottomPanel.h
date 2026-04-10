@@ -30,7 +30,7 @@ class BottomPanel
     {
         if (!m_editorContext.moldManagerPtr) return;
 
-        if (ImGui::BeginTabItem("Entity Templates"))
+        if (ImGui::BeginTabItem("Molds"))
         {
             float panelWidth = ImGui::GetContentRegionAvail().x;
 
@@ -84,9 +84,9 @@ class BottomPanel
         ImDrawList* drawList = ImGui::GetForegroundDrawList();
         ImVec2 mouse = ImGui::GetIO().MousePos;
 
-        PendingComponent pendingCSprite = ComponentRegistry::GetPendingComponentFromEntityJson<CSprite>(entityTemplate.entityJson);
+        PendingComponent pendingCSprite = ComponentRegistry::GetPendingComponentFromEntityJson<CSprite>(entityTemplate.moldJson);
         CSprite* spriteComp = ComponentRegistry::GetComponentFromPending<CSprite>(pendingCSprite);
-        PendingComponent transformPending = ComponentRegistry::GetPendingComponentFromEntityJson<CTransform>(entityTemplate.entityJson);
+        PendingComponent transformPending = ComponentRegistry::GetPendingComponentFromEntityJson<CTransform>(entityTemplate.moldJson);
         CTransform* transform = ComponentRegistry::GetComponentFromPending<CTransform>(transformPending);
 
         float previewWidth = iconSize;

@@ -22,7 +22,8 @@
 #include <memory>
 
 Engine::Engine()
-    : m_editorWorld(std::make_unique<World>(&m_moldManager)), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld), m_inputSystem(m_window)
+    : m_editorWorld(std::make_unique<World>(&m_moldManager)), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld),
+      m_inputSystem(m_window)
 {
     Init();
 }
@@ -49,6 +50,10 @@ Vect2<uint16_t> Engine::GetWindowSize() const
 World* Engine::GetCurrentWorld() const
 {
     return m_currentWorld;
+}
+World* Engine::GetEditorWorld() const
+{
+    return m_editorWorld.get();
 }
 sf::RenderWindow& Engine::GetRenderWindow()
 {

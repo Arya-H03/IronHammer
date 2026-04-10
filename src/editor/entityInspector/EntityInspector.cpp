@@ -24,7 +24,7 @@ const Entity Inspector::GetCurrentInspectorEntity() const
 void Inspector::DrawComponentDisplay(World& currentWorld, ComponentId componentId, void* componentPtr) const
 {
     ComponentRegistry::GetComponentInfoById(componentId)
-        .DisplayComponent(componentPtr, [&]() { currentWorld.RemoveFromEntity(m_currentLiveEntity, componentId, componentPtr); }, nullptr);
+        .DisplayComponent(componentPtr, [&]() { currentWorld.RemoveFromEntity(m_currentLiveEntity, componentId); }, nullptr);
 }
 
 void Inspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld)
@@ -48,30 +48,34 @@ void Inspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, Mold
     ImGui::Spacing();
     ImGui::Spacing();
 
+
     archetypePtr->ForEachComponent(entityLocation, [&](ComponentId id, void* ptr) { DrawComponentDisplay(currentWorld, id, ptr); });
 
-    ImGui::SeparatorText("");
-
-    if (ImGui::BeginTable("EntityTemplateTable", 2, ImGuiTableFlags_SizingFixedFit))
+    if (m_lastEngineMode == EngineMode::Edit)
     {
-        TableNextField("Entity Template");
-        static std::string name = "";
-        InputTextWithHint("##EntityTemplateName", "Enter Name", name);
+        ImGui::SeparatorText("");
 
-        ImGui::SameLine();
-        if (ImGui::Button("Create"))
+        if (ImGui::BeginTable("MoldTable", 2, ImGuiTableFlags_SizingFixedFit))
         {
-            if (name.empty())
-            {
-                name = "Entity_" + std::to_string(m_currentLiveEntity.id) + "_" + std::to_string(m_currentLiveEntity.generation);
-            }
-            entityTemplateManager.CreateMold(currentWorld, m_currentLiveEntity, entityLocation, name);
-            name = "";
-        }
-        ImGui::EndTable();
-    }
+            TableNextField("Convert to Mold");
+            static std::string name = "";
+            InputTextWithHint("##MoldNameTextField", "Enter Name", name);
 
-    ImGui::SeparatorText("");
+            ImGui::SameLine();
+            if (ImGui::Button("Convert"))
+            {
+                if (name.empty())
+                {
+                    name = "Entity_" + std::to_string(m_currentLiveEntity.id) + "_" + std::to_string(m_currentLiveEntity.generation);
+                }
+                entityTemplateManager.CreateMold(currentWorld, m_currentLiveEntity, entityLocation, name);
+                name = "";
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::SeparatorText("");
+    }
 
     ImVec2 addComponentBtnSize = ImGui::CalcTextSize("Add Component");
     ImVec2 deleteBtnSize = ImGui::CalcTextSize("Delete");
@@ -132,7 +136,7 @@ void Inspector::DrawInspectorGuiForLiveEntity(EntityManager& entityManager, Mold
     ImGui::PopStyleColor();
 }
 
-void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateManager, World& currentWorld)
+void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateManager, World& currentWorld, World& editorWorld)
 {
     if (!m_currentMoldInstance) return;
     ImGui::SeparatorText("Entity Template");
@@ -158,7 +162,7 @@ void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateMan
         {
             if (!newName.empty())
             {
-                m_currentMoldInstance->Rename(entityTemplateManager, newName,currentWorld);
+                m_currentMoldInstance->RenameMoldInstance(entityTemplateManager, newName, currentWorld);
                 newName.clear();
             }
         }
@@ -183,7 +187,7 @@ void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateMan
         {
             if (ImGui::Selectable(componentInfo.name))
             {
-                m_currentMoldInstance->AddComponent(&componentInfo, componentInfo.DefaultConstructComponent());
+                m_currentMoldInstance->AddComponentToMoldInstance(&componentInfo, componentInfo.DefaultConstructComponent());
                 ImGui::CloseCurrentPopup();
             }
         }
@@ -202,7 +206,7 @@ void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateMan
     {
         if (m_lastEngineMode == EngineMode::Edit)
         {
-            m_currentMoldInstance->Save(entityTemplateManager, currentWorld);
+            m_currentMoldInstance->SaveMoldsInstanceToMold(entityTemplateManager, currentWorld);
         }
         else
         {
@@ -218,7 +222,7 @@ void Inspector::DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateMan
     ImGui::PushStyleColor(ImGuiCol_Border, Colors::RustRed_SFML);
     if (ImGui::Button("Delete"))
     {
-        entityTemplateManager.DeleteMold(m_currentMoldInstance->GetName());
+        entityTemplateManager.DeleteMold(editorWorld, m_currentMoldInstance->GetName());
 
         m_currentMoldInstance.reset();
         m_inspectorMode = InspectorMode::None;
@@ -243,8 +247,8 @@ void Inspector::InspectMold(Mold& entityTemplate)
     m_currentLiveEntity = {};
 }
 
-void Inspector::DrawInspectorGui(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld,
-                                       EngineMode engineMode)
+void Inspector::DrawInspectorGui(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld, World& editorWorld,
+                                 EngineMode engineMode)
 {
     if (m_lastEngineMode != engineMode)
     {
@@ -258,7 +262,7 @@ void Inspector::DrawInspectorGui(EntityManager& entityManager, MoldManager& enti
             DrawInspectorGuiForLiveEntity(entityManager, entityTemplateManager, currentWorld);
             break;
         case InspectorMode::Mold:
-            DrawInspectorGuiForMoldedInstance(entityTemplateManager, currentWorld);
+            DrawInspectorGuiForMoldedInstance(entityTemplateManager, currentWorld, editorWorld);
             break;
         case InspectorMode::None:
             break;

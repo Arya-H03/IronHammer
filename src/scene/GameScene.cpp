@@ -86,16 +86,16 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
                         }
                     });
 
-                if (closestEnemyTransform)
-                {
-                    Vect2f vel = closestEnemyTransform->position - towerTransform.position;
-                    m_worldPtr->CreateEntityNoReturn(CTransform(towerTransform.position, {1, 1}, 0), CMovement(150),
-                                                     CRigidBody(vel, 1, 0.1f, false),
-                                                     CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
-                                                     CSprite("Square", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+                // if (closestEnemyTransform)
+                // {
+                //     Vect2f vel = closestEnemyTransform->position - towerTransform.position;
+                //     m_worldPtr->CreateEntityNoReturn(CTransform(towerTransform.position, {1, 1}, 0), CMovement(150),
+                //                                      CRigidBody(vel, 1, 0.1f, false),
+                //                                      CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
+                //                                      CSprite("Circle", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 
-                    currentTime = 0;
-                }
+                //     currentTime = 0;
+                // }
             });
     }
     currentTime += Time::DeltaTime();

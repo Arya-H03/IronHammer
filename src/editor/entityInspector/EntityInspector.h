@@ -3,9 +3,9 @@
 #include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityManager.hpp"
+#include "engine/Engine.h"
 #include "mold/MoldInstance.h"
 #include "mold/MoldManager.h"
-#include "engine/Engine.h"
 
 #include <imgui.h>
 
@@ -30,7 +30,7 @@ class Inspector
 
     void DrawComponentDisplay(World& currentWorld, ComponentId componentId, void* componentPtr) const;
     void DrawInspectorGuiForLiveEntity(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld);
-    void DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateManager, World& currentWorld);
+    void DrawInspectorGuiForMoldedInstance(MoldManager& entityTemplateManager, World& currentWorld, World& editorWorld);
 
   public:
     Inspector() = default;
@@ -39,6 +39,6 @@ class Inspector
 
     void InspectLiveEntity(Entity entity, EntityManager& entityManager);
     void InspectMold(Mold& entityTemplate);
-    void DrawInspectorGui(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld,
+    void DrawInspectorGui(EntityManager& entityManager, MoldManager& entityTemplateManager, World& currentWorld, World& editorWorld,
                           EngineMode engineMode);
 };

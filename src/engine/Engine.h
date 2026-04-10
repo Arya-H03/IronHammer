@@ -55,6 +55,7 @@ class Engine
     EngineMode GetEngineMode() const;
     Vect2<uint16_t> GetWindowSize() const;
     World* GetCurrentWorld() const;
+    World* GetEditorWorld() const;
     size_t GetFrameLimit() const;
     float GetTargetFrameTime() const;
 

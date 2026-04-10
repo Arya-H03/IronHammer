@@ -1,37 +1,42 @@
 {
   "Collider": {
     "isTrigger": false,
-    "layer": 1,
-    "mask": 4294967295,
+    "layer": 4,
+    "mask": 4294967283,
     "offset": {
       "x": 0.0,
       "y": 0.0
     },
     "size": {
-      "x": 100.0,
-      "y": 100.0
+      "x": 35.0,
+      "y": 35.0
     }
   },
-  "FlowFieldObstacle": null,
+  "FlowFieldAgent": {
+    "speed": 0.0
+  },
+  "Movement": {
+    "speed": 100.0
+  },
   "RigidBody": {
     "bounciness": 0.5,
-    "isStatic": true,
-    "mass": 0.0,
+    "isStatic": false,
+    "mass": 1.0,
     "velocity": {
-      "x": 10.0,
-      "y": 10.0
+      "x": 0.0,
+      "y": 0.0
     }
   },
   "Sprite": {
     "color": [
-      67,
-      115,
+      245,
       255,
+      0,
       255
     ],
     "size": {
-      "x": 100.0,
-      "y": 100.0
+      "x": 35.0,
+      "y": 35.0
     },
     "textureName": "Square",
     "textureRect": [
@@ -43,8 +48,8 @@
   },
   "Transform": {
     "position": {
-      "x": 702.0,
-      "y": 381.0
+      "x": 123.0,
+      "y": 526.0
     },
     "rotation": 0.0,
     "scale": {

@@ -9,11 +9,13 @@ class InspectorPanel
     EditorContext& m_editorContext;
 
   public:
-    InspectorPanel(EditorContext& editorContext) : m_editorContext(editorContext) {}
+    InspectorPanel(EditorContext& editorContext) : m_editorContext(editorContext)
+    {
+    }
 
     void Draw()
     {
-        if (!m_editorContext.world) return;
+        if (!m_editorContext.currentWorld) return;
 
         ImGui::SetNextWindowPos(ImVec2((float)m_editorContext.layout.Inspector_X, (float)m_editorContext.layout.Inspector_Y));
 
@@ -21,8 +23,9 @@ class InspectorPanel
 
         ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-        m_editorContext.entityInspector.DrawInspectorGui(m_editorContext.world->GetEntityManager(), *m_editorContext.moldManagerPtr,
-                                                   *m_editorContext.world, m_editorContext.engineMode);
+        m_editorContext.entityInspector.DrawInspectorGui(m_editorContext.currentWorld->GetEntityManager(), *m_editorContext.moldManagerPtr,
+                                                         *m_editorContext.currentWorld, *m_editorContext.editorWorld,
+                                                         m_editorContext.engineMode);
 
         ImGui::End();
     }

@@ -17,7 +17,7 @@ class DebugPanel
 
     void Draw()
     {
-        if (!m_editorContext.world) return;
+        if (!m_editorContext.currentWorld) return;
 
         auto& layout = m_editorContext.layout;
 
@@ -29,7 +29,7 @@ class DebugPanel
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
                          ImGuiWindowFlags_HorizontalScrollbar);
 
-        DebugTabContext context{m_editorContext.world, &m_editorContext.entityInspector};
+        DebugTabContext context{m_editorContext.currentWorld, &m_editorContext.entityInspector};
 
         if (ImGui::BeginTabBar("DebugTabs"))
         {
