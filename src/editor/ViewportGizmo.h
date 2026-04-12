@@ -50,7 +50,7 @@ class ViewportGismo
             Vect2f mouse = Viewport::ScreenToViewportMouse();
             Vect2f delta = mouse - mouseDragOffest;
             if (axis == GizmoAxis::X || axis == GizmoAxis::XY) scale.x = scaleDragOffeset.x + delta.x * 0.04;
-            if (axis == GizmoAxis::Y || axis == GizmoAxis::XY) scale.y = scaleDragOffeset.y + delta.y * 0.04;
+            if (axis == GizmoAxis::Y || axis == GizmoAxis::XY) scale.y = scaleDragOffeset.y + delta.y * 0.04 * -1;
             scale.x = std::max(scale.x, 0.01f);
             scale.y = std::max(scale.y, 0.01f);
         }
