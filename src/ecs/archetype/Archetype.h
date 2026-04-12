@@ -7,6 +7,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
 #include <cassert>
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -35,8 +36,9 @@ class Archetype
 
     size_t m_chunkCapacity = 0;
     size_t m_totalSize = 0;
+    size_t m_currentFreeChunkIndex = SIZE_MAX;
 
-    ArchetypeChunk& CreateChunk()
+    size_t CreateChunk()
     {
         m_chunks.emplace_back(m_chunkCapacity);
         ArchetypeChunk& newChunk = m_chunks.back();
@@ -51,24 +53,42 @@ class Archetype
             newChunk.densIds[i] = id;
             newChunk.sparse[id] = i;
         }
-        return m_chunks.back();
+        return m_chunks.size() - 1;
     }
 
     uint32_t GetFreeChunkIndex()
     {
-        // Might need changing later if Ref becoms invalid with vector growth
-        if (m_chunks.empty() || m_chunks.back().IsFull()) CreateChunk();
-        return m_chunks.size() - 1;
+        for (size_t i = 0; i < m_chunks.size(); ++i)
+        {
+            if(!m_chunks[i].IsFull()) return i;
+        }
+
+        return CreateChunk();
     }
 
   public:
-    const ArchetypeId GetArchetypeId() const { return m_archetypeId; }
-    const std::string& GetArchetypeName() const { return m_archetypeName; }
+    const ArchetypeId GetArchetypeId() const
+    {
+        return m_archetypeId;
+    }
+    const std::string& GetArchetypeName() const
+    {
+        return m_archetypeName;
+    }
 
-    const std::vector<ArchetypeChunk>& GetChunks() const { return m_chunks; }
-    ComponentSignatureMask GetComponentSignature() const { return m_componentSignature; }
+    const std::vector<ArchetypeChunk>& GetChunks() const
+    {
+        return m_chunks;
+    }
+    ComponentSignatureMask GetComponentSignature() const
+    {
+        return m_componentSignature;
+    }
 
-    bool HasComponent(ComponentId id) const { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
+    bool HasComponent(ComponentId id) const
+    {
+        return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
+    }
 
     Archetype(ArchetypeId id, ComponentSignatureMask signature, std::string name, size_t chunkCapacity)
         : m_archetypeId(id), m_componentSignature(signature), m_archetypeName(name), m_chunkCapacity(chunkCapacity)
@@ -112,21 +132,36 @@ class Archetype
         return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
     }
 
-    bool HasComponent(ComponentId id) { return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id; }
+    bool HasComponent(ComponentId id)
+    {
+        return m_sparse[id] < m_allocators.size() && m_densIds[m_sparse[id]] == id;
+    }
 
     template <typename Component>
     Component* GetComponentPtrByTemplate(const EntityStorageLocation& entityLocation)
     {
         ComponentId id = ComponentRegistry::GetComponentID<Component>();
-        if (id >= MaxComponents) return nullptr;
+        if (id >= MaxComponents)
+        {
+            assert(false);
+            return nullptr;
+        }
 
         uint16_t denseIndex = m_sparse[id];
         assert(denseIndex < m_allocators.size() && "Tried to access a component not in the archetype");
 
-        if (entityLocation.chunkIndex >= m_chunks.size()) return nullptr;
+        if (entityLocation.chunkIndex >= m_chunks.size())
+        {
+            assert(false);
+            return nullptr;
+        }
 
         ArchetypeChunk& chunk = m_chunks[entityLocation.chunkIndex];
-        if (entityLocation.indexInChunk >= chunk.size) return nullptr;
+        if (entityLocation.indexInChunk >= chunk.size)
+        {
+            assert(false);
+            return nullptr;
+        }
 
         void* base = chunk.components[denseIndex];
         char* byteBase = static_cast<char*>(base);
@@ -219,53 +254,51 @@ class Archetype
     template <typename... Components>
     EntityStorageLocation AddEntity(Entity entity, Components&&... components)
     {
-        ArchetypeChunk& targetChunk = m_chunks[GetFreeChunkIndex()];
-        const size_t index = targetChunk.size;
+        const uint32_t freeChunkIndex = GetFreeChunkIndex();
+        ArchetypeChunk& freeChunk = m_chunks[freeChunkIndex];
         (
             [&]
             {
                 using Type = std::decay_t<Components>;
 
                 ComponentId componentId = ComponentRegistry::GetComponentID<Type>();
-                void* rawBlock = targetChunk.components[m_sparse[componentId]];
+                void* rawBlock = freeChunk.components[m_sparse[componentId]];
                 Type* typeArray = reinterpret_cast<Type*>(rawBlock); // Cast raw block to an array of Type
 
-                new (&typeArray[index]) Type(std::forward<Components>(components));
+                new (&typeArray[freeChunk.size]) Type(std::forward<Components>(components));
             }(),
             ...);
 
-        ++targetChunk.size;
+        ++freeChunk.size;
         ++m_totalSize;
 
-        uint32_t chunkIndex = static_cast<uint32_t>(m_chunks.size() - 1);
-        uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
+        uint32_t indexInChunk = static_cast<uint32_t>(freeChunk.size - 1);
 
-        targetChunk.entities[indexInChunk] = entity;
+        freeChunk.entities[indexInChunk] = entity;
 
-        return EntityStorageLocation{m_archetypeId, chunkIndex, indexInChunk};
+        return EntityStorageLocation{m_archetypeId, freeChunkIndex, indexInChunk};
     }
 
     EntityStorageLocation AddEntity(Entity entity, std::vector<PendingComponent>& pendingComponents)
     {
-        ArchetypeChunk& targetChunk = m_chunks[GetFreeChunkIndex()];
-        const size_t index = targetChunk.size;
+        const uint32_t freeChunkIndex = GetFreeChunkIndex();
+        ArchetypeChunk& freeChunk = m_chunks[freeChunkIndex];
 
         for (const auto& component : pendingComponents)
         {
             ComponentId componentId = component.componentInfoPtr->id;
-            void* rawBlock = targetChunk.components[m_sparse[componentId]];
-            component.componentInfoPtr->EmplaceComponent(rawBlock, component.componentDataPtr, index);
+            void* rawBlock = freeChunk.components[m_sparse[componentId]];
+            component.componentInfoPtr->EmplaceComponent(rawBlock, component.componentDataPtr, freeChunk.size);
         }
 
-        ++targetChunk.size;
+        ++freeChunk.size;
         ++m_totalSize;
 
-        uint32_t chunkIndex = static_cast<uint32_t>(m_chunks.size() - 1);
-        uint32_t indexInChunk = static_cast<uint32_t>(targetChunk.size - 1);
+        uint32_t indexInChunk = static_cast<uint32_t>(freeChunk.size - 1);
 
-        targetChunk.entities[indexInChunk] = entity;
+        freeChunk.entities[indexInChunk] = entity;
 
-        return EntityStorageLocation{m_archetypeId, chunkIndex, indexInChunk};
+        return EntityStorageLocation{m_archetypeId, freeChunkIndex, indexInChunk};
     }
 
     // A Swap Pop happens in RemoveEntity(...). The returned pair is {SwapedEntity,

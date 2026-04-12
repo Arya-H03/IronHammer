@@ -3,6 +3,7 @@
 #include "ecs/component/ComponentRegistry.hpp"
 
 #include <cassert>
+#include <cstdint>
 
 struct ArchetypeChunk
 {
