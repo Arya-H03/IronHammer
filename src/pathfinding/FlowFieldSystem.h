@@ -21,7 +21,7 @@ class FlowFieldSystem : ISetupSystem
 {
     friend class FlowFieldDebugger;
 
-private:
+  private:
     std::queue<FlowCell*> m_flowCellQueue;
 
     FlowFieldGenerator m_flowFieldGenerator;
@@ -42,15 +42,6 @@ private:
                     flowCellPtr->baseCost = static_cast<FlowCellCost>(FlowCellCostEnum::Target);
                     m_flowCellQueue.push(flowCellPtr);
                 }
-                // Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f), (transform.position.y - sprite.size.y * 0.5f)};
-                // Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f), (transform.position.y + sprite.size.y * 0.5f)};
-
-                // for (size_t j = std::floor(bottomLeft.y); j < std::ceil(topRight.y); ++j)
-                // {
-                //     for (size_t i = std::floor(bottomLeft.x); i < std::ceil(topRight.x); ++i)
-                //     {
-                //     }
-                // }
             });
     }
     void CheckForObstacleTags()
@@ -94,8 +85,11 @@ private:
                 if (!neighborCellPtr) continue;
                 if (neighborCellPtr->baseCost != static_cast<FlowCellCost>(FlowCellCostEnum::UnVisited)) continue;
 
+                bool isDiagonal = offset.x != 0 && offset.y != 0;
+                // Fix me
+                FlowCellCost moveCost = isDiagonal ? 10 : 10;
                 m_flowCellQueue.push(neighborCellPtr);
-                neighborCellPtr->baseCost = flowCellPtr->baseCost + 1;
+                neighborCellPtr->baseCost = flowCellPtr->baseCost + moveCost;
             }
         }
     }
@@ -106,6 +100,7 @@ private:
         {
             Vect2int flowDir = Vect2int::Zero;
             FlowCellCost cheapestNeighbourCost = static_cast<FlowCellCost>(FlowCellCostEnum::UnWalkable);
+            bool isCheapestNeighbourDiagonal = false;
 
             for (const auto& dir : EightDirections)
             {
@@ -113,10 +108,15 @@ private:
                 if (!neighborCellPtr) continue;
 
                 FlowCellCost currentNeighbourCost = neighborCellPtr->GetTotalCost();
-                if (currentNeighbourCost < cheapestNeighbourCost)
+
+                bool isDiagonal = dir.x != 0 && dir.y != 0;
+                bool isNeighbourBetter = (currentNeighbourCost < cheapestNeighbourCost) ||
+                                         (currentNeighbourCost == cheapestNeighbourCost && isCheapestNeighbourDiagonal && !isDiagonal);
+                if (isNeighbourBetter)
                 {
                     cheapestNeighbourCost = currentNeighbourCost;
                     flowDir = dir;
+                    isCheapestNeighbourDiagonal = flowDir.x != 0 && flowDir.y != 0;
                 }
             }
             cell.flowDir = flowDir;
@@ -130,11 +130,17 @@ private:
         CalculateFlowDirections();
     }
 
-    void CreateNewFlowField() { m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50}; }
+    void CreateNewFlowField()
+    {
+        m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50};
+    }
 
-public:
+  public:
     FlowFieldSystem() = default;
-    ~FlowFieldSystem() { SystemDebuggerHub::Instance().GetFlowFieldDebugger().UnRegisterFlowField(); }
+    ~FlowFieldSystem()
+    {
+        SystemDebuggerHub::Instance().GetFlowFieldDebugger().UnRegisterFlowField();
+    }
 
     void SetupSystem(World* worldPtr) override
     {

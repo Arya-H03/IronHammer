@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 using FlowCellCost = int16_t;
@@ -11,8 +12,8 @@ using FlowCellCost = int16_t;
 enum class FlowCellCostEnum : FlowCellCost
 {
     Target = 0,
-    UnWalkable = 100,
-    UnVisited = 500
+    UnWalkable = INT16_MAX - 1,
+    UnVisited = INT16_MAX
 };
 struct FlowCell
 {
@@ -28,7 +29,10 @@ struct FlowCell
         dynamiqueCost = 0;
     }
 
-    int GetTotalCost() { return baseCost + dynamiqueCost; }
+    int GetTotalCost()
+    {
+        return baseCost + dynamiqueCost;
+    }
 };
 
 static inline const std::vector<Vect2<int>> EightDirections = {Vect2<int>{0, 1},  Vect2<int>{1, 1},   Vect2<int>{1, 0},  Vect2<int>{1, -1},
@@ -73,11 +77,23 @@ class FlowField
         CreateFlowGrid();
     }
 
-    std::vector<FlowCell>& GetCells() { return m_flowCells; }
+    std::vector<FlowCell>& GetCells()
+    {
+        return m_flowCells;
+    }
 
-    size_t GetGridRows() const { return m_gridRows; }
-    size_t GetGridCols() const { return m_gridCols; }
-    size_t GetCellSize() const { return m_cellSize; }
+    size_t GetGridRows() const
+    {
+        return m_gridRows;
+    }
+    size_t GetGridCols() const
+    {
+        return m_gridCols;
+    }
+    size_t GetCellSize() const
+    {
+        return m_cellSize;
+    }
 
     // No negative yet
     FlowCell* TryGetFlowCellByWorldPos(const Vect2f& pos)
