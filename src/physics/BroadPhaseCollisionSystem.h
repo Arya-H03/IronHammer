@@ -18,7 +18,9 @@ struct Cell
     std::vector<Entity> overlapingEntities;
 
     Cell() = default;
-    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p) {}
+    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p)
+    {
+    }
 };
 
 class BroadPhaseCollisionSystem : public ISetupSystem
@@ -29,15 +31,19 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     const float m_cellSize = 32;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
 
-    uint16_t m_cellPerRow, m_cellPerCol;
-
+    uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
+
+    // Old way///////////////
     std::vector<Cell> m_grid;
     std::vector<Entity> m_gridDisplayEntities;
 
-    std::unordered_set<CollisionPair, CollisionPairHash> m_uniquePotentialPairsSet;
-    std::vector<CollisionPair> m_uniquePotentialPairsVector;
+    std::unordered_set<CollisionPairOld, CollisionPairHash> m_uniquePotentialPairsSet;
+    std::vector<CollisionPairOld> m_uniquePotentialPairsVector;
+    /////////////////////////
 
+    std::vector<BroadPhaseCellData> m_flatGridData;
+    std::vector<CollisionPair> m_collisionPairs;
     Query* m_broadPhaseQuery;
 
     // Flags
@@ -47,12 +53,16 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     void PopulateGrid(World* worldPtr);
     void ClearAllCells();
     void FillCellsWithOverlappingEntities(World* worldPtr);
-    void FindUniqueCollisionPairs();
+    void FindCollisionPairs();
+
+    void FillCellsWithOverlappingEntitiesOld(World* worldPtr);
+    void FindCollisionPairsOld();
 
   public:
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 
+    std::vector<CollisionPairOld>& HandleBroadPhaseCollisionSystemOld(World* worldPtr);
     std::vector<CollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
 
     bool GetCanDisplayGrid() const;

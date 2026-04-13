@@ -36,20 +36,21 @@ private:
         m_flowFieldTargetQuery->ForEach<CTransform, CSprite>(
             [&](CTransform& transform, CSprite& sprite)
             {
-                Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f), (transform.position.y - sprite.size.y * 0.5f)};
-                Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f), (transform.position.y + sprite.size.y * 0.5f)};
-
-                for (size_t j = std::floor(bottomLeft.y); j < std::ceil(topRight.y); ++j)
+                FlowCell* flowCellPtr = m_flowField.TryGetFlowCellByWorldPos(transform.position);
+                if (flowCellPtr)
                 {
-                    for (size_t i = std::floor(bottomLeft.x); i < std::ceil(topRight.x); ++i)
-                    {
-                        FlowCell* flowCellPtr = m_flowField.TryGetFlowCellByWorldPos(Vect2f(i, j));
-
-                        if (!flowCellPtr) continue;
-                        flowCellPtr->baseCost = static_cast<FlowCellCost>(FlowCellCostEnum::Target);
-                        m_flowCellQueue.push(flowCellPtr);
-                    }
+                    flowCellPtr->baseCost = static_cast<FlowCellCost>(FlowCellCostEnum::Target);
+                    m_flowCellQueue.push(flowCellPtr);
                 }
+                // Vect2f bottomLeft{(transform.position.x - sprite.size.x * 0.5f), (transform.position.y - sprite.size.y * 0.5f)};
+                // Vect2f topRight{(transform.position.x + sprite.size.x * 0.5f), (transform.position.y + sprite.size.y * 0.5f)};
+
+                // for (size_t j = std::floor(bottomLeft.y); j < std::ceil(topRight.y); ++j)
+                // {
+                //     for (size_t i = std::floor(bottomLeft.x); i < std::ceil(topRight.x); ++i)
+                //     {
+                //     }
+                // }
             });
     }
     void CheckForObstacleTags()

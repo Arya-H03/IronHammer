@@ -1,27 +1,60 @@
 #pragma once
 
+#include "core/CoreComponents.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
 #include <cstdint>
 
+struct CollisionPairOld
+{
+    Entity e1, e2;
+
+    CollisionPairOld(Entity a, Entity b)
+    {
+        e1 = a.id < b.id ? a : b;
+        e2 = a.id < b.id ? b : a;
+    }
+
+    bool operator==(const CollisionPairOld& otherPair) const
+    {
+        return e1 == otherPair.e1 && e2 == otherPair.e2;
+    }
+};
 struct CollisionPair
 {
     Entity e1, e2;
 
-    CollisionPair(Entity a, Entity b)
+    CTransform* e1TransformPtr;
+    CCollider* e1ColliderPtr;
+    CRigidBody* e1RigidBodyPtr;
+
+    CTransform* e2TransformPtr;
+    CCollider* e2ColliderPtr;
+    CRigidBody* e2RigidBodyPtr;
+
+    bool operator==(const CollisionPairOld& otherPair) const
     {
-        e1 = a.id < b.id ? a : b;
-        e2 = b.id > a.id ? b : a;
+        return e1 == otherPair.e1 && e2 == otherPair.e2;
     }
-    bool operator==(const CollisionPair& otherPair) const { return e1 == otherPair.e1 && e2 == otherPair.e2; }
+};
+
+struct BroadPhaseCellData
+{
+    size_t cellIndex = SIZE_MAX;
+    Entity entity;
+
+    CTransform* transformPtr;
+    CCollider* colliderPtr;
+    CRigidBody* rigidBodyPtr;
 };
 
 struct CollisionPairHash
 {
-    size_t operator()(const CollisionPair& pair) const
+    size_t operator()(const CollisionPairOld& pair) const
     {
         return std::hash<uint32_t>()(pair.e1.id) ^ (std::hash<uint32_t>()(pair.e2.id) << 1);
     }

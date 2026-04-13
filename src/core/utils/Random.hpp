@@ -1,4 +1,6 @@
 #pragma once
+#include "core/utils/Vect2.hpp"
+
 #include <SFML/Graphics/Color.hpp>
 #include <random>
 
@@ -26,5 +28,16 @@ class Random
         return dist(m_engine);
     }
 
-    static sf::Color Color() { return sf::Color(Int(0, 255), Int(0, 255), Int(0, 255), 255); }
+    static Vect2f Vect2f(Vect2f xBounds, Vect2f yBounds)
+    {
+        float x = Float(xBounds.x, xBounds.y);
+        float y = Float(yBounds.x, yBounds.y);
+
+        return {x, y};
+    }
+
+    static sf::Color Color()
+    {
+        return sf::Color(Int(0, 255), Int(0, 255), Int(0, 255), 255);
+    }
 };

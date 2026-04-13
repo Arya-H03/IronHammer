@@ -1,5 +1,6 @@
 #include "GameScene.h"
 
+#include "core/CoreComponents.hpp"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
@@ -10,6 +11,7 @@
 #include "input/InputSystem.h"
 #include "physics/PhysicsComponents.hpp"
 
+#include <SFML/Window/Joystick.hpp>
 #include <cstdint>
 #include <string>
 
@@ -30,8 +32,6 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEnterQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
-
-    SpawnTestEntities();
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -57,81 +57,75 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     if (m_isPaused) return;
 
     m_inputManager.Update(inputSystem);
-    m_flowFieldSystem.UpdateFlowAgents();
-    m_movementSystem.HandleMovementSystem();
-    m_collisionSystem.HandleCollisionSystem(worldPtr);
 
-    float cd = 2;
+    {
+        ZoneScopedN("GameScene/FlowFieldUpdate");
+        m_flowFieldSystem.UpdateFlowAgents();
+    }
+    {
+        ZoneScopedN("GameScene/UpdateFlowAgents");
+        m_flowFieldSystem.UpdateFlowAgents();
+    }
+    {
+        ZoneScopedN("GameScene/MovementSystem");
+        m_movementSystem.HandleMovementSystem();
+    }
+    {
+        ZoneScopedN("GameScene/CollisionSystem");
+        m_collisionSystem.HandleCollisionSystem(worldPtr);
+    }
 
-    static float currentTime = 0;
 
+    float cd = 5;
+    static float currentTime = 3;
+
+    {
+        ZoneScopedN("GameScene/SpawnTestEntities");
+        if (currentTime >= cd)
+        {
+            SpawnTestEntities();
+            currentTime = 0;
+        }
+    }
     // Lemao refactor later
     // Probably a BFS or a simple 1D loop
-    if (currentTime >= cd)
-    {
-        m_towerQuery->ForEach<CTransform>(
-            [&](CTransform& towerTransform)
-            {
-                CTransform* closestEnemyTransform;
-                size_t closestDistance = SIZE_MAX;
-
-                m_enemyQuery->ForEach<CTransform>(
-                    [&](CTransform& enemyTransform)
-                    {
-                        float dist = towerTransform.position.Distance(enemyTransform.position);
-                        if (dist < closestDistance)
-                        {
-                            closestDistance = dist;
-                            closestEnemyTransform = &enemyTransform;
-                        }
-                    });
-
-                // if (closestEnemyTransform)
-                // {
-                //     Vect2f vel = closestEnemyTransform->position - towerTransform.position;
-                //     m_worldPtr->CreateEntityNoReturn(CTransform(towerTransform.position, {1, 1}, 0), CMovement(150),
-                //                                      CRigidBody(vel, 1, 0.1f, false),
-                //                                      CCollider({25, 25}, {0, 0}, Layer::Default, ~0u, false),
-                //                                      CSprite("Circle", Vect2f(25, 25), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
-
-                //     currentTime = 0;
-                // }
-            });
-    }
     currentTime += Time::DeltaTime();
 
-    m_collisionEnterQuery->ForEach<CCollisionEnter>(
-        [&](CCollisionEnter& collisionEnter)
-        {
-            Entity e1 = collisionEnter.entity1;
-            Entity e2 = collisionEnter.entity2;
+    {
+        ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
+        m_collisionEnterQuery->ForEach<CCollisionEnter>(
+            [&](CCollisionEnter& collisionEnter)
+            {
+                Entity e1 = collisionEnter.entity1;
+                Entity e2 = collisionEnter.entity2;
 
-            if (worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2))
-            {
-                worldPtr->DestroyEntity(e2);
-            }
-            else if (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2))
-            {
-                worldPtr->DestroyEntity(e1);
-            }
-        });
+                if (worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2))
+                {
+                    worldPtr->DestroyEntity(e2);
+                }
+                else if (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2))
+                {
+                    worldPtr->DestroyEntity(e1);
+                }
+            });
+    }
 }
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 0;
+    size_t count = 5000;
 
     for (size_t i = 0; i < count; ++i)
     {
-        Vect2f startPos{Random::Float(0, Viewport::GetSize().x), Random::Float(0, Viewport::GetSize().y)};
-        Vect2f startVel{Random::Float(-1, 1), Random::Float(-1, 1)};
+        Vect2f startPos{Random::Float(20, Viewport::GetSize().x - 20), Random::Float(20, Viewport::GetSize().y - 20)};
+        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
 
-        float speed = Random::Float(100, 150);
-        float radius = Random::Float(2, 10);
-        float bounce = Random::Float(0, 1);
+        float speed = Random::Float(50, 100);
+        float radius = 10;
+        float bounce = 1;
         float mass = Random::Float(1, 100);
 
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody(startVel, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Default, ~0u, false),
+        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, mass, bounce, false),
+                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false),CFlowFieldAgent(),CEnemy(),
                                          CSprite("Square", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
     }
 }

@@ -20,10 +20,14 @@ class NarrowPhaseCollisionSystem
 
     bool CanColliderContact(CCollider* collider1, CCollider* collider2);
     // Axis Aligned Bounding Box Check
-    void AABBCheck(World* worldPtr, Entity e1, Entity e2);
+    void AABBCheck(World* worldPtr, const CollisionPair& collisionPairData);
+    void AABBCheckOld(World* worldPtr, Entity e1, Entity e2);
 
   public:
-    NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem) {}
+    NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem)
+    {
+    }
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPair>& potentialPairs);
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr,
+                                                                         const std::vector<CollisionPair>& potentialPairs);
 };

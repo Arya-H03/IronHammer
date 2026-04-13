@@ -11,9 +11,9 @@ class FlowFieldDebugger : public IDebugTab
     std::vector<Entity> m_flowFieldCellVisuals;
     std::vector<Entity> m_flowFieldArrowVisuals;
 
-    bool m_toggleFlowField = true;
-    bool m_toggleFlowFieldCells = true;
-    bool m_toggleFlowFieldArrows = true;
+    bool m_toggleFlowField = false;
+    bool m_toggleFlowFieldCells = false;
+    bool m_toggleFlowFieldArrows = false;
 
     FlowFieldSystem* m_flowFieldSystemPtr;
 

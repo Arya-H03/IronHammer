@@ -185,7 +185,7 @@ void FlowFieldDebugger::CreateVisualGrid(World* worldPtr)
         const FlowCell& flowCell = flowCells[i];
 
         m_flowFieldCellVisuals.push_back(
-            worldPtr->CreateEntityWithReturn(CTransform{flowCell.worldPosition, Vect2f(1, 1), 0},
+            worldPtr->CreateEntityWithReturn(CTransform{flowCell.worldPosition, Vect2f(1, 1), 0}, CNotDrawable(),
                                              CShape(4, Colors::DarkSteel_SFML, sf::Color(255, 255, 255, 100), cellRadius, 2),
                                              CText(std::to_string(flowCell.baseCost + flowCell.dynamiqueCost), sf::Color::White,
                                                    Vect2f{cellRadius / 3, cellRadius / 3}, 12)));
@@ -202,7 +202,7 @@ void FlowFieldDebugger::CreateVisualGrid(World* worldPtr)
         }
 
         m_flowFieldArrowVisuals.push_back(worldPtr->CreateEntityWithReturn(
-            CTransform{flowCell.worldPosition, Vect2f(1, 1), rotationInDegrees},
+            CTransform{flowCell.worldPosition, Vect2f(1, 1), rotationInDegrees}, CNotDrawable(),
             CSprite("Arrow", Vect2f{cellRadius, cellRadius}, sf::IntRect{{0, 0}, {512, 512}}, Colors::OxidizedGreen_SFML)));
     }
 }

@@ -165,6 +165,7 @@ void Engine::LoadTempSceneData()
 
 void Engine::BeginFrame()
 {
+    ZoneScopedN("Begin Frame");
     m_frameRateHandler.OnFrameBegin();
     ImGui::SFML::Update(m_window, sf::seconds(m_clock.restart().asSeconds()));
     m_inputSystem.PollEvents();
@@ -172,14 +173,23 @@ void Engine::BeginFrame()
 
 void Engine::UpdateRuntime()
 {
-    m_currentWorld->UpdateWorld();
+    ZoneScopedN("Update Runtime");
 
-    if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
-        m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame, m_currentWorld, m_inputSystem);
+    {
+        ZoneScopedN("Update World");
+        m_currentWorld->UpdateWorld();
+    }
+
+    {
+        ZoneScopedN("Update Scene");
+        if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
+            m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame, m_currentWorld, m_inputSystem);
+    }
 }
 
 void Engine::RenderFrame()
 {
+    ZoneScopedN("Render Frame");
     m_window.clear();
     ImGui::SFML::Render(m_window);
     m_window.display();
@@ -187,6 +197,7 @@ void Engine::RenderFrame()
 
 void Engine::EndFrame()
 {
+    ZoneScopedN("End Frame");
     m_inputSystem.ClearEvents();
     m_frameRateHandler.OnFrameEnd();
 }

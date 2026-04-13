@@ -11,8 +11,8 @@
 class CollisionEventSystem : ISetupSystem
 {
   private:
-    std::unordered_set<CollisionPair, CollisionPairHash> m_previousFramePairs;
-    std::unordered_set<CollisionPair, CollisionPairHash> m_currentFramePairs;
+    std::unordered_set<CollisionPairOld, CollisionPairHash> m_previousFramePairs;
+    std::unordered_set<CollisionPairOld, CollisionPairHash> m_currentFramePairs;
 
     Query* m_enterCollisionQuery;
     Query* m_stayCollisionQuery;
@@ -26,7 +26,7 @@ class CollisionEventSystem : ISetupSystem
         m_exitCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionExit>>();
     }
 
-    void CreateCollisionPair(Entity e1, Entity e2) { m_currentFramePairs.emplace(CollisionPair(e1, e2)); }
+    void CreateCollisionPair(Entity e1, Entity e2) { m_currentFramePairs.emplace(CollisionPairOld(e1, e2)); }
 
     // Check me later:
     // Call either after ResolutionSystem or maybe after??

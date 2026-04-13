@@ -77,7 +77,10 @@ class CollisionSystem : public ISetupSystem
         SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);
     }
 
-    ~CollisionSystem() { SystemDebuggerHub::Instance().GetCollsionDebugger().UnRegisterCollsionSystem(); }
+    ~CollisionSystem()
+    {
+        SystemDebuggerHub::Instance().GetCollsionDebugger().UnRegisterCollsionSystem();
+    }
 
     void HandleCollisionSystem(World* worldPtr)
     {
@@ -85,11 +88,27 @@ class CollisionSystem : public ISetupSystem
 
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
-        CheckForScreenBorderCollision();
+        {
+            ZoneScopedN("CollisionSystem/BorderCollision");
+            CheckForScreenBorderCollision();
+        }
 
-        auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
-        auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
-        m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
-        m_collsionEventSystem.HandleCollisionEvents(worldPtr);
+        {
+            ZoneScopedN("CollisionSystem/BroadPhaseCollision");
+            auto& potentialPairs = m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
+            {
+                ZoneScopedN("CollisionSystem/NarrowPhaseCollision");
+                auto& collisionPairs = m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, potentialPairs);
+                {
+                    ZoneScopedN("CollisionSystem/CollisionResolution");
+                    m_collisionResolutionSystem.ResolveCollisions(worldPtr, collisionPairs);
+                }
+            }
+        }
+
+        {
+            ZoneScopedN("CollisionSystem/HandleCollisionEvents");
+            m_collsionEventSystem.HandleCollisionEvents(worldPtr);
+        }
     }
 };

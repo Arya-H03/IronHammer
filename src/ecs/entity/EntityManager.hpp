@@ -8,7 +8,6 @@
 #include "ecs/component/ComponentRegistry.hpp"
 
 #include <cassert>
-#include <format>
 #include <utility>
 #include <vector>
 
@@ -67,7 +66,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+                //LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -78,7 +77,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+                //LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -89,7 +88,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+                //LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -129,7 +128,7 @@ class EntityManager
         if (!ValidateEntity(entity)) return nullptr;
         EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
-        if (!archetype.HasComponent(id)) return nullptr;
+        // if (!archetype.HasComponent(id)) return nullptr;
         return archetype.GetComponentPtrById(entityLocation, id);
     }
 
