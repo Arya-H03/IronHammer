@@ -12,15 +12,18 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
 
         for (auto& collisionData : collisionDataVector)
         {
-            CTransform* transform1 = worldPtr->TryGetComponent<CTransform>(collisionData.e1);
-            CTransform* transform2 = worldPtr->TryGetComponent<CTransform>(collisionData.e2);
-            CRigidBody* rb1 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
+            CTransform* transform1 = collisionData.e1TransformPtr;
+            CTransform* transform2 = collisionData.e2TransformPtr;
+            CRigidBody* rb1 = collisionData.e1RigidBodyPtr;
+            CRigidBody* rb2 = collisionData.e2RigidBodyPtr;
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;
             float invMassSum = invMass1 + invMass2;
             if (invMassSum == 0.0f) continue;
+
+            rb1->previousPosition = transform1->position;
+            rb2->previousPosition = transform2->position;
 
             transform1->position -= collisionData.normal * collisionData.penetration * (invMass1 / invMassSum);
             transform2->position += collisionData.normal * collisionData.penetration * (invMass2 / invMassSum);
@@ -28,15 +31,15 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionImpulse(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     {
         ZoneScopedN("CollisionResolutionSystem/ResolveCollisionImpluse");
 
         for (auto& collisionData : collisionDataVector)
         {
-            CRigidBody* rb1 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e1);
-            CRigidBody* rb2 = worldPtr->TryGetComponent<CRigidBody>(collisionData.e2);
+            CRigidBody* rb1 = collisionData.e1RigidBodyPtr;
+            CRigidBody* rb2 = collisionData.e2RigidBodyPtr;
 
             float invMass1 = rb1->inverseMass;
             float invMass2 = rb2->inverseMass;
@@ -62,5 +65,5 @@ void CollisionResolutionSystem::ResolveCollisionImpluse(World* worldPtr, std::ve
 void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     ResolveCollisionOverlaps(worldPtr, collisionDataVector);
-    ResolveCollisionImpluse(worldPtr, collisionDataVector);
+    ResolveCollisionImpulse(worldPtr, collisionDataVector);
 }

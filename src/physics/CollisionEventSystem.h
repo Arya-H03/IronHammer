@@ -32,16 +32,16 @@ class CollisionEventSystem : ISetupSystem
     // Call either after ResolutionSystem or maybe after??
     void HandleCollisionEvents(World* worldptr)
     {
-        // stay and exit events
-        for (auto& collisionpair : m_previousFramePairs)
-        {
-            if (m_currentFramePairs.contains(collisionpair))
-            {
-                worldptr->CreateEntityNoReturn(CCollisionStay(collisionpair.e1, collisionpair.e2));
-            }
-            else
-                worldptr->CreateEntityNoReturn(CCollisionExit(collisionpair.e1, collisionpair.e2));
-        }
+        // // stay and exit events
+        // for (auto& collisionpair : m_previousFramePairs)
+        // {
+        //     if (m_currentFramePairs.contains(collisionpair))
+        //     {
+        //         worldptr->CreateEntityNoReturn(CCollisionStay(collisionpair.e1, collisionpair.e2));
+        //     }
+        //     else
+        //         worldptr->CreateEntityNoReturn(CCollisionExit(collisionpair.e1, collisionpair.e2));
+        // }
 
         // enter events
         for (auto& collisionpair : m_currentFramePairs)

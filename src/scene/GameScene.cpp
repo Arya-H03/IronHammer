@@ -68,16 +68,16 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     }
     {
         ZoneScopedN("GameScene/MovementSystem");
-        m_movementSystem.HandleMovementSystem();
+        // m_movementSystem.HandleMovementSystem();
     }
     {
         ZoneScopedN("GameScene/CollisionSystem");
-        m_collisionSystem.HandleCollisionSystem(worldPtr);
+        m_collisionSystem.HandleCollisionSystem(worldPtr, Time::DeltaTime());
     }
 
 
-    float cd = 5;
-    static float currentTime = 3;
+    float cd = 1;
+    static float currentTime = 1;
 
     {
         ZoneScopedN("GameScene/SpawnTestEntities");
@@ -112,20 +112,61 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 }
 void GameScene::SpawnTestEntities()
 {
-    size_t count = 5000;
-
-    for (size_t i = 0; i < count; ++i)
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
     {
-        Vect2f startPos{Random::Float(20, Viewport::GetSize().x - 20), Random::Float(20, Viewport::GetSize().y - 20)};
+        Vect2f startPos{(float)i, 10};
+        Vect2f velocity = Random::Vect2f({-1, 1}, {0, 100});
+
+        float speed = Random::Float(25, 50);
+        float radius = Random::Float(10, 16);
+        float bounce = 0;
+        float mass = 1;
+
+        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
+                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
+                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+    }
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
+    {
+        Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
         Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
 
-        float speed = Random::Float(50, 100);
-        float radius = 10;
-        float bounce = 1;
-        float mass = Random::Float(1, 100);
+        float speed = Random::Float(25, 50);
+        float radius = Random::Float(10, 16);
+        float bounce = 0;
+        float mass = 1;
 
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false),CFlowFieldAgent(),CEnemy(),
-                                         CSprite("Square", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
+                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
+                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+    }
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
+    {
+        Vect2f startPos{0, (float)i};
+        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
+
+
+        float speed = Random::Float(25, 50);
+        float radius = Random::Float(10, 16);
+        float bounce = 0;
+        float mass = 1;
+
+        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
+                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
+                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+    }
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
+    {
+        Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
+        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
+
+        float speed = Random::Float(25, 50);
+        float radius = Random::Float(14, 14);
+        float bounce = 0;
+        float mass = 1;
+
+        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
+                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
+                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
     }
 }

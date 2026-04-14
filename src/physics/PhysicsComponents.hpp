@@ -67,15 +67,17 @@ struct CRigidBody
 {
     static constexpr const char* name = "RigidBody";
 
-    Vect2f velocity = Vect2f(0, 0);
-    Vect2f previousPosition = Vect2f(0, 0);
+    Vect2f velocity = Vect2f{0, 0};
+    Vect2f previousPosition = Vect2f{0, 0};
+    Vect2f acceleration = Vect2f{0, 0};
     float mass = 1.f;
     float inverseMass = 1.f;
     float bounciness = 0.5f;
     bool isStatic = false;
 
     CRigidBody() = default;
-    CRigidBody(const Vect2f& vel, float m, float bounce, bool stat) : velocity(vel), mass(m), bounciness(bounce), isStatic(stat)
+    CRigidBody(const Vect2f& vel, const Vect2f& accel, float m, float bounce, bool stat)
+        : velocity(vel), mass(m), bounciness(bounce), acceleration(accel), isStatic(stat)
     {
         if (isStatic)
         {
@@ -103,7 +105,8 @@ struct Reflect<CRigidBody>
 {
     static constexpr auto fields =
         std::make_tuple(Descriptor{"velocity", &CRigidBody::velocity, true}, Descriptor{"mass", &CRigidBody::mass, true},
-                        Descriptor{"bounciness", &CRigidBody::bounciness, true}, Descriptor{"isStatic", &CRigidBody::isStatic, true});
+                        Descriptor{"bounciness", &CRigidBody::bounciness, true},
+                        Descriptor{"acceleration", &CRigidBody::acceleration, true}, Descriptor{"isStatic", &CRigidBody::isStatic, true});
 };
 
 struct CCollisionEnter

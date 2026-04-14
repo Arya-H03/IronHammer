@@ -59,72 +59,11 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 
     if (ImGui::TreeNode("Cells"))
     {
-        ImGuiListClipper clipper;
-        clipper.Begin((int)broadPhaseCollsionSystem.m_grid.size());
-
-        while (clipper.Step())
-        {
-            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-            {
-                Cell& cell = broadPhaseCollsionSystem.m_grid[i];
-                ImGui::PushID(&cell);
-
-                if (cell.overlapingEntities.size() > 2)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_ImGui);
-                }
-                else if (cell.overlapingEntities.size() == 1)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_ImGui);
-                }
-                else
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gunmetal_ImGui);
-                }
-
-                if (ImGui::TreeNode("", "Cell (%i, %i)", cell.coord.x, cell.coord.y))
-                {
-                    for (size_t j = 0; j < cell.overlapingEntities.size(); ++j)
-                    {
-                        ImGui::Text("Entity %i", cell.overlapingEntities[j].id);
-                    }
-
-                    ImGui::TreePop();
-                }
-                ImGui::PopStyleColor();
-                ImGui::PopID();
-                ImGui::Separator();
-            }
-        }
         ImGui::TreePop();
     }
 
     if (ImGui::TreeNode("Potential Collision Pairs"))
     {
-        ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-        ImGui::Text("Pair Count: %zu", broadPhaseCollsionSystem.m_uniquePotentialPairsVector.size());
-        ImGui::PopStyleColor();
-        ImGui::Separator();
-
-        ImGuiListClipper clipper;
-        clipper.Begin((int)broadPhaseCollsionSystem.m_uniquePotentialPairsVector.size());
-
-        while (clipper.Step())
-        {
-            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-            {
-                const auto& pair = broadPhaseCollsionSystem.m_uniquePotentialPairsVector[i];
-
-                ImGui::Text("Entity %i", pair.e1.id);
-                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-                ImGui::SameLine();
-                ImGui::Text("&");
-                ImGui::PopStyleColor();
-                ImGui::SameLine();
-                ImGui::Text("Entity %i", pair.e2.id);
-                ImGui::Separator();
-            }
-        }
         ImGui::TreePop();
     }
 }

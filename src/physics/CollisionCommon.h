@@ -9,6 +9,17 @@
 #include <cmath>
 #include <cstdint>
 
+struct Cell
+{
+    Vect2<int> coord;
+    Vect2f pos;
+    std::vector<Entity> overlapingEntities;
+
+    Cell() = default;
+    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p)
+    {
+    }
+};
 struct CollisionPairOld
 {
     Entity e1, e2;
@@ -46,6 +57,7 @@ struct BroadPhaseCellData
 {
     size_t cellIndex = SIZE_MAX;
     Entity entity;
+    bool isHome;
 
     CTransform* transformPtr;
     CCollider* colliderPtr;
@@ -65,4 +77,10 @@ struct CollisionCorrectionData
     Entity e1, e2;
     Vect2f normal;
     float penetration;
+
+    CTransform* e1TransformPtr;
+    CRigidBody* e1RigidBodyPtr;
+
+    CTransform* e2TransformPtr;
+    CRigidBody* e2RigidBodyPtr;
 };
