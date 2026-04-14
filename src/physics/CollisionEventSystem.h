@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/memory/InlineEntityList.h"
 #include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/system/ISystem.h"
@@ -11,44 +12,74 @@
 class CollisionEventSystem : ISetupSystem
 {
   private:
-    std::unordered_set<CollisionPairOld, CollisionPairHash> m_previousFramePairs;
-    std::unordered_set<CollisionPairOld, CollisionPairHash> m_currentFramePairs;
+    std::unordered_set<CollisionPair, CollisionPairHash> m_previousFramePairs;
+    std::unordered_set<CollisionPair, CollisionPairHash> m_currentFramePairs;
 
-    Query* m_enterCollisionQuery;
-    Query* m_stayCollisionQuery;
-    Query* m_exitCollisionQuery;
+    Query* m_collisionEventQueryPtr;
 
   public:
     void SetupSystem(World* worldPtr) override
     {
-        m_enterCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
-        m_stayCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionStay>>();
-        m_exitCollisionQuery = worldPtr->Query<RequiredComponents<CCollisionExit>>();
+        m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent>>();
     }
 
-    void CreateCollisionPair(Entity e1, Entity e2) { m_currentFramePairs.emplace(CollisionPairOld(e1, e2)); }
+    void CreateCollisionPair(Entity e1, Entity e2)
+    {
+        m_currentFramePairs.emplace(CollisionPair{e1, e2});
+    }
 
     // Check me later:
     // Call either after ResolutionSystem or maybe after??
     void HandleCollisionEvents(World* worldptr)
     {
-        // // stay and exit events
-        // for (auto& collisionpair : m_previousFramePairs)
-        // {
-        //     if (m_currentFramePairs.contains(collisionpair))
-        //     {
-        //         worldptr->CreateEntityNoReturn(CCollisionStay(collisionpair.e1, collisionpair.e2));
-        //     }
-        //     else
-        //         worldptr->CreateEntityNoReturn(CCollisionExit(collisionpair.e1, collisionpair.e2));
-        // }
-
-        // enter events
-        for (auto& collisionpair : m_currentFramePairs)
+        // stay and exit events
+        for (auto& collisionPair : m_previousFramePairs)
         {
-            if (!m_previousFramePairs.contains(collisionpair))
+            if (m_currentFramePairs.contains(collisionPair))
             {
-                worldptr->CreateEntityNoReturn(CCollisionEnter(collisionpair.e1, collisionpair.e2));
+                CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
+                CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
+
+                if (e1CollisionEventComp)
+                {
+                    e1CollisionEventComp->stayEvents.Push(collisionPair.e2);
+                }
+                if (e2CollisionEventComp)
+                {
+                    e2CollisionEventComp->stayEvents.Push(collisionPair.e1);
+                }
+            }
+            else
+            {
+                CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
+                CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
+
+                if (e1CollisionEventComp)
+                {
+                    e1CollisionEventComp->exitEvents.Push(collisionPair.e2);
+                }
+                if (e2CollisionEventComp)
+                {
+                    e2CollisionEventComp->exitEvents.Push(collisionPair.e1);
+                }
+            }
+        }
+
+        for (auto& collisionPair : m_currentFramePairs)
+        {
+            if (!m_previousFramePairs.contains(collisionPair))
+            {
+                CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
+                CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
+
+                if (e1CollisionEventComp)
+                {
+                    e1CollisionEventComp->enterEvents.Push(collisionPair.e2);
+                }
+                if (e2CollisionEventComp)
+                {
+                    e2CollisionEventComp->enterEvents.Push(collisionPair.e1);
+                }
             }
         }
 
@@ -60,8 +91,12 @@ class CollisionEventSystem : ISetupSystem
     {
         m_currentFramePairs.clear();
 
-        m_enterCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
-        m_exitCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
-        m_stayCollisionQuery->ForEachWithEntity([&](Entity entity) { worldPtr->DestroyEntity(entity); });
+        m_collisionEventQueryPtr->ForEach<CCollisionEvent>(
+            [&](CCollisionEvent& collisionEventComp)
+            {
+                collisionEventComp.enterEvents.clear();
+                collisionEventComp.stayEvents.clear();
+                collisionEventComp.exitEvents.clear();
+            });
     }
 };

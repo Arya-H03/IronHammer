@@ -14,6 +14,7 @@
           "y": 100.0
         }
       },
+      "CollisionEvent": null,
       "FlowFieldTarget": null,
       "Molded": {
         "moldName": "Tower"
@@ -53,8 +54,8 @@
       "Tower": null,
       "Transform": {
         "position": {
-          "x": 489.0,
-          "y": 415.0
+          "x": 464.0,
+          "y": 383.0
         },
         "rotation": 0.0,
         "scale": {

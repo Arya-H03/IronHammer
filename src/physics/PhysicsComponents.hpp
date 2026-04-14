@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/memory/InlineEntityList.h"
 #include "core/reflection/ComponentReflection.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
@@ -107,6 +108,23 @@ struct Reflect<CRigidBody>
         std::make_tuple(Descriptor{"velocity", &CRigidBody::velocity, true}, Descriptor{"mass", &CRigidBody::mass, true},
                         Descriptor{"bounciness", &CRigidBody::bounciness, true},
                         Descriptor{"acceleration", &CRigidBody::acceleration, true}, Descriptor{"isStatic", &CRigidBody::isStatic, true});
+};
+
+struct CCollisionEvent
+{
+    static constexpr const char* name = "CollisionEvent";
+
+    InlineEntityList<1000> enterEvents;
+    InlineEntityList<1000> exitEvents;
+    InlineEntityList<1000> stayEvents;
+
+    CCollisionEvent() = default;
+};
+
+template <>
+struct Reflect<CCollisionEvent>
+{
+    static constexpr auto fields = std::make_tuple();
 };
 
 struct CCollisionEnter

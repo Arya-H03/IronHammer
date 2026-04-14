@@ -100,6 +100,16 @@ struct ComponentInspectorGui<CRigidBody>
     }
 };
 
+//Fix me: might want to diplay all the entities that are in the events
+template <>
+struct ComponentInspectorGui<CCollisionEvent>
+{
+    static void Display(CCollisionEvent& collisionEvent, const std::function<void()>& RemoveComponentCallback, bool* isDirty = nullptr)
+    {
+        ComponentHeader<CCollisionEvent>(CCollisionEvent::name, &collisionEvent, RemoveComponentCallback, [&] { collisionEvent = CCollisionEvent{}; }, isDirty);
+    }
+};
+
 template <>
 struct ComponentInspectorGui<CCollisionEnter>
 {

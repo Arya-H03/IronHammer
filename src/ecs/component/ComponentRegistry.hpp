@@ -247,6 +247,7 @@ class ComponentRegistry
         RegisterComponent<CFlowFieldTarget>();
         RegisterComponent<CFlowFieldAgent>();
         RegisterComponent<CMolded>();
+        RegisterComponent<CCollisionEvent>();
     }
 
     template <typename ComponentType>

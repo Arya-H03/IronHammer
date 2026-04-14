@@ -181,7 +181,7 @@ bool BroadPhaseCollisionSystem::CanCollidersContact(CCollider* collider1, CColli
     }
 }
 
-std::vector<CollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
+std::vector<CollisionPairData>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
 {
     {
         ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");

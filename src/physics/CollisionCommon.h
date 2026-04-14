@@ -35,7 +35,18 @@ struct CollisionPairOld
         return e1 == otherPair.e1 && e2 == otherPair.e2;
     }
 };
+
 struct CollisionPair
+{
+    Entity e1, e2;
+
+    bool operator==(const CollisionPair& otherPair) const
+    {
+        return e1 == otherPair.e1 && e2 == otherPair.e2;
+    }
+};
+
+struct CollisionPairData
 {
     Entity e1, e2;
 
@@ -66,7 +77,7 @@ struct BroadPhaseCellData
 
 struct CollisionPairHash
 {
-    size_t operator()(const CollisionPairOld& pair) const
+    size_t operator()(const CollisionPair& pair) const
     {
         return std::hash<uint32_t>()(pair.e1.id) ^ (std::hash<uint32_t>()(pair.e2.id) << 1);
     }

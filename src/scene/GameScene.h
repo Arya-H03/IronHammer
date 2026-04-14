@@ -16,7 +16,7 @@ class GameScene : public BaseScene
 
     Query* m_towerQuery;
     Query* m_enemyQuery;
-    Query* m_collisionEnterQuery;
+    Query* m_collisionEventQueryPtr;
     void SpawnTestEntities();
 
   public:

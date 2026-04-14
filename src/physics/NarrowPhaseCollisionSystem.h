@@ -17,12 +17,12 @@ class NarrowPhaseCollisionSystem
 
     std::vector<CollisionCorrectionData> m_collisionPenetrationData;
 
-    void AABBCheck(World* worldPtr, const CollisionPair& collisionPairData);
+    void AABBCheck(World* worldPtr, const CollisionPairData& collisionPairData);
 
   public:
     NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem)
     {
     }
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPair>& potentialPairs);
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPairData>& potentialPairs);
 };

@@ -31,7 +31,7 @@ void GameScene::OnStartPlay(World* worldPtr)
 
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
-    m_collisionEnterQuery = worldPtr->Query<RequiredComponents<CCollisionEnter>>();
+    m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent, CTower>>();
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -76,7 +76,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     }
 
 
-    float cd = 1;
+    float cd = 2;
     static float currentTime = 1;
 
     {
@@ -93,19 +93,16 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 
     {
         ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
-        m_collisionEnterQuery->ForEach<CCollisionEnter>(
-            [&](CCollisionEnter& collisionEnter)
+        m_collisionEventQueryPtr->ForEach<CCollisionEvent>(
+            [&](CCollisionEvent& collisionEvent)
             {
-                Entity e1 = collisionEnter.entity1;
-                Entity e2 = collisionEnter.entity2;
-
-                if (worldPtr->HasComponent<CTower>(e1) && worldPtr->HasComponent<CEnemy>(e2))
+                for (size_t i = 0; i < collisionEvent.enterEvents.count; ++i)
                 {
-                    worldPtr->DestroyEntity(e2);
-                }
-                else if (worldPtr->HasComponent<CEnemy>(e1) && worldPtr->HasComponent<CTower>(e2))
-                {
-                    worldPtr->DestroyEntity(e1);
+                    Entity collisionEntity = collisionEvent.enterEvents.list[i];
+                    if (worldPtr->HasComponent<CEnemy>(collisionEntity))
+                    {
+                        worldPtr->DestroyEntity(collisionEntity);
+                    }
                 }
             });
     }

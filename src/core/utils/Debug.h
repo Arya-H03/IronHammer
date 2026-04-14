@@ -216,7 +216,11 @@ class Debug
 
         backward::StackTrace stackTrace;
 
-        if (trackStackTrace)
+        if (!trackStackTrace)
+        {
+            stackTrace.load_here(0);
+        }
+        else
         {
             switch (logType)
             {
@@ -233,11 +237,6 @@ class Debug
                     stackTrace.load_here(0);
                     break;
             }
-        }
-        else
-        {
-
-            stackTrace.load_here(0);
         }
 
         {

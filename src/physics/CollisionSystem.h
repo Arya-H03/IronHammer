@@ -19,6 +19,7 @@
 #include <cstdlib>
 
 // To do:
+//
 //  - Remake the CollisionEventSystem
 //
 //  - Maybe a steering / avoidance on the flowfield
@@ -38,7 +39,7 @@ class CollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const uint8_t SUBSTEP_COUNT = 2;
+    const uint8_t SUBSTEP_COUNT = 1;
 
     Vect2<uint16_t> m_windowSize;
 
@@ -131,10 +132,10 @@ class CollisionSystem : public ISetupSystem
         SavePreviousPositions();
         const float subStepDt = Time::DeltaTime() / SUBSTEP_COUNT;
 
+        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
+
         for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            m_collsionEventSystem.ClearCollisionEvents(worldPtr);
-
             {
                 ZoneScopedN("CollisionSystem/UpdatePosition");
                 UpdatePositions(subStepDt);
