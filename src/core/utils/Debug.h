@@ -123,8 +123,14 @@ class Debug
     }
 
   public:
-    inline static const std::deque<LogMessage>& GetLogMessages() { return m_logMessageQueue; }
-    inline static LogCounts& GetLogCounts() { return m_logCounts; }
+    inline static const std::deque<LogMessage>& GetLogMessages()
+    {
+        return m_logMessageQueue;
+    }
+    inline static LogCounts& GetLogCounts()
+    {
+        return m_logCounts;
+    }
 
     inline static void StartLoggerThread()
     {
@@ -199,7 +205,8 @@ class Debug
         m_logCountsBuffer = {};
     }
 
-    inline static void Log(const std::string& message, ImVec4 color = Colors::ConcreteGrey_ImGui, LogType logType = LogType::Unknown)
+    inline static void Log(const std::string& message, ImVec4 color = Colors::ConcreteGrey_ImGui, LogType logType = LogType::Unknown,
+                           bool trackStackTrace = true)
     {
         if (m_logMessageQueue.size() > m_logLimit)
         {
@@ -209,21 +216,30 @@ class Debug
 
         backward::StackTrace stackTrace;
 
-        switch (logType)
+        if (trackStackTrace)
         {
-            case LogType::Info:
-                stackTrace.load_here(0);
-                break;
-            case LogType::Error:
-                stackTrace.load_here(32);
-                break;
-            case LogType::Warning:
-                stackTrace.load_here(16);
-                break;
-            case LogType::Unknown:
-                stackTrace.load_here(0);
-                break;
+            switch (logType)
+            {
+                case LogType::Info:
+                    stackTrace.load_here(16);
+                    break;
+                case LogType::Error:
+                    stackTrace.load_here(16);
+                    break;
+                case LogType::Warning:
+                    stackTrace.load_here(16);
+                    break;
+                case LogType::Unknown:
+                    stackTrace.load_here(0);
+                    break;
+            }
         }
+        else
+        {
+
+            stackTrace.load_here(0);
+        }
+
         {
             std::lock_guard lock(m_pendingLogsMutex);
             m_pendingLogMesssageQueue.push({message, Time::GetLocalTimeStamp(), color, logType, std::move(stackTrace)});
@@ -232,6 +248,11 @@ class Debug
     }
 };
 
-#define LOG_INFO(msg) Debug::Log(msg, Colors::ConcreteGrey_ImGui, LogType::Info);
-#define LOG_WARNING(msg) Debug::Log(msg, Colors::HazardYellow_ImGui, LogType::Warning);
-#define LOG_ERROR(msg) Debug::Log(msg, Colors::RustRed_ImGui, LogType::Error);
+#define LOG_INFO(msg) Debug::Log(msg, Colors::ConcreteGrey_ImGui, LogType::Info, false);
+#define LOG_INFO_TRACE(msg, showStackTrace) Debug::Log(msg, Colors::ConcreteGrey_ImGui, LogType::Info, showStackTrace);
+
+#define LOG_WARNING(msg) Debug::Log(msg, Colors::HazardYellow_ImGui, LogType::Warning, false);
+#define LOG_WARNING_TRACE(msg, showStackTrace) Debug::Log(msg, Colors::HazardYellow_ImGui, LogType::Warning, showStackTrace);
+
+#define LOG_ERROR(msg) Debug::Log(msg, Colors::RustRed_ImGui, LogType::Error, false);
+#define LOG_ERROR_TRACE(msg, showStackTrace) Debug::Log(msg, Colors::RustRed_ImGui, LogType::Error, showStackTrace);
