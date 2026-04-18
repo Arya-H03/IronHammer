@@ -8,10 +8,12 @@
 #include "ecs/common/ECSCommon.h"
 #include "editor/Viewport.h"
 #include "game/GameComponents.hpp"
+#include "input/InputManager.h"
 #include "input/InputSystem.h"
 #include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Window/Joystick.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <cstdint>
 #include <string>
 
@@ -26,12 +28,14 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_worldPtr = worldPtr;
 
     m_movementSystem.SetupSystem(worldPtr);
-    m_collisionSystem.SetupSystem(worldPtr);
     m_flowFieldSystem.SetupSystem(worldPtr);
+    m_collisionSystem.SetupSystem(worldPtr);
 
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent, CTower>>();
+
+    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { SpawnTestEntities(); });
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -76,14 +80,13 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     }
 
 
-    float cd = 2;
+    float cd = 1;
     static float currentTime = 1;
 
     {
         ZoneScopedN("GameScene/SpawnTestEntities");
         if (currentTime >= cd)
         {
-            SpawnTestEntities();
             currentTime = 0;
         }
     }
@@ -107,63 +110,40 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
             });
     }
 }
+
+void GameScene::SpawnEnemy(const Vect2f& spawnPos)
+{
+    Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
+    float speed = Random::Float(25, 50);
+    float radius = Random::Float(4, 16);
+    float bounce = 1;
+    float mass = 1;
+
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, {0, 0}, mass, bounce, false),
+                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(),
+                                     CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+}
+
 void GameScene::SpawnTestEntities()
 {
     for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
     {
         Vect2f startPos{(float)i, 10};
-        Vect2f velocity = Random::Vect2f({-1, 1}, {0, 100});
-
-        float speed = Random::Float(25, 50);
-        float radius = Random::Float(10, 16);
-        float bounce = 0;
-        float mass = 1;
-
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
-                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+        SpawnEnemy(startPos);
     }
     for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
     {
         Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
-        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
-
-        float speed = Random::Float(25, 50);
-        float radius = Random::Float(10, 16);
-        float bounce = 0;
-        float mass = 1;
-
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
-                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+        SpawnEnemy(startPos);
     }
     for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
     {
         Vect2f startPos{0, (float)i};
-        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
-
-
-        float speed = Random::Float(25, 50);
-        float radius = Random::Float(10, 16);
-        float bounce = 0;
-        float mass = 1;
-
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CFlowFieldAgent(), CEnemy(),
-                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+        SpawnEnemy(startPos);
     }
     for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
     {
         Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
-        Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
-
-        float speed = Random::Float(25, 50);
-        float radius = Random::Float(14, 14);
-        float bounce = 0;
-        float mass = 1;
-
-        m_worldPtr->CreateEntityNoReturn(CTransform(startPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0, 0}, mass, bounce, false),
-                                         CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
-                                         CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
+        SpawnEnemy(startPos);
     }
 }

@@ -18,6 +18,7 @@ class GameScene : public BaseScene
     Query* m_enemyQuery;
     Query* m_collisionEventQueryPtr;
     void SpawnTestEntities();
+    void SpawnEnemy(const Vect2f& spawnPos);
 
   public:
     GameScene(Vect2<uint16_t> windowSize);

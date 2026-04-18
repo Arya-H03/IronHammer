@@ -67,7 +67,7 @@ class CollisionSystem : public ISetupSystem
             {
                 if (rb.isStatic) return;
                 rb.previousPosition = t.position;
-                t.position += rb.velocity * dt * mv.speed;
+                t.position += rb.velocity.Normalize() * dt * mv.speed;
             });
     }
 
@@ -129,13 +129,13 @@ class CollisionSystem : public ISetupSystem
         ZoneScoped;
 
 
-        SavePreviousPositions();
         const float subStepDt = Time::DeltaTime() / SUBSTEP_COUNT;
 
-        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
+            SavePreviousPositions();
+            m_collsionEventSystem.ClearCollisionEvents(worldPtr);
             {
                 ZoneScopedN("CollisionSystem/UpdatePosition");
                 UpdatePositions(subStepDt);

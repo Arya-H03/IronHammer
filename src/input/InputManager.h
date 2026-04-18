@@ -70,7 +70,6 @@ class InputManager
         }
     }
 
-  public:
     void BindToMouseInputAction(const std::string& actionName, InputTrigger inputTrigger, InputActionCallBack callBack)
     {
         auto it = m_mouseInputActionMap.find(actionName);
@@ -85,6 +84,7 @@ class InputManager
         it->second.callbacks[inputTrigger].push_back(callBack);
     }
 
+  public:
     void CreateInputAction(const std::string& name, sf::Mouse::Button button, InputTrigger inputTrigger, InputActionCallBack callback)
     {
         RegisterAction(name, button);
