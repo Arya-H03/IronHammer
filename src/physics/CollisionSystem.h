@@ -1,6 +1,7 @@
 #pragma once
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
+#include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
@@ -8,6 +9,7 @@
 #include "ecs/system/ISystem.h"
 #include "editor/Viewport.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
+#include "game/GameComponents.hpp"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionEventSystem.h"
 #include "physics/CollisionResolutionSystem.h"
@@ -15,6 +17,7 @@
 #include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Time.hpp>
 #include <cstdint>
 #include <cstdlib>
 
@@ -39,7 +42,7 @@ class CollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const uint8_t SUBSTEP_COUNT = 1;
+    const uint8_t SUBSTEP_COUNT = 16;
 
     Vect2<uint16_t> m_windowSize;
 
@@ -62,12 +65,12 @@ class CollisionSystem : public ISetupSystem
 
     void UpdatePositions(float dt)
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement>(
-            [&](CTransform& t, CRigidBody& rb, CMovement& mv)
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
+            [&](CTransform& t, CRigidBody& rb, CMovement& mv, CFlowFieldAgent& flowFieldAgent)
             {
                 if (rb.isStatic) return;
-                rb.previousPosition = t.position;
-                t.position += rb.velocity.Normalize() * dt * mv.speed;
+                Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
+                t.position += (rb.velocity + dir) * dt;
             });
     }
 
@@ -107,7 +110,7 @@ class CollisionSystem : public ISetupSystem
   public:
     void SetupSystem(World* worldPtr) override
     {
-        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody, CMovement>>();
+        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody, CMovement, CFlowFieldAgent>>();
         m_updateCollisionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
@@ -128,13 +131,10 @@ class CollisionSystem : public ISetupSystem
     {
         ZoneScoped;
 
-
+        SavePreviousPositions();
         const float subStepDt = Time::DeltaTime() / SUBSTEP_COUNT;
-
-
         for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            SavePreviousPositions();
             m_collsionEventSystem.ClearCollisionEvents(worldPtr);
             {
                 ZoneScopedN("CollisionSystem/UpdatePosition");
@@ -160,11 +160,11 @@ class CollisionSystem : public ISetupSystem
                     }
                 }
             }
+        }
 
-            {
-                ZoneScopedN("CollisionSystem/HandleCollisionEvents");
-                m_collsionEventSystem.HandleCollisionEvents(worldPtr);
-            }
+        {
+            ZoneScopedN("CollisionSystem/HandleCollisionEvents");
+            m_collsionEventSystem.HandleCollisionEvents(worldPtr);
         }
     }
 };

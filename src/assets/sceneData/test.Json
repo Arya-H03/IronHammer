@@ -1,1 +1,68 @@
-null
+{
+  "entities": [
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 2,
+        "mask": 4294967287,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "CollisionEvent": null,
+      "FlowFieldTarget": null,
+      "Molded": {
+        "moldName": "Tower"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 0.0,
+          "y": 0.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          0,
+          145,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Tower": null,
+      "Transform": {
+        "position": {
+          "x": 451.0,
+          "y": 451.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    }
+  ]
+}

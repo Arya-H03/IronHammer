@@ -56,12 +56,12 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
             Vect2<int> bottomRightCoord = ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Floor();
             Vect2<int> homeCoord = ((transformComp.position + colliderComp.offset) / m_cellSize).Floor();
 
-            for (size_t j = topLeftCoord.y; j <= bottomRightCoord.y; ++j)
+            for (int j = topLeftCoord.y; j <= bottomRightCoord.y; ++j)
             {
-                for (size_t i = topLeftCoord.x; i <= bottomRightCoord.x; ++i)
+                for (int i = topLeftCoord.x; i <= bottomRightCoord.x; ++i)
                 {
-                    if (j < 0 || j >= m_gridRows || i < 0 || i >= m_gridCols) continue;
-                    size_t index = j * m_gridCols + i;
+                    if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
+                    size_t index = (size_t)j * m_gridCols + (size_t)i;
                     bool isHome = (homeCoord.x == i && homeCoord.y == j);
                     m_flatGridData.push_back({index, entity, isHome, &transformComp, &colliderComp, &rigidBodyComp});
                 }
@@ -139,11 +139,11 @@ void BroadPhaseCollisionSystem::FindCollisionPairs()
                         BroadPhaseCellData& cellA = m_flatGridData[a];
                         BroadPhaseCellData& cellB = m_flatGridData[b];
 
-                        if (!CanCollidersContact(cellA.colliderPtr, cellB.colliderPtr)) return;
+                        if (!CanCollidersContact(cellA.colliderPtr, cellB.colliderPtr)) continue;
 
                         bool aIsHigher = cellA.entity.id > cellB.entity.id;
                         bool highrIsHome = aIsHigher ? cellA.isHome : cellB.isHome;
-                        if (!highrIsHome) continue;
+                         // if (!cellA.isHome && !cellB.isHome) continue;
 
                         if (aIsHigher)
                         {

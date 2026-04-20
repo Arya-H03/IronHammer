@@ -156,16 +156,21 @@ class FlowFieldSystem : ISetupSystem
 
     void UpdateFlowAgents()
     {
-        m_flowFieldAgentQuery->ForEach<CTransform, CRigidBody>(
-            [&](CTransform& transform, CRigidBody& rigidBody)
+        m_flowFieldAgentQuery->ForEach<CTransform, CRigidBody, CFlowFieldAgent>(
+            [&](CTransform& transform, CRigidBody& rigidBody, CFlowFieldAgent& flowFieldAgent)
             {
                 Vect2f agentPos = transform.position;
                 FlowCell* currentFlowCell = m_flowField.TryGetFlowCellByWorldPos(agentPos);
 
                 if (currentFlowCell)
                 {
-                    rigidBody.velocity.x = currentFlowCell->flowDir.x;
-                    rigidBody.velocity.y = currentFlowCell->flowDir.y;
+                    Vect2f flowDir = static_cast<Vect2f>(currentFlowCell->flowDir);
+                    if (flowDir != flowFieldAgent.flowDir)
+                    {
+                        flowFieldAgent.flowDir = flowDir;
+                    }
+                    // rigidBody.velocity.x = currentFlowCell->flowDir.x;
+                    // rigidBody.velocity.y = currentFlowCell->flowDir.y;
                 }
             });
     }

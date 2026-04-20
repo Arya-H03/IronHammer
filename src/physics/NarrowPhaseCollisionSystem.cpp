@@ -21,7 +21,6 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const CollisionPairD
     CTransform* e1Transform;
     CTransform* e2Transform;
 
-    // Zone ends when this block closes
     {
         ZoneScopedN("NarrowPhaseSystem/AABB_Checks/ComponentFetching");
         e1Collider = collisionPairData.e1ColliderPtr;
@@ -30,7 +29,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const CollisionPairD
         e2Rb = collisionPairData.e2RigidBodyPtr;
         e1Transform = collisionPairData.e1TransformPtr;
         e2Transform = collisionPairData.e2TransformPtr;
-    } // ComponentFetching zone ends here
+    }
 
     {
         ZoneScopedN("NarrowPhaseSystem/AABB_Checks/Calculation");

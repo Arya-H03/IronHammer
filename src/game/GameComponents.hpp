@@ -1,5 +1,6 @@
 #pragma once
 #include "core/reflection/ComponentReflection.h"
+#include "core/utils/Vect2.hpp"
 
 #include <utility>
 
@@ -59,6 +60,7 @@ struct CFlowFieldAgent
 {
     static constexpr const char* name = "FlowFieldAgent";
 
+    Vect2f flowDir = {0, 0};
     float speed = 0.f;
 
     CFlowFieldAgent() = default;
