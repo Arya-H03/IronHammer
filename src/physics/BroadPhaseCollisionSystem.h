@@ -15,7 +15,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const float m_cellSize = 16;
+    const float m_cellSize = 24;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
 
     uint16_t m_gridCols, m_gridRows;

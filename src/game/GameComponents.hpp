@@ -2,7 +2,6 @@
 #include "core/reflection/ComponentReflection.h"
 #include "core/utils/Vect2.hpp"
 
-#include <utility>
 
 struct CTower
 {

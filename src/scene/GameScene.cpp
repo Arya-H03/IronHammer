@@ -112,8 +112,8 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 void GameScene::SpawnEnemy(const Vect2f& spawnPos)
 {
     Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
-    float speed = Random::Float(40, 50);
-    float radius = Random::Float(10, 16);
+    float speed = Random::Float(50, 75);
+    float radius = Random::Float(10, 22);
     float bounce = 1.f;
     float mass = 1;
 
@@ -129,22 +129,22 @@ void GameScene::SpawnTestEntities()
     //     Vect2f startPos{(float)i, 10};
     //     SpawnEnemy(startPos);
     // }
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
     {
         Vect2f startPos{(float)i, 10};
         SpawnEnemy(startPos);
     }
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 16)
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
     {
         Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
         SpawnEnemy(startPos);
     }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
     {
         Vect2f startPos{0, (float)i};
         SpawnEnemy(startPos);
     }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 16)
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
     {
         Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
         SpawnEnemy(startPos);

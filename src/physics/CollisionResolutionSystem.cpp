@@ -62,5 +62,5 @@ void CollisionResolutionSystem::ResolveCollisionImpulse(World* worldPtr, std::ve
 void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     ResolveCollisionOverlaps(worldPtr, collisionDataVector);
-    ResolveCollisionImpulse(worldPtr, collisionDataVector);
+    // ResolveCollisionImpulse(worldPtr, collisionDataVector);
 }

@@ -132,7 +132,7 @@ class FlowFieldSystem : ISetupSystem
 
     void CreateNewFlowField()
     {
-        m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 50};
+        m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 24};
     }
 
   public:

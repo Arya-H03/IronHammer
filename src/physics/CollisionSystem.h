@@ -25,6 +25,8 @@
 //
 //  - Remake the CollisionEventSystem
 //
+//  - Explore resting contact
+//
 //  - Maybe a steering / avoidance on the flowfield
 //    can help tp reduce density.
 //
@@ -42,7 +44,7 @@ class CollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const uint8_t SUBSTEP_COUNT = 16;
+    const uint8_t SUBSTEP_COUNT = 8;
 
     Vect2<uint16_t> m_windowSize;
 
@@ -65,12 +67,13 @@ class CollisionSystem : public ISetupSystem
 
     void UpdatePositions(float dt)
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
-            [&](CTransform& t, CRigidBody& rb, CMovement& mv, CFlowFieldAgent& flowFieldAgent)
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement,CFlowFieldAgent>(
+            [&](CTransform& t, CRigidBody& rb, CMovement& mv,CFlowFieldAgent& flowFieldAgent)
             {
                 if (rb.isStatic) return;
                 Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
                 t.position += (rb.velocity + dir) * dt;
+                // t.position += rb.velocity * mv.speed * dt;
             });
     }
 
@@ -131,7 +134,7 @@ class CollisionSystem : public ISetupSystem
     {
         ZoneScoped;
 
-        SavePreviousPositions();
+        // SavePreviousPositions();
         const float subStepDt = Time::DeltaTime() / SUBSTEP_COUNT;
         for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
         {

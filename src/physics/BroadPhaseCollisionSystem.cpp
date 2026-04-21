@@ -143,7 +143,7 @@ void BroadPhaseCollisionSystem::FindCollisionPairs()
 
                         bool aIsHigher = cellA.entity.id > cellB.entity.id;
                         bool highrIsHome = aIsHigher ? cellA.isHome : cellB.isHome;
-                         // if (!cellA.isHome && !cellB.isHome) continue;
+                         if (!cellA.isHome && !cellB.isHome) continue;
 
                         if (aIsHigher)
                         {
