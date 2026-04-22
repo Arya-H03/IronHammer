@@ -9,9 +9,18 @@ class Time
 
   private:
     inline static float m_deltaTime = 0;
+    inline static float m_fixedDeltaTime = 0;
 
   public:
-    static inline float DeltaTime() { return m_deltaTime; }
+    static inline float DeltaTime()
+    {
+        return m_deltaTime;
+    }
+
+    static inline float FixedDeltaTime()
+    {
+        return m_fixedDeltaTime;
+    }
 
     inline static std::string GetLocalTimeStamp()
     {

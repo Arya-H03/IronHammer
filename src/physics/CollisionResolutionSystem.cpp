@@ -22,6 +22,9 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
             float invMassSum = invMass1 + invMass2;
             if (invMassSum == 0.0f) continue;
 
+            rb1->previousPosition = transform1->position;
+            rb2->previousPosition = transform2->position;
+
             transform1->position -= collisionData.normal * collisionData.penetration * (invMass1 / invMassSum);
             transform2->position += collisionData.normal * collisionData.penetration * (invMass2 / invMassSum);
         }

@@ -58,10 +58,10 @@ class CollisionSystem : public ISetupSystem
 
     void SavePreviousPositions()
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody>(
+        m_updateCollisionQueryPtr->ForEach<CTransform, CRigidBody>(
             [](CTransform& t, CRigidBody& rb)
             {
-                if (!rb.isStatic) rb.previousPosition = t.position;
+                 rb.previousPosition = t.position;
             });
     }
 
@@ -72,7 +72,7 @@ class CollisionSystem : public ISetupSystem
             {
                 if (rb.isStatic) return;
                 Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
-                t.position += (rb.velocity + dir) * dt;
+                t.position += (rb.velocity + dir) * dt ;
                 // t.position += rb.velocity * mv.speed * dt;
             });
     }
@@ -117,6 +117,7 @@ class CollisionSystem : public ISetupSystem
         m_updateCollisionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
+
     }
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
@@ -135,10 +136,10 @@ class CollisionSystem : public ISetupSystem
     {
         ZoneScoped;
 
-        // SavePreviousPositions();
-        const float subStepDt = Time::DeltaTime() / SUBSTEP_COUNT;
+        const float subStepDt = dt / SUBSTEP_COUNT;
         for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
+            SavePreviousPositions();
             m_collsionEventSystem.ClearCollisionEvents(worldPtr);
             {
                 ZoneScopedN("CollisionSystem/UpdatePosition");

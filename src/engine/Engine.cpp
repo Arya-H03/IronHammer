@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+#include "core/FrameRateHandler.h"
 #include "core/utils/Debug.h"
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
@@ -192,7 +193,11 @@ void Engine::UpdateRuntime()
 void Engine::UpdatePhysics()
 {
     ZoneScopedN("CollisionSystem");
-    m_collisionSystem.HandleCollisionSystem(m_currentWorld, Time::DeltaTime());
+    while (m_frameRateHandler.CanUpdatePhysics())
+    {
+        m_collisionSystem.HandleCollisionSystem(m_currentWorld, Time::FixedDeltaTime());
+        m_frameRateHandler.OnAfterPhysicsUpdate();
+    }
 }
 
 void Engine::RenderFrame()

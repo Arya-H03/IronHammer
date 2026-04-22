@@ -2,10 +2,12 @@
 
 #include "Tracy.hpp"
 #include "assets/AssetManager.h"
+#include "core/FrameRateHandler.h"
 #include "core/utils/Colors.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "editor/debuggers/SystemDebuggerHub.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -35,7 +37,7 @@ void RenderingSystem::SetupSystem(World* newWorldPtr)
     shapeQuery = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
     textQuery = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
     colliderQuery = newWorldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
-    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
+    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform, CRigidBody>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderingSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
@@ -107,18 +109,19 @@ size_t RenderingSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctr
     return 8;
 }
 
-void RenderingSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch)
+void RenderingSystem::AddSpriteToBatch(const CSprite& sprite, const CTransform& transform, const CRigidBody& rigidBody,
+                                       sf::VertexArray& batch)
 {
     ZoneScopedN("Add Sprite to Batch");
 
-    float width = csprite.size.x * ctransform.scale.x;
-    float height = csprite.size.y * ctransform.scale.y;
+    float width = sprite.size.x * transform.scale.x;
+    float height = sprite.size.y * transform.scale.y;
     float halfWidth = width / 2.0f;
     float halfHeight = height / 2.0f;
 
-    Vect2f center = ctransform.position;
+    Vect2f center = rigidBody.previousPosition + ((transform.position - rigidBody.previousPosition) * FrameRateHandler::GetRenderAlpha());
 
-    float rad = ctransform.rotation * (float)M_PI / 180.0f;
+    float rad = transform.rotation * (float)M_PI / 180.0f;
     float cosRad = std::cos(rad);
     float sinRad = std::sin(rad);
 
@@ -129,23 +132,23 @@ void RenderingSystem::AddSpriteToBatch(const CSprite& csprite, const CTransform&
     sf::Vector2 bottomRight = Rotate(halfWidth, halfHeight);
     sf::Vector2 bottomLeft = Rotate(-halfWidth, halfHeight);
 
-    float u1 = csprite.textureRect.position.x;
-    float v1 = csprite.textureRect.position.y;
-    float u2 = csprite.textureRect.position.x + csprite.textureRect.size.x;
-    float v2 = csprite.textureRect.position.y + csprite.textureRect.size.y;
+    float u1 = sprite.textureRect.position.x;
+    float v1 = sprite.textureRect.position.y;
+    float u2 = sprite.textureRect.position.x + sprite.textureRect.size.x;
+    float v2 = sprite.textureRect.position.y + sprite.textureRect.size.y;
 
     sf::Vector2f uvTopLeft(u1, v1);
     sf::Vector2f uvTopRight(u2, v1);
     sf::Vector2f uvBottomRight(u2, v2);
     sf::Vector2f uvBottomLeft(u1, v2);
 
-    batch.append(sf::Vertex(topLeft, csprite.color, uvTopLeft));
-    batch.append(sf::Vertex(topRight, csprite.color, uvTopRight));
-    batch.append(sf::Vertex(bottomRight, csprite.color, uvBottomRight));
+    batch.append(sf::Vertex(topLeft, sprite.color, uvTopLeft));
+    batch.append(sf::Vertex(topRight, sprite.color, uvTopRight));
+    batch.append(sf::Vertex(bottomRight, sprite.color, uvBottomRight));
 
-    batch.append(sf::Vertex(topLeft, csprite.color, uvTopLeft));
-    batch.append(sf::Vertex(bottomRight, csprite.color, uvBottomRight));
-    batch.append(sf::Vertex(bottomLeft, csprite.color, uvBottomLeft));
+    batch.append(sf::Vertex(topLeft, sprite.color, uvTopLeft));
+    batch.append(sf::Vertex(bottomRight, sprite.color, uvBottomRight));
+    batch.append(sf::Vertex(bottomLeft, sprite.color, uvBottomLeft));
 }
 
 void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
@@ -155,8 +158,8 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
 
     const sf::Texture* currentTexture = nullptr;
 
-    spriteQuery->ForEach<CSprite, CTransform>(
-        [&](CSprite& csprite, CTransform& ctransform)
+    spriteQuery->ForEach<CSprite, CTransform, CRigidBody>(
+        [&](CSprite& csprite, CTransform& ctransform, CRigidBody& rigidBody)
         {
             // Batch
             if (currentTexture != csprite.texturePtr)
@@ -166,7 +169,7 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
                 currentTexture = csprite.texturePtr;
             }
 
-            AddSpriteToBatch(csprite, ctransform, batch);
+            AddSpriteToBatch(csprite, ctransform, rigidBody, batch);
             // Individual
             //  sf::Sprite spriteToDraw(*csprite.texture);
             //  spriteToDraw.setTextureRect(csprite.textureRect);

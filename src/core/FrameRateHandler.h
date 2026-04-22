@@ -14,6 +14,9 @@ class FrameRateHandler
     static inline size_t m_targetFrameRate = 0; // 0 for unlimited
     static inline size_t m_currentFrameRate = 0;
     static inline size_t m_currentFrame = 0;
+    static inline float m_accumulator = 0;
+
+    static inline size_t m_fixedFrameRate = 50;
 
     long long m_currentFrameStartTime = 0; // in microsecond
 
@@ -41,12 +44,33 @@ class FrameRateHandler
     }
 
   public:
-    static size_t GetTargetFrameRate() { return m_targetFrameRate; }
-    static void SetTargetFrameRate(size_t targetFrameRate) { m_targetFrameRate = targetFrameRate; }
-    static size_t GetCurrentFrameRate() { return m_currentFrameRate; }
-    static size_t GetCurrentFrame() { return m_currentFrame; }
+    static size_t GetTargetFrameRate()
+    {
+        return m_targetFrameRate;
+    }
+    static void SetTargetFrameRate(size_t targetFrameRate)
+    {
+        m_targetFrameRate = targetFrameRate;
+    }
+    static size_t GetCurrentFrameRate()
+    {
+        return m_currentFrameRate;
+    }
+    static size_t GetCurrentFrame()
+    {
+        return m_currentFrame;
+    }
+    static float GetRenderAlpha()
+    {
+        return m_accumulator / Time::m_fixedDeltaTime;
+    }
 
-    void OnFrameBegin() { m_currentFrameStartTime = Time::GetCurrentTimeInMicrosecond(); }
+    void OnFrameBegin()
+    {
+        m_currentFrameStartTime = Time::GetCurrentTimeInMicrosecond();
+        Time::m_fixedDeltaTime = 1.f / m_fixedFrameRate;
+        m_accumulator += Time::DeltaTime();
+    }
 
     void OnFrameEnd()
     {
@@ -65,5 +89,15 @@ class FrameRateHandler
         Time::m_deltaTime = Time::DeltaTime() * 0.1f + sec * 0.9f;
 
         ++m_currentFrame;
+    }
+
+    bool CanUpdatePhysics()
+    {
+        return m_accumulator >= Time::FixedDeltaTime();
+    }
+
+    void OnAfterPhysicsUpdate()
+    {
+        m_accumulator -= Time::FixedDeltaTime();
     }
 };

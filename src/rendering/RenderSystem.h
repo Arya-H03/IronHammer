@@ -30,7 +30,7 @@ class RenderingSystem : ISetupSystem
   private:
     size_t AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch);
     size_t AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch);
-    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch);
+    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, const CRigidBody& rigidBody, sf::VertexArray& batch);
 
     void RenderShapes(sf::RenderTarget& renderTarget);
     void RenderColliders(sf::RenderTarget& renderTarget);
@@ -40,15 +40,39 @@ class RenderingSystem : ISetupSystem
   public:
     RenderingSystem(World* m_world);
     ~RenderingSystem();
-    bool GetCanDrawText() const { return m_canDrawText; }
-    bool GetCanDrawShapes() const { return m_canDrawShapes; }
-    bool GetCanDrawColliders() const { return m_canDrawColliders; }
-    bool GetCanDrawSprites() const { return m_canDrawSprites; }
+    bool GetCanDrawText() const
+    {
+        return m_canDrawText;
+    }
+    bool GetCanDrawShapes() const
+    {
+        return m_canDrawShapes;
+    }
+    bool GetCanDrawColliders() const
+    {
+        return m_canDrawColliders;
+    }
+    bool GetCanDrawSprites() const
+    {
+        return m_canDrawSprites;
+    }
 
-    void SetCanDrawTest(bool val) { m_canDrawText = val; }
-    void SetCanDrawShapes(bool val) { m_canDrawShapes = val; }
-    void SetCanDrawColliders(bool val) { m_canDrawColliders = val; }
-    void SetCanDrawSprites(bool val) { m_canDrawSprites = val; }
+    void SetCanDrawTest(bool val)
+    {
+        m_canDrawText = val;
+    }
+    void SetCanDrawShapes(bool val)
+    {
+        m_canDrawShapes = val;
+    }
+    void SetCanDrawColliders(bool val)
+    {
+        m_canDrawColliders = val;
+    }
+    void SetCanDrawSprites(bool val)
+    {
+        m_canDrawSprites = val;
+    }
 
     void SetupSystem(World* newWorldPtr) override;
 
