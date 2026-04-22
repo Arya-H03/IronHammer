@@ -10,7 +10,7 @@
 #include <cstdlib>
 
 
-void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const CollisionPairData& collisionPairData)
+void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const PotentialCollisionPair& collisionPairData)
 {
     Entity e1 = collisionPairData.e1;
     Entity e2 = collisionPairData.e2;
@@ -91,7 +91,7 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const CollisionPairD
 }
 
 std::vector<CollisionCorrectionData>&
-NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<CollisionPairData>& potentialPairs)
+NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<PotentialCollisionPair>& potentialPairs)
 {
     m_collisionPenetrationData.clear();
     for (auto& potentialPair : potentialPairs)

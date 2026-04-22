@@ -1,6 +1,9 @@
 #include "editor/debuggers/CollisionDebugger.h"
 
+#include "core/utils/Colors.h"
+#include "imgui.h"
 #include "physics/BroadPhaseCollisionSystem.h"
+#include "physics/CollisionCommon.h"
 #include "physics/CollisionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
 
@@ -22,11 +25,11 @@ void CollisionDebugger::DrawTab(DebugTabContext& context)
 {
     if (ImGui::BeginTabItem("Physics"))
     {
-        if (ImGui::CollapsingHeader("Broad Phase Collison", ImGuiTreeNodeFlags_None))
+        if (ImGui::CollapsingHeader("Broad Phase", ImGuiTreeNodeFlags_None))
         {
             BroadPhaseGui(context.worldPtr);
         }
-        if (ImGui::CollapsingHeader("Narrow Phase Collison", ImGuiTreeNodeFlags_None))
+        if (ImGui::CollapsingHeader("Narrow Phase", ImGuiTreeNodeFlags_None))
         {
             NarrowPhaseGui();
         }
@@ -43,29 +46,57 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 
     BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
 
-    bool canDisplayGrid = broadPhaseCollsionSystem.GetCanDisplayGrid();
-    if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
-    {
-        broadPhaseCollsionSystem.SetCanDisplayGrid(worldPtr, canDisplayGrid);
-    }
-    ImGui::SameLine(0, 50);
+    // bool canDisplayGrid = broadPhaseCollsionSystem.GetCanDisplayGrid();
+    // if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
+    // {
+    //     broadPhaseCollsionSystem.SetCanDisplayGrid(worldPtr, canDisplayGrid);
+    // }
+    // ImGui::SameLine(0, 50);
 
-    bool canHighlightgrid = broadPhaseCollsionSystem.GetCanHighlightGrid();
-    if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid))
-    {
-        broadPhaseCollsionSystem.SetCanHighlightGrid(worldPtr, canHighlightgrid);
-    }
+    // bool canHighlightgrid = broadPhaseCollsionSystem.GetCanHighlightGrid();
+    // if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid))
+    // {
+    //     broadPhaseCollsionSystem.SetCanHighlightGrid(worldPtr, canHighlightgrid);
+    // }
+    // ImGui::Separator();
+
+    // if (ImGui::TreeNode("Cells"))
+    // {
+    //     ImGui::TreePop();
+    // }
+    //
+
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
+    ImGui::Text("Potentail Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs.size());
+    ImGui::PopStyleColor();
     ImGui::Separator();
 
-    if (ImGui::TreeNode("Cells"))
-    {
-        ImGui::TreePop();
-    }
+    ImGuiListClipper clipper;
+    clipper.Begin((int)broadPhaseCollsionSystem.m_potentialCollisionPairs.size());
 
-    if (ImGui::TreeNode("Potential Collision Pairs"))
+    while (clipper.Step())
     {
-        ImGui::TreePop();
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+        {
+            PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
+            ImGui::Text("Entity %i", pair.e1.id);
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", pair.e2.id);
+            ImGui::Separator();
+        }
     }
+    for (const auto& pair : m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs)
+    {
+    }
+    // if (ImGui::TreeNode("Potential Collision Pairs"))
+    // {
+
+    //     ImGui::TreePop();
+    // }
 }
 
 void CollisionDebugger::NarrowPhaseGui() const
@@ -77,7 +108,7 @@ void CollisionDebugger::NarrowPhaseGui() const
     NarrowPhaseCollisionSystem& narrowPhaseCollisionSystem = m_collisionSystemPtr->m_narrowPhaseCollisionSystem;
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-    ImGui::Text("Total Collison Count: %zu", narrowPhaseCollisionSystem.m_collisionPenetrationData.size());
+    ImGui::Text("Confirmed Collison Pairs: %zu", narrowPhaseCollisionSystem.m_collisionPenetrationData.size());
     ImGui::PopStyleColor();
     ImGui::Separator();
 

@@ -46,7 +46,7 @@ struct CollisionPair
     }
 };
 
-struct CollisionPairData
+struct PotentialCollisionPair
 {
     Entity e1, e2;
 

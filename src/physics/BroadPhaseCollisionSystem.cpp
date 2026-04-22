@@ -123,7 +123,7 @@ void BroadPhaseCollisionSystem::FindCollisionPairs()
     }
     {
         ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/FilterOutCollisionPairs");
-        m_collisionPairs.clear();
+        m_potentialCollisionPairs.clear();
         size_t left = 0;
         for (size_t right = 0; right <= m_flatGridData.size(); ++right)
         {
@@ -147,12 +147,12 @@ void BroadPhaseCollisionSystem::FindCollisionPairs()
 
                         if (aIsHigher)
                         {
-                            m_collisionPairs.push_back({cellB.entity, cellA.entity, cellB.transformPtr, cellB.colliderPtr,
+                            m_potentialCollisionPairs.push_back({cellB.entity, cellA.entity, cellB.transformPtr, cellB.colliderPtr,
                                                         cellB.rigidBodyPtr, cellA.transformPtr, cellA.colliderPtr, cellA.rigidBodyPtr});
                         }
                         else
                         {
-                            m_collisionPairs.push_back({cellA.entity, cellB.entity, cellA.transformPtr, cellA.colliderPtr,
+                            m_potentialCollisionPairs.push_back({cellA.entity, cellB.entity, cellA.transformPtr, cellA.colliderPtr,
                                                         cellA.rigidBodyPtr, cellB.transformPtr, cellB.colliderPtr, cellB.rigidBodyPtr});
                         }
                     }
@@ -181,7 +181,7 @@ bool BroadPhaseCollisionSystem::CanCollidersContact(CCollider* collider1, CColli
     }
 }
 
-std::vector<CollisionPairData>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
+std::vector<PotentialCollisionPair>& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr)
 {
     {
         ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
@@ -192,5 +192,5 @@ std::vector<CollisionPairData>& BroadPhaseCollisionSystem::HandleBroadPhaseColli
         FindCollisionPairs();
     }
 
-    return m_collisionPairs;
+    return m_potentialCollisionPairs;
 }

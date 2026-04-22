@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/query/Query.hpp"
 #include "pathfinding/FlowFieldSystem.h"
@@ -16,7 +17,7 @@ class GameScene : public BaseScene
     Query* m_enemyQuery;
     Query* m_collisionEventQueryPtr;
     void SpawnTestEntities();
-    void SpawnEnemy(const Vect2f& spawnPos);
+    void SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity);
 
   public:
     GameScene(Vect2<uint16_t> windowSize);

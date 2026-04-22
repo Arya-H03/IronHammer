@@ -5,11 +5,11 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
+#include "editor/Viewport.h"
 #include "game/GameComponents.hpp"
 #include "input/InputManager.h"
 #include "input/InputSystem.h"
 #include "physics/PhysicsComponents.hpp"
-#include "editor/Viewport.h"
 
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -69,19 +69,17 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
-    // float cd = 1;
-    // static float currentTime = 1;
+    float cd = 0.1;
+    static float currentTime = 0;
 
-    // {
-    //     ZoneScopedN("GameScene/SpawnTestEntities");
-    //     if (currentTime >= cd)
-    //     {
-    //         currentTime = 0;
-    //     }
-    // }
+    if (currentTime >= cd)
+    {
+        SpawnTestEntities();
+        currentTime = 0;
+    }
     // // Lemao refactor later
     // // Probably a BFS or a simple 1D loop
-    // currentTime += Time::DeltaTime();
+    currentTime += Time::DeltaTime();
 
     {
         ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
@@ -100,44 +98,41 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     }
 }
 
-void GameScene::SpawnEnemy(const Vect2f& spawnPos)
+void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 {
-    Vect2f velocity = Random::Vect2f({-1, 1}, {-1, 1});
     float speed = Random::Float(50, 75);
-    float radius = Random::Float(10, 22);
-    float bounce = 1.f;
-    float mass = 1;
+    float radius = Random::Float(22, 22);
+    float bounce = 0.1f;
+    float mass = radius;
 
-    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, {0, 0}, mass, bounce, false),
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, {0, 10}, mass, bounce, false),
                                      CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 
 void GameScene::SpawnTestEntities()
 {
-    // for (int i = 0; i <= 2; i += 75)
+    SpawnEnemy({25, 25}, {250, 250});
+
+    SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {-250, 250});
+    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
     // {
     //     Vect2f startPos{(float)i, 10};
     //     SpawnEnemy(startPos);
     // }
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
-    {
-        Vect2f startPos{(float)i, 10};
-        SpawnEnemy(startPos);
-    }
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
-    {
-        Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
-        SpawnEnemy(startPos);
-    }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    {
-        Vect2f startPos{0, (float)i};
-        SpawnEnemy(startPos);
-    }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    {
-        Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
-        SpawnEnemy(startPos);
-    }
+    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    // {
+    //     Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
+    //     SpawnEnemy(startPos);
+    // }
+    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    // {
+    //     Vect2f startPos{0, (float)i};
+    //     SpawnEnemy(startPos);
+    // }
+    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    // {
+    //     Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
+    //     SpawnEnemy(startPos);
+    // }
 }

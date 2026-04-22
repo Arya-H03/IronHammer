@@ -6,6 +6,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/component/ComponentRegistry.hpp"
 #include "editor/debuggers/SystemDebuggerHub.h"
+#include "engine/EngineMode.h"
 #include "input/InputSystem.h"
 #include "rendering/RenderSystem.h"
 #include "scene/BaseScene.h"
@@ -192,6 +193,9 @@ void Engine::UpdateRuntime()
 
 void Engine::UpdatePhysics()
 {
+    if (m_engineMode != EngineMode::Play) return;
+    if (m_sceneManager.GetCurrentScenePtr()->GetScenePaused()) return;
+
     ZoneScopedN("CollisionSystem");
     while (m_frameRateHandler.CanUpdatePhysics())
     {

@@ -71,8 +71,11 @@ class CollisionSystem : public ISetupSystem
             [&](CTransform& t, CRigidBody& rb, CMovement& mv, CFlowFieldAgent& flowFieldAgent)
             {
                 if (rb.isStatic) return;
-                Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
-                t.position += (rb.velocity + dir) * dt ;
+                rb.velocity += rb.acceleration * dt;
+                t.position += rb.velocity * dt;
+
+                // Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
+                // t.position += (rb.velocity + dir) * dt ;
                 // t.position += rb.velocity * mv.speed * dt;
             });
     }

@@ -23,7 +23,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
     std::vector<BroadPhaseCellData> m_flatGridData;
     std::vector<BroadPhaseCellData> m_flatGridBuffer;
-    std::vector<CollisionPairData> m_collisionPairs;
+    std::vector<PotentialCollisionPair> m_potentialCollisionPairs;
 
     Query* m_broadPhaseQuery;
 
@@ -44,7 +44,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 
-    std::vector<CollisionPairData>& HandleBroadPhaseCollisionSystem(World* worldPtr);
+    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;
