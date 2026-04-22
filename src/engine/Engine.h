@@ -3,8 +3,10 @@
 #include "core/FrameRateHandler.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
-#include "mold/MoldManager.h"
 #include "input/InputSystem.h"
+#include "mold/MoldManager.h"
+#include "physics/CollisionSystem.h"
+#include "engine/EngineMode.h"
 #include "rendering/RenderSystem.h"
 #include "scene/SceneManager.h"
 
@@ -13,13 +15,7 @@
 #include <cstdint>
 #include <memory>
 
-enum class EngineMode
-{
-    None,
-    Edit,
-    Play,
-    Both
-};
+
 
 class Engine
 {
@@ -39,6 +35,7 @@ class Engine
 
     FrameRateHandler m_frameRateHandler;
     RenderingSystem m_renderSystem;
+    CollisionSystem m_collisionSystem;
     InputSystem m_inputSystem;
     SceneManager m_sceneManager;
     MoldManager m_moldManager;
@@ -70,6 +67,7 @@ class Engine
 
     void BeginFrame();
     void UpdateRuntime();
+    void UpdatePhysics();
     void RenderFrame();
     void EndFrame();
 

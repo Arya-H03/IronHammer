@@ -23,7 +23,7 @@
 
 Engine::Engine()
     : m_editorWorld(std::make_unique<World>(&m_moldManager)), m_currentWorld(m_editorWorld.get()), m_renderSystem(m_currentWorld),
-      m_inputSystem(m_window)
+      m_collisionSystem(m_currentWorld, m_windowSize), m_inputSystem(m_window)
 {
     Init();
 }
@@ -78,7 +78,7 @@ MoldManager& Engine::GetMoldTemplateManager()
 
 void Engine::Init()
 {
-    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer", sf::Style::None);
+    m_window.create(sf::VideoMode::getDesktopMode(), "IronHammer", sf::Style::Default);
     m_window.setKeyRepeatEnabled(false);
 
     bool ok = ImGui::SFML::Init(m_window);
@@ -116,6 +116,7 @@ void Engine::EnterPlayMode()
 
     SystemDebuggerHub::Instance().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
+    m_collisionSystem.SetupSystem(m_currentWorld);
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
 
@@ -128,6 +129,7 @@ void Engine::ExitPlayMode()
     m_currentWorld = m_editorWorld.get();
     SystemDebuggerHub::Instance().GetWorldDebugger().RegisterWorld(m_currentWorld);
 
+    m_collisionSystem.SetupSystem(m_currentWorld);
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnExitPlay(m_currentWorld);
 
@@ -185,6 +187,12 @@ void Engine::UpdateRuntime()
         if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
             m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame, m_currentWorld, m_inputSystem);
     }
+}
+
+void Engine::UpdatePhysics()
+{
+    ZoneScopedN("CollisionSystem");
+    m_collisionSystem.HandleCollisionSystem(m_currentWorld, Time::DeltaTime());
 }
 
 void Engine::RenderFrame()

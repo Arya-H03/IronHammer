@@ -3,7 +3,7 @@
 #include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
 #include "ecs/entity/EntityManager.hpp"
-#include "engine/Engine.h"
+#include "engine/EngineMode.h"
 #include "mold/MoldInstance.h"
 #include "mold/MoldManager.h"
 

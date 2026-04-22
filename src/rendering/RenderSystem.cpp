@@ -19,12 +19,9 @@
 #include <cmath>
 #include <imgui-SFML.h>
 
-RenderingSystem::RenderingSystem(World* world)
-    : shapeQuery(world->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>()),
-      textQuery(world->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>()),
-      colliderQuery(world->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>()),
-      spriteQuery(world->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>())
+RenderingSystem::RenderingSystem(World* worldPtr)
 {
+    SetupSystem(worldPtr);
     SystemDebuggerHub::Instance().GetRenderignSystemDebugger().RegisterRenderingSystem(this);
 }
 

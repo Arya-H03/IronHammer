@@ -9,13 +9,14 @@
 #include "input/InputManager.h"
 #include "input/InputSystem.h"
 #include "physics/PhysicsComponents.hpp"
+#include "editor/Viewport.h"
 
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <cstdint>
 #include <string>
 
-GameScene::GameScene(Vect2<uint16_t> windowSize) : BaseScene(windowSize), m_collisionSystem(m_windowSize)
+GameScene::GameScene(Vect2<uint16_t> windowSize) : BaseScene(windowSize)
 {
 }
 
@@ -27,7 +28,6 @@ void GameScene::OnStartPlay(World* worldPtr)
 
     m_movementSystem.SetupSystem(worldPtr);
     m_flowFieldSystem.SetupSystem(worldPtr);
-    m_collisionSystem.SetupSystem(worldPtr);
 
     m_towerQuery = worldPtr->Query<RequiredComponents<CTower, CTransform>>();
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
@@ -68,15 +68,6 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         ZoneScopedN("GameScene/UpdateFlowAgents");
         m_flowFieldSystem.UpdateFlowAgents();
     }
-    {
-        ZoneScopedN("GameScene/MovementSystem");
-        // m_movementSystem.HandleMovementSystem();
-    }
-    {
-        ZoneScopedN("GameScene/CollisionSystem");
-        m_collisionSystem.HandleCollisionSystem(worldPtr, Time::DeltaTime());
-    }
-
 
     // float cd = 1;
     // static float currentTime = 1;
@@ -118,7 +109,7 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos)
     float mass = 1;
 
     m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, {0, 0}, mass, bounce, false),
-                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(),CFlowFieldAgent(),
+                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 

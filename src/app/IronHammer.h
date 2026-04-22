@@ -23,6 +23,7 @@ public:
             m_engine.BeginFrame();
             m_engine.UpdateRuntime();
             m_editor.Update();
+            m_engine.UpdatePhysics();
             m_engine.RenderFrame();
             Debug::FlushLogs();
             m_engine.EndFrame();

@@ -44,7 +44,7 @@ class CollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const uint8_t SUBSTEP_COUNT = 8;
+    const uint8_t SUBSTEP_COUNT = 4;
 
     Vect2<uint16_t> m_windowSize;
 
@@ -67,8 +67,8 @@ class CollisionSystem : public ISetupSystem
 
     void UpdatePositions(float dt)
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement,CFlowFieldAgent>(
-            [&](CTransform& t, CRigidBody& rb, CMovement& mv,CFlowFieldAgent& flowFieldAgent)
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
+            [&](CTransform& t, CRigidBody& rb, CMovement& mv, CFlowFieldAgent& flowFieldAgent)
             {
                 if (rb.isStatic) return;
                 Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
@@ -119,9 +119,10 @@ class CollisionSystem : public ISetupSystem
         m_collsionEventSystem.SetupSystem(worldPtr);
     }
 
-    CollisionSystem(Vect2<uint16_t> windowSize)
+    CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem({1500, 1500}), m_narrowPhaseCollisionSystem(m_collsionEventSystem)
     {
+        SetupSystem(worldPtr);
         SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);
     }
 

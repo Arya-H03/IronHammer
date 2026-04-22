@@ -1,7 +1,7 @@
 #pragma once
 #include "ecs/World.h"
 #include "editor/entityInspector/EntityInspector.h"
-#include "engine/Engine.h"
+#include "engine/EngineMode.h"
 
 struct DebugTabContext
 {
