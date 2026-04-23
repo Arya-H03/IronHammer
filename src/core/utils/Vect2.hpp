@@ -96,6 +96,11 @@ class Vect2
         return std::sqrt((x * x) + (y * y));
     }
 
+    float LengthSq()
+    {
+        return (x * x) + (y * y);
+    }
+
     float Distance(Vect2 rhs)
     {
         return std::sqrt((x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y));
