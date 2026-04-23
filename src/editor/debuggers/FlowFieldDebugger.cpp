@@ -159,7 +159,7 @@ void FlowFieldDebugger::RegisterFlowField(FlowFieldSystem* flowFieldSystem, Worl
 {
     m_flowFieldSystemPtr = flowFieldSystem;
     ResetDebugger();
-    // CreateVisualGrid(worldPtr);
+    CreateVisualGrid(worldPtr);
 }
 
 void FlowFieldDebugger::UnRegisterFlowField()

@@ -59,13 +59,13 @@ class CollisionSystem : public ISetupSystem
 
     void UpdatePositions(float dt)
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement>(
-            [&](CTransform& transform, CRigidBody& rigidBody, CMovement& movement)
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
+            [&](CTransform& transform, CRigidBody& rigidBody, CMovement& movement, CFlowFieldAgent& flowFieldAgent)
             {
                 if (rigidBody.isStatic) return;
 
                 Vect2f current = transform.position;
-                transform.position += (transform.position - transform.previousPosition) + rigidBody.acceleration * dt * dt;
+                transform.position += (transform.position - transform.previousPosition) + flowFieldAgent.flowDir * 100 * dt * dt;
                 transform.previousPosition = current;
             });
     }
@@ -114,7 +114,7 @@ class CollisionSystem : public ISetupSystem
   public:
     void SetupSystem(World* worldPtr) override
     {
-        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody>>();
+        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody,CFlowFieldAgent>>();
         m_updateCollisionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);

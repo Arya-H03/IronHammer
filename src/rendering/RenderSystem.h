@@ -30,7 +30,7 @@ class RenderingSystem : ISetupSystem
   private:
     size_t AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch);
     size_t AddColliderToBatch(CCollider& ccollider, CTransform& ctransform, sf::VertexArray& batch);
-    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, const CRigidBody& rigidBody, sf::VertexArray& batch);
+    void AddSpriteToBatch(const CSprite& csprite, const CTransform& ctransform, sf::VertexArray& batch);
 
     void RenderShapes(sf::RenderTarget& renderTarget);
     void RenderColliders(sf::RenderTarget& renderTarget);

@@ -132,7 +132,7 @@ class FlowFieldSystem : ISetupSystem
 
     void CreateNewFlowField()
     {
-        m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 24};
+        m_flowField = FlowField{Vect2f{0, 0}, 1250, 1250, 48};
     }
 
   public:
@@ -169,8 +169,6 @@ class FlowFieldSystem : ISetupSystem
                     {
                         flowFieldAgent.flowDir = flowDir;
                     }
-                    // rigidBody.velocity.x = currentFlowCell->flowDir.x;
-                    // rigidBody.velocity.y = currentFlowCell->flowDir.y;
                 }
             });
     }

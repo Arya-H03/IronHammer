@@ -9,9 +9,6 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
 {
     ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
-    const float percent = 0.8f;
-    const float slop = 0.01f;
-
     for (auto& collisionData : collisionDataVector)
     {
         float invMass1 = collisionData.e1RigidBodyPtr->inverseMass;

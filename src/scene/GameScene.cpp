@@ -71,7 +71,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
-    float cd = 0.25f;
+    float cd = 1.0f;
     static float currentTime = 0;
 
     if (currentTime >= cd && m_spawn)
@@ -107,8 +107,8 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
     float bounce = 0.0f;
     float mass = radius;
 
-    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, velocity, mass, bounce, false),
-                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(),
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0,0}, mass, bounce, false),
+                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 

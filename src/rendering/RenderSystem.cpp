@@ -37,7 +37,7 @@ void RenderingSystem::SetupSystem(World* newWorldPtr)
     shapeQuery = newWorldPtr->Query<RequiredComponents<CShape, CTransform>, ExcludedComponents<CNotDrawable>>();
     textQuery = newWorldPtr->Query<RequiredComponents<CText, CTransform>, ExcludedComponents<CNotDrawable>>();
     colliderQuery = newWorldPtr->Query<RequiredComponents<CCollider, CTransform>, ExcludedComponents<CNotDrawable>>();
-    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform, CRigidBody>, ExcludedComponents<CNotDrawable>>();
+    spriteQuery = newWorldPtr->Query<RequiredComponents<CSprite, CTransform>, ExcludedComponents<CNotDrawable>>();
 }
 
 size_t RenderingSystem::AddShapeToBatch(CShape& cshape, CTransform& ctransform, sf::VertexArray& batch)
@@ -109,8 +109,7 @@ size_t RenderingSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctr
     return 8;
 }
 
-void RenderingSystem::AddSpriteToBatch(const CSprite& sprite, const CTransform& transform, const CRigidBody& rigidBody,
-                                       sf::VertexArray& batch)
+void RenderingSystem::AddSpriteToBatch(const CSprite& sprite, const CTransform& transform, sf::VertexArray& batch)
 {
     ZoneScopedN("Add Sprite to Batch");
 
@@ -158,8 +157,8 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
 
     const sf::Texture* currentTexture = nullptr;
 
-    spriteQuery->ForEach<CSprite, CTransform, CRigidBody>(
-        [&](CSprite& csprite, CTransform& ctransform, CRigidBody& rigidBody)
+    spriteQuery->ForEach<CSprite, CTransform>(
+        [&](CSprite& csprite, CTransform& ctransform)
         {
             // Batch
             if (currentTexture != csprite.texturePtr)
@@ -169,7 +168,7 @@ void RenderingSystem::RenderSprites(sf::RenderTarget& renderTarget)
                 currentTexture = csprite.texturePtr;
             }
 
-            AddSpriteToBatch(csprite, ctransform, rigidBody, batch);
+            AddSpriteToBatch(csprite, ctransform, batch);
             // Individual
             //  sf::Sprite spriteToDraw(*csprite.texture);
             //  spriteToDraw.setTextureRect(csprite.textureRect);
