@@ -20,30 +20,32 @@ class FrameRateHandler
 
     long long m_currentFrameStartTime = 0; // in microsecond
 
-    void WaitByThreadToSleep()
-    {
-        if (m_targetFrameRate == 0) return;
-
-        long long elapsedTime = Time::GetCurrentTimeInMicrosecond() - m_currentFrameStartTime;
-        long long targetFrameTime = 1000000 / m_targetFrameRate;
-        if (elapsedTime < targetFrameTime)
-        {
-            std::this_thread::sleep_for(std::chrono::microseconds(std::max(0LL, targetFrameTime - elapsedTime)));
-        }
-    }
-
-    void WaitBySpinning()
+    void Wait()
     {
         if (m_targetFrameRate == 0) return;
 
         long long targetFrameTime = 1000000 / m_targetFrameRate;
         long long targetTime = m_currentFrameStartTime + targetFrameTime;
+
+        long long now = Time::GetCurrentTimeInMicrosecond();
+        long long remaining = targetTime - now;
+
+        if (remaining > 2000)
+        {
+            std::this_thread::sleep_for(std::chrono::microseconds(remaining - 1000));
+        }
+
         while (Time::GetCurrentTimeInMicrosecond() < targetTime)
         {
         }
     }
 
   public:
+    FrameRateHandler()
+    {
+        Time::m_fixedDeltaTime = 1.f / m_fixedFrameRate;
+    }
+
     static size_t GetTargetFrameRate()
     {
         return m_targetFrameRate;
@@ -68,14 +70,15 @@ class FrameRateHandler
     void OnFrameBegin()
     {
         m_currentFrameStartTime = Time::GetCurrentTimeInMicrosecond();
-        Time::m_fixedDeltaTime = 1.f / m_fixedFrameRate;
-        m_accumulator += Time::DeltaTime();
+
+        m_accumulator += Time::m_rawDeltaTime;
+        const float maxAccumulation = 0.25f;
+        m_accumulator = std::min(m_accumulator, maxAccumulation);
     }
 
     void OnFrameEnd()
     {
-        WaitBySpinning();
-        // WaitByThreadToSleep();
+        Wait();
 
         long long now = Time::GetCurrentTimeInMicrosecond();
         long long totalFrameTime = now - m_currentFrameStartTime;
@@ -86,6 +89,7 @@ class FrameRateHandler
 
         float sec = totalFrameTime / 1000000.f;
         sec = std::min(sec, 0.05f);
+        Time::m_rawDeltaTime = sec;
         Time::m_deltaTime = Time::DeltaTime() * 0.1f + sec * 0.9f;
 
         ++m_currentFrame;

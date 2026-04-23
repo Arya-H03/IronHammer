@@ -10,6 +10,7 @@ class Time
   private:
     inline static float m_deltaTime = 0;
     inline static float m_fixedDeltaTime = 0;
+    inline static float m_rawDeltaTime = 0;
 
   public:
     static inline float DeltaTime()
