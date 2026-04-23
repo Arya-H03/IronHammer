@@ -14,6 +14,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <cmath>
+#include <csignal>
 #include <imgui.h>
 #include <string>
 #include <vector>
@@ -130,6 +131,8 @@ class ViewportPanel
                     {
                         transform->position = mousePos;
                     }
+
+                    transform->previousPosition = transform->position;
                 }
                 else
                 {

@@ -15,6 +15,11 @@ struct ComponentInspectorGui<CTransform>
             {
                 TableNextField("Position");
                 EntityInspectorHelpers::DragFloat2("##PosX", &transform.position.x, "##PosY", &transform.position.y, 0.1f, isDirty);
+                if(isDirty != nullptr && *isDirty)
+                {
+                    transform.previousPosition = transform.position;
+                }
+
                 TableNextField("Previous Position");
                 EntityInspectorHelpers::DragFloat2("##PrevPosX", &transform.previousPosition.x, "##PrevPosY", &transform.previousPosition.y, 0.1f, isDirty);
                 TableNextField("Scale");

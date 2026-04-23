@@ -96,7 +96,7 @@ class Vect2
         return std::sqrt((x * x) + (y * y));
     }
 
-    float LengthSq()
+    float LengthSquare()
     {
         return (x * x) + (y * y);
     }
@@ -115,7 +115,7 @@ class Vect2
         return (x * other.x) + (y * other.y);
     }
 
-    Vect2 Normalize()
+    Vect2 Normalized()
     {
         float length = Length();
         if (length == 0) return Vect2(0, 0);

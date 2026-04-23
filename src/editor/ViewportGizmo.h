@@ -16,19 +16,27 @@ class ViewportGismo
     ImVec2 m_gizmoUpArrowSize{10, 100};
     ImVec2 m_gizmoRightArrowSize{100, 10};
 
-    void DrawGizmoPositionButton(const char* id, ImVec2 screenPos, ImTextureID texture, ImVec2 size, Vect2f& position, GizmoAxis axis)
+    void DrawGizmoPositionButton(const char* id, ImVec2 screenPos, ImTextureID texture, ImVec2 size, CTransform& transform, GizmoAxis axis)
     {
         ImGui::SetCursorScreenPos(screenPos);
         ImGui::ImageButton(id, texture, size);
 
         static Vect2f dragOffset;
-        if (ImGui::IsItemActivated()) dragOffset = position - Viewport::ScreenToViewportMouse();
+        if (ImGui::IsItemActivated()) dragOffset = transform.position - Viewport::ScreenToViewportMouse();
 
         if (ImGui::IsItemActive())
         {
             Vect2f mouse = Viewport::ScreenToViewportMouse();
-            if (axis == GizmoAxis::X || axis == GizmoAxis::XY) position.x = mouse.x + dragOffset.x;
-            if (axis == GizmoAxis::Y || axis == GizmoAxis::XY) position.y = mouse.y + dragOffset.y;
+            if (axis == GizmoAxis::X || axis == GizmoAxis::XY)
+            {
+                transform.position.x = mouse.x + dragOffset.x;
+            }
+            if (axis == GizmoAxis::Y || axis == GizmoAxis::XY)
+            {
+                transform.position.y = mouse.y + dragOffset.y;
+            }
+
+            transform.previousPosition = transform.position;
         }
     }
     void DrawGizmoScaleButton(const char* id, ImVec2 screenPos, ImTextureID texture, ImVec2 size, Vect2f& position, Vect2f& scale,
@@ -70,16 +78,16 @@ class ViewportGismo
 
         DrawGizmoPositionButton("CenterGizmo",
                                 ImVec2(entityScreenPos.x - m_gizmoCenterSize.x * 0.5f, entityScreenPos.y - m_gizmoCenterSize.y * 0.5f),
-                                AssetManager::Instance().GetTextureID("Square"), m_gizmoCenterSize, transformPtr->position, GizmoAxis::XY);
+                                AssetManager::Instance().GetTextureID("Square"), m_gizmoCenterSize, *transformPtr, GizmoAxis::XY);
 
         DrawGizmoPositionButton(
             "RightArrowGizmo", ImVec2(entityScreenPos.x + m_gizmoCenterSize.x * 0.5f, entityScreenPos.y - m_gizmoRightArrowSize.y * 0.5f),
-            AssetManager::Instance().GetTextureID("RightArrowSharp"), m_gizmoRightArrowSize, transformPtr->position, GizmoAxis::X);
+            AssetManager::Instance().GetTextureID("RightArrowSharp"), m_gizmoRightArrowSize, *transformPtr, GizmoAxis::X);
 
         DrawGizmoPositionButton(
             "UpArrowGizmo",
             ImVec2(entityScreenPos.x - m_gizmoUpArrowSize.x * 0.5f, entityScreenPos.y - m_gizmoCenterSize.y * 0.5f - m_gizmoUpArrowSize.y),
-            AssetManager::Instance().GetTextureID("UpArrowSharp"), m_gizmoUpArrowSize, transformPtr->position, GizmoAxis::Y);
+            AssetManager::Instance().GetTextureID("UpArrowSharp"), m_gizmoUpArrowSize, *transformPtr, GizmoAxis::Y);
 
         ImGui::PopStyleColor(4);
         ImGui::PopStyleVar();
