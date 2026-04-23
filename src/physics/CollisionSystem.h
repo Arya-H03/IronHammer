@@ -1,5 +1,6 @@
 #pragma once
 #include "Tracy.hpp"
+#include "backward.hpp"
 #include "core/CoreComponents.hpp"
 #include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
@@ -44,7 +45,7 @@ class CollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const uint8_t SUBSTEP_COUNT = 4;
+    const uint8_t SUBSTEP_COUNT = 8;
 
     Vect2<uint16_t> m_windowSize;
 
@@ -56,27 +57,16 @@ class CollisionSystem : public ISetupSystem
     Query* m_updateCollisionQueryPtr;
     Query* m_updatePositionQueryPtr;
 
-    void SavePreviousPositions()
-    {
-        m_updateCollisionQueryPtr->ForEach<CTransform, CRigidBody>(
-            [](CTransform& t, CRigidBody& rb)
-            {
-                 rb.previousPosition = t.position;
-            });
-    }
-
     void UpdatePositions(float dt)
     {
-        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
-            [&](CTransform& t, CRigidBody& rb, CMovement& mv, CFlowFieldAgent& flowFieldAgent)
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement>(
+            [&](CTransform& transform, CRigidBody& rigidBody, CMovement& movement)
             {
-                if (rb.isStatic) return;
-                rb.velocity += rb.acceleration * dt;
-                t.position += rb.velocity * dt;
+                if (rigidBody.isStatic) return;
 
-                // Vect2f dir = flowFieldAgent.flowDir.Normalize() * mv.speed;
-                // t.position += (rb.velocity + dir) * dt ;
-                // t.position += rb.velocity * mv.speed * dt;
+                Vect2f current = transform.position;
+                transform.position += (transform.position - transform.previousPosition) + rigidBody.acceleration * dt * dt;
+                transform.previousPosition = current;
             });
     }
 
@@ -85,30 +75,38 @@ class CollisionSystem : public ISetupSystem
         ZoneScopedN("CollisionSystem/CheckForScreenBorderCollision");
 
         m_updateCollisionQueryPtr->ForEach<CTransform, CRigidBody, CCollider>(
-            [](CTransform& t, CRigidBody& rb, CCollider& col)
+            [](CTransform& transform, CRigidBody& rigidBody, CCollider& collider)
             {
-                if (rb.isStatic) return;
+                if (rigidBody.isStatic) return;
 
-                if (t.position.y + col.offset.y - col.halfSize.y <= 0.0f)
+                if (transform.position.y + collider.offset.y - collider.halfSize.y <= 0.0f)
                 {
-                    t.position.y = col.halfSize.y - col.offset.y;
-                    rb.velocity.y *= -rb.bounciness;
+                    transform.position.y = collider.halfSize.y - collider.offset.y;
+                    Vect2f velocity = transform.position - transform.previousPosition;
+                    velocity.y *= -rigidBody.bounciness;
+                    transform.previousPosition = transform.position - velocity;
                 }
-                else if (t.position.y + col.offset.y + col.halfSize.y >= Viewport::GetSize().y)
+                else if (transform.position.y + collider.offset.y + collider.halfSize.y >= Viewport::GetSize().y)
                 {
-                    t.position.y = Viewport::GetSize().y - col.halfSize.y - col.offset.y;
-                    rb.velocity.y *= -rb.bounciness;
+                    transform.position.y = Viewport::GetSize().y - collider.halfSize.y - collider.offset.y;
+                    Vect2f velocity = transform.position - transform.previousPosition;
+                    velocity.y *= -rigidBody.bounciness;
+                    transform.previousPosition = transform.position - velocity;
                 }
 
-                if (t.position.x + col.offset.x - col.halfSize.x <= 0.0f)
+                if (transform.position.x + collider.offset.x - collider.halfSize.x <= 0.0f)
                 {
-                    t.position.x = col.halfSize.x - col.offset.x;
-                    rb.velocity.x *= -rb.bounciness;
+                    transform.position.x = collider.halfSize.x - collider.offset.x;
+                    Vect2f velocity = transform.position - transform.previousPosition;
+                    velocity.x *= -rigidBody.bounciness;
+                    transform.previousPosition = transform.position - velocity;
                 }
-                else if (t.position.x + col.offset.x + col.halfSize.x >= Viewport::GetSize().x)
+                else if (transform.position.x + collider.offset.x + collider.halfSize.x >= Viewport::GetSize().x)
                 {
-                    t.position.x = Viewport::GetSize().x - col.halfSize.x - col.offset.x;
-                    rb.velocity.x *= -rb.bounciness;
+                    transform.position.x = Viewport::GetSize().x - collider.halfSize.x - collider.offset.x;
+                    Vect2f velocity = transform.position - transform.previousPosition;
+                    velocity.x *= -rigidBody.bounciness;
+                    transform.previousPosition = transform.position - velocity;
                 }
             });
     }
@@ -116,11 +114,10 @@ class CollisionSystem : public ISetupSystem
   public:
     void SetupSystem(World* worldPtr) override
     {
-        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody, CMovement, CFlowFieldAgent>>();
+        m_updatePositionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CRigidBody>>();
         m_updateCollisionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
-
     }
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
@@ -139,19 +136,14 @@ class CollisionSystem : public ISetupSystem
     {
         ZoneScoped;
 
-        const float subStepDt = dt / SUBSTEP_COUNT;
-        for (uint8_t i = 0; i < SUBSTEP_COUNT; ++i)
+        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
+
+        float substepDt = dt / SUBSTEP_COUNT;
+        for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            SavePreviousPositions();
-            m_collsionEventSystem.ClearCollisionEvents(worldPtr);
             {
                 ZoneScopedN("CollisionSystem/UpdatePosition");
-                UpdatePositions(subStepDt);
-            }
-
-            {
-                ZoneScopedN("CollisionSystem/BorderCollision");
-                CheckForScreenBorderCollision();
+                UpdatePositions(substepDt);
             }
 
             {
@@ -168,9 +160,22 @@ class CollisionSystem : public ISetupSystem
                     }
                 }
             }
+
+            {
+                ZoneScopedN("CollisionSystem/BorderCollision");
+                CheckForScreenBorderCollision();
+            }
         }
 
+        m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody>(
+            [&](CTransform& transform, CRigidBody& rb)
+            {
+                if (rb.isStatic) return;
+                transform.previousPosition = transform.position - (transform.position - transform.previousPosition);
+            });
+
         {
+
             ZoneScopedN("CollisionSystem/HandleCollisionEvents");
             m_collsionEventSystem.HandleCollisionEvents(worldPtr);
         }

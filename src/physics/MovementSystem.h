@@ -25,7 +25,7 @@ class MovementSystem : public ISetupSystem
             [](CTransform& transformComp, CMovement& movementComp, CRigidBody& rigidBodyComp)
             {
                 Vect2f velocityNormalized = rigidBodyComp.velocity.Normalize();
-                rigidBodyComp.previousPosition = transformComp.position;
+                transformComp.previousPosition = transformComp.position;
                 transformComp.position += velocityNormalized * movementComp.speed * Time::DeltaTime();
             });
     }

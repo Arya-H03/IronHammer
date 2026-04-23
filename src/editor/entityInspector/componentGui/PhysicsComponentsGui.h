@@ -85,9 +85,6 @@ struct ComponentInspectorGui<CRigidBody>
                 EntityInspectorHelpers::DragFloat2("##RBVelX", &rb.velocity.x, "##RBVelY", &rb.velocity.y, 0.1f, isDirty);
                 TableNextField("Acceleration");
                 EntityInspectorHelpers::DragFloat2("##RBAccelX", &rb.acceleration.x, "##RBAccelY", &rb.acceleration.y, 0.1f, isDirty);
-                TableNextField("Previous Position");
-                EntityInspectorHelpers::DragFloat2("##PreviousPosX", &rb.previousPosition.x, "##PreviousPosY", &rb.previousPosition.y, 0.1f,
-                                                   isDirty);
                 TableNextField("Mass");
                 EntityInspectorHelpers::DragFloatWithLimits("##RBMass", &rb.mass, 0.1f, 0.f, 10000.f, isDirty);
                 TableNextField("Bounciness");

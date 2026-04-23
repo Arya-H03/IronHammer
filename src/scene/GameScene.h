@@ -12,6 +12,7 @@ class GameScene : public BaseScene
   private:
     MovementSystem m_movementSystem;
     FlowFieldSystem m_flowFieldSystem;
+    bool m_spawn = false;
 
     Query* m_towerQuery;
     Query* m_enemyQuery;

@@ -48,8 +48,8 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const PotentialColli
         {
             Vect2f overlap = (e1Collider->halfSize + e2Collider->halfSize) - distanceAbs;
 
-            Vect2f lastFrameE1Center = e1Rb->previousPosition + e1Collider->offset;
-            Vect2f lastFrameE2Center = e2Rb->previousPosition + e2Collider->offset;
+            Vect2f lastFrameE1Center = e1Transform->previousPosition + e1Collider->offset;
+            Vect2f lastFrameE2Center = e2Transform->previousPosition + e2Collider->offset;
             Vect2f lastFrameDistance = lastFrameE2Center - lastFrameE1Center;
 
             bool lastXCollide = std::abs(lastFrameDistance.x) <= (e1Collider->halfSize.x + e2Collider->halfSize.x);

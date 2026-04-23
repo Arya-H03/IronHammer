@@ -69,7 +69,6 @@ struct CRigidBody
     static constexpr const char* name = "RigidBody";
 
     Vect2f velocity = Vect2f{0, 0};
-    Vect2f previousPosition = Vect2f{0, 0};
     Vect2f acceleration = Vect2f{0, 0};
     float mass = 1.f;
     float inverseMass = 1.f;

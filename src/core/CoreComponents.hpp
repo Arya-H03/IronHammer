@@ -9,13 +9,19 @@ struct CTransform
 {
     static constexpr const char* name = "Transform";
 
-    Vect2f position = Vect2f(0, 0);
-    Vect2f scale = Vect2f(1, 1);
+    Vect2f position = Vect2f{0, 0};
+    Vect2f previousPosition = Vect2f{0, 0};
+    Vect2f scale = Vect2f{1, 1};
     float rotation = 0.f;
 
     CTransform() = default;
-    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot)
+    CTransform(const Vect2f& pos, const Vect2f& scl, float rot) : position(pos), scale(scl), rotation(rot), previousPosition(pos)
     {
+    }
+
+    void OnAfterDeserialize()
+    {
+        previousPosition = position;
     }
 };
 

@@ -119,7 +119,7 @@ void RenderingSystem::AddSpriteToBatch(const CSprite& sprite, const CTransform& 
     float halfWidth = width / 2.0f;
     float halfHeight = height / 2.0f;
 
-    Vect2f center = rigidBody.previousPosition + ((transform.position - rigidBody.previousPosition) * FrameRateHandler::GetRenderAlpha());
+    Vect2f center = transform.previousPosition + ((transform.position - transform.previousPosition) * FrameRateHandler::GetRenderAlpha());
 
     float rad = transform.rotation * (float)M_PI / 180.0f;
     float cosRad = std::cos(rad);

@@ -63,7 +63,7 @@ void FlowFieldDebugger::UpdateFlowFieldVisualCells(World* worldPtr)
 
     std::vector<FlowCell>& flowCells = flowField.GetCells();
 
-    for (size_t i = 0; i < flowCells.size(); ++i)
+    for (size_t i = 0; i < m_flowFieldCellVisuals.size(); ++i)
     {
         Entity cellEntity = m_flowFieldCellVisuals[i];
         CShape* shapePtr = worldPtr->TryGetComponent<CShape>(cellEntity);
@@ -159,7 +159,7 @@ void FlowFieldDebugger::RegisterFlowField(FlowFieldSystem* flowFieldSystem, Worl
 {
     m_flowFieldSystemPtr = flowFieldSystem;
     ResetDebugger();
-    CreateVisualGrid(worldPtr);
+    // CreateVisualGrid(worldPtr);
 }
 
 void FlowFieldDebugger::UnRegisterFlowField()

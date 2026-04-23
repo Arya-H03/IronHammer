@@ -20,12 +20,16 @@
     "speed": 100.0
   },
   "RigidBody": {
+    "acceleration": {
+      "x": 0.0,
+      "y": 1.0
+    },
     "bounciness": 0.0,
     "isStatic": false,
     "mass": 1.0,
     "velocity": {
-      "x": 9.0,
-      "y": 10.0
+      "x": 0.0,
+      "y": 0.0
     }
   },
   "Sprite": {

@@ -13,6 +13,7 @@
 
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <cmath>
 #include <cstdint>
 #include <string>
 
@@ -33,7 +34,8 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent, CTower>>();
 
-    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { SpawnTestEntities(); });
+    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_spawn = true; });
+    m_inputManager.CreateInputAction("StopEnemy", sf::Keyboard::Key::P, InputTrigger::Pressed, [&]() { m_spawn = false; });
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -69,10 +71,10 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
-    float cd = 0.1;
+    float cd = 0.25f;
     static float currentTime = 0;
 
-    if (currentTime >= cd)
+    if (currentTime >= cd && m_spawn)
     {
         SpawnTestEntities();
         currentTime = 0;
@@ -102,19 +104,21 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 {
     float speed = Random::Float(50, 75);
     float radius = Random::Float(22, 22);
-    float bounce = 0.1f;
+    float bounce = 0.0f;
     float mass = radius;
 
-    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody(velocity, {0, 10}, mass, bounce, false),
-                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, velocity, mass, bounce, false),
+                                     CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 
 void GameScene::SpawnTestEntities()
 {
-    SpawnEnemy({25, 25}, {250, 250});
+    SpawnEnemy({25, 25}, {100, 1000});
+    SpawnEnemy({500, 25}, {0, 1000});
 
-    SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {-250, 250});
+    SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {-200, 1000});
+
     // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
     // {
     //     Vect2f startPos{(float)i, 10};
