@@ -24,7 +24,7 @@ class MovementSystem : public ISetupSystem
         m_movementQuery->ForEach<CTransform, CMovement, CRigidBody>(
             [](CTransform& transformComp, CMovement& movementComp, CRigidBody& rigidBodyComp)
             {
-                Vect2f velocityNormalized = rigidBodyComp.velocity.Normalize();
+                Vect2f velocityNormalized = rigidBodyComp.velocity.Normalized();
                 transformComp.previousPosition = transformComp.position;
                 transformComp.position += velocityNormalized * movementComp.speed * Time::DeltaTime();
             });

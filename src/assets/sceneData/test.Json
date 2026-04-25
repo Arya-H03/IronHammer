@@ -10,8 +10,8 @@
           "y": 0.0
         },
         "size": {
-          "x": 100.0,
-          "y": 100.0
+          "x": 84.0,
+          "y": 84.0
         }
       },
       "CollisionEvent": null,
@@ -34,14 +34,14 @@
       },
       "Sprite": {
         "color": [
-          0,
-          145,
+          232,
           255,
+          0,
           255
         ],
         "size": {
-          "x": 100.0,
-          "y": 100.0
+          "x": 84.0,
+          "y": 84.0
         },
         "textureName": "Square",
         "textureRect": [
@@ -54,8 +54,8 @@
       "Tower": null,
       "Transform": {
         "position": {
-          "x": 482.0,
-          "y": 360.0
+          "x": 486.0,
+          "y": 384.0
         },
         "rotation": 0.0,
         "scale": {

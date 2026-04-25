@@ -1,6 +1,7 @@
 #include "GameScene.h"
 
 #include "core/CoreComponents.hpp"
+#include "core/utils/Colors.h"
 #include "core/utils/Random.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
@@ -71,7 +72,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
-    float cd = 1.0f;
+    float cd = 1.f;
     static float currentTime = 0;
 
     if (currentTime >= cd && m_spawn)
@@ -103,40 +104,44 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 {
     float speed = Random::Float(50, 75);
-    float radius = Random::Float(22, 22);
+    float radius = Random::Float(15, 15);
     float bounce = 0.0f;
     float mass = radius;
 
-    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, {0,0}, mass, bounce, false),
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed),
+                                     CRigidBody({0, 0}, velocity, mass, bounce, false),
                                      CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 
 void GameScene::SpawnTestEntities()
 {
-    SpawnEnemy({25, 25}, {100, 1000});
-    SpawnEnemy({500, 25}, {0, 1000});
+    // SpawnEnemy({50,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({250,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({450,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({650,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({850,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({500, 25}, {0, 1000});
+    // SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {Random::Float(0, 0), 3000});
 
-    SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {-200, 1000});
-
-    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
-    // {
-    //     Vect2f startPos{(float)i, 10};
-    //     SpawnEnemy(startPos);
-    // }
-    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
-    // {
-    //     Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
-    //     SpawnEnemy(startPos);
-    // }
-    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    // {
-    //     Vect2f startPos{0, (float)i};
-    //     SpawnEnemy(startPos);
-    // }
-    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    // {
-    //     Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
-    //     SpawnEnemy(startPos);
-    // }
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    {
+        Vect2f startPos{(float)i, 10};
+        SpawnEnemy(startPos, {0, 0});
+    }
+    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    {
+        Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
+        SpawnEnemy(startPos, {0, 0});
+    }
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    {
+        Vect2f startPos{0, (float)i};
+        SpawnEnemy(startPos, {0, 0});
+    }
+    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    {
+        Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
+        SpawnEnemy(startPos, {0, 0});
+    }
 }

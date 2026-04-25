@@ -3,7 +3,6 @@
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionCommon.h"
 #include "physics/CollisionEventSystem.h"
-#include "physics/PhysicsComponents.hpp"
 
 #include <cstdlib>
 #include <vector>

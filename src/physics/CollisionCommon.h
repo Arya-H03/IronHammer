@@ -91,7 +91,9 @@ struct CollisionCorrectionData
 
     CTransform* e1TransformPtr;
     CRigidBody* e1RigidBodyPtr;
+    CCollider* e1ColliderPtr;
 
     CTransform* e2TransformPtr;
     CRigidBody* e2RigidBodyPtr;
+    CCollider* e2ColliderPtr;
 };

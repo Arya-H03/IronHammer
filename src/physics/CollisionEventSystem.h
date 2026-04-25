@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tracy.hpp"
 #include "core/memory/InlineEntityList.h"
 #include "ecs/World.h"
 #include "ecs/common/ECSCommon.h"
@@ -8,6 +9,7 @@
 #include "physics/PhysicsComponents.hpp"
 
 #include <unordered_set>
+#include <vector>
 
 class CollisionEventSystem : ISetupSystem
 {
@@ -23,15 +25,14 @@ class CollisionEventSystem : ISetupSystem
         m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent>>();
     }
 
-    void CreateCollisionPair(Entity e1, Entity e2)
+    void HandleCollisionEvents(World* worldptr, const std::vector<CollisionCorrectionData>& collisionDataVector)
     {
-        m_currentFramePairs.emplace(CollisionPair{e1, e2});
-    }
+        ZoneScopedN("HandleCollisionEvents");
 
-    // Check me later:
-    // Call either after ResolutionSystem or maybe after??
-    void HandleCollisionEvents(World* worldptr)
-    {
+        for (const auto& collisionData : collisionDataVector)
+        {
+            m_currentFramePairs.emplace(CollisionPair(collisionData.e1, collisionData.e2));
+        }
         // stay and exit events
         for (auto& collisionPair : m_previousFramePairs)
         {
