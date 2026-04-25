@@ -13,6 +13,8 @@
 
 class CollisionEventSystem : ISetupSystem
 {
+    friend class CollisionDebugger;
+
   private:
     std::unordered_set<CollisionPair, CollisionPairHash> m_previousFramePairs;
     std::unordered_set<CollisionPair, CollisionPairHash> m_currentFramePairs;
@@ -31,7 +33,11 @@ class CollisionEventSystem : ISetupSystem
 
         for (const auto& collisionData : collisionDataVector)
         {
-            m_currentFramePairs.emplace(CollisionPair(collisionData.e1, collisionData.e2));
+            if (worldptr->TryGetComponent<CCollisionEvent>(collisionData.e1) ||
+                worldptr->TryGetComponent<CCollisionEvent>(collisionData.e2))
+            {
+                m_currentFramePairs.emplace(CollisionPair(collisionData.e1, collisionData.e2));
+            }
         }
         // stay and exit events
         for (auto& collisionPair : m_previousFramePairs)

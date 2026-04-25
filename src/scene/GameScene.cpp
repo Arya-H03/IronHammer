@@ -67,10 +67,6 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         ZoneScopedN("GameScene/FlowFieldUpdate");
         m_flowFieldSystem.UpdateFlowAgents();
     }
-    {
-        ZoneScopedN("GameScene/UpdateFlowAgents");
-        m_flowFieldSystem.UpdateFlowAgents();
-    }
 
     float cd = 1.f;
     static float currentTime = 0;

@@ -128,10 +128,10 @@ class CollisionSystem : public ISetupSystem
     {
         ZoneScoped;
 
-        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         std::vector<PotentialCollisionPair>* potentialCollisionPairVector;
         std::vector<CollisionCorrectionData>* collisionDataVector;
+        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
@@ -143,6 +143,7 @@ class CollisionSystem : public ISetupSystem
             collisionDataVector = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *potentialCollisionPairVector);
             m_collisionResolutionSystem.ResolveCollisions(*collisionDataVector);
         }
+
         m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);
     }
 };

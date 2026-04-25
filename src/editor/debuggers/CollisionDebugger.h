@@ -13,6 +13,7 @@ class CollisionDebugger : public IDebugTab
 
     void BroadPhaseGui(World* worldPtr) const;
     void NarrowPhaseGui() const;
+    void CollisionEventsGui() const;
 
   public:
     CollisionDebugger();

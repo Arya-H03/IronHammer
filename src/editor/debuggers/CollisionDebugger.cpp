@@ -4,8 +4,11 @@
 #include "imgui.h"
 #include "physics/BroadPhaseCollisionSystem.h"
 #include "physics/CollisionCommon.h"
+#include "physics/CollisionEventSystem.h"
 #include "physics/CollisionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
+
+#include <SFML/Graphics/Color.hpp>
 
 CollisionDebugger::CollisionDebugger()
 {
@@ -33,38 +36,19 @@ void CollisionDebugger::DrawTab(DebugTabContext& context)
         {
             NarrowPhaseGui();
         }
+        if (ImGui::CollapsingHeader("Collision Events", ImGuiTreeNodeFlags_None))
+        {
+            CollisionEventsGui();
+        }
         ImGui::EndTabItem();
     };
 }
 
 void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 {
-    if (!worldPtr || !m_collisionSystemPtr)
-    {
-        return;
-    }
+    if (!worldPtr || !m_collisionSystemPtr) return;
 
     BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
-
-    // bool canDisplayGrid = broadPhaseCollsionSystem.GetCanDisplayGrid();
-    // if (ImGui::Checkbox("Display Grid", &canDisplayGrid))
-    // {
-    //     broadPhaseCollsionSystem.SetCanDisplayGrid(worldPtr, canDisplayGrid);
-    // }
-    // ImGui::SameLine(0, 50);
-
-    // bool canHighlightgrid = broadPhaseCollsionSystem.GetCanHighlightGrid();
-    // if (ImGui::Checkbox("Cell Highlighting", &canHighlightgrid))
-    // {
-    //     broadPhaseCollsionSystem.SetCanHighlightGrid(worldPtr, canHighlightgrid);
-    // }
-    // ImGui::Separator();
-
-    // if (ImGui::TreeNode("Cells"))
-    // {
-    //     ImGui::TreePop();
-    // }
-    //
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
     ImGui::Text("Potentail Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs.size());
@@ -89,22 +73,12 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
             ImGui::Separator();
         }
     }
-    for (const auto& pair : m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs)
-    {
-    }
-    // if (ImGui::TreeNode("Potential Collision Pairs"))
-    // {
-
-    //     ImGui::TreePop();
-    // }
 }
 
 void CollisionDebugger::NarrowPhaseGui() const
 {
-    if (!m_collisionSystemPtr)
-    {
-        return;
-    }
+    if (!m_collisionSystemPtr) return;
+
     NarrowPhaseCollisionSystem& narrowPhaseCollisionSystem = m_collisionSystemPtr->m_narrowPhaseCollisionSystem;
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
@@ -129,5 +103,70 @@ void CollisionDebugger::NarrowPhaseGui() const
             ImGui::Text("Entity %i", pair.e2.id);
             ImGui::Separator();
         }
+    }
+}
+
+void CollisionDebugger::CollisionEventsGui() const
+{
+    if (!m_collisionSystemPtr) return;
+    CollisionEventSystem& collisionEventSystem = m_collisionSystemPtr->m_collsionEventSystem;
+
+    if (ImGui::TreeNode("Previous Frame Events"))
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_SFML);
+        ImGui::Text("Total Count: %zu ", collisionEventSystem.m_previousFramePairs.size());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        for (const auto& collisionPair : collisionEventSystem.m_previousFramePairs)
+        {
+            bool isCollisionPairInCurrent = collisionEventSystem.m_currentFramePairs.contains(collisionPair);
+            if (!isCollisionPairInCurrent)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::RustRed_SFML);
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ConcreteGrey_SFML);
+            }
+
+            ImGui::Text("Entity %i", collisionPair.e1.id);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", collisionPair.e2.id);
+            ImGui::PopStyleColor();
+            ImGui::Separator();
+        }
+
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Current Frame Events"))
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::HazardYellow_SFML);
+        ImGui::Text("Total Count: %zu ", collisionEventSystem.m_currentFramePairs.size());
+        ImGui::PopStyleColor();
+        ImGui::Separator();
+
+        for (const auto& collisionPair : collisionEventSystem.m_currentFramePairs)
+        {
+            bool isCollisionPairInPrevious = collisionEventSystem.m_previousFramePairs.contains(collisionPair);
+            if (!isCollisionPairInPrevious)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_SFML);
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::ConcreteGrey_SFML);
+            }
+            ImGui::Text("Entity %i", collisionPair.e1.id);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", collisionPair.e2.id);
+            ImGui::Separator();
+            ImGui::PopStyleColor();
+        }
+        ImGui::TreePop();
     }
 }
