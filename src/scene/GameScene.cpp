@@ -104,19 +104,18 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
     float bounce = 0.0f;
     float mass = radius;
 
-    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed),
-                                     CRigidBody({0, 0}, velocity, mass, bounce, false),
+    m_worldPtr->CreateEntityNoReturn(CTransform(spawnPos, {1, 1}, 0), CMovement(speed), CRigidBody({0, 0}, velocity, mass, bounce, false),
                                      CCollider({radius, radius}, {0, 0}, Layer::Enemy, ~0u, false), CEnemy(), CFlowFieldAgent(),
                                      CSprite("Circle", Vect2f(radius, radius), sf::IntRect({0, 0}, {256, 256}), Random::Color()));
 }
 
 void GameScene::SpawnTestEntities()
 {
-    // SpawnEnemy({50,100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({250,100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({450,100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({650,100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({850,100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({50, 100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({250, 100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({450, 100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({650, 100}, {Random::Float(0, 0), 600});
+    // SpawnEnemy({850, 100}, {Random::Float(0, 0), 600});
     // SpawnEnemy({500, 25}, {0, 1000});
     // SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {Random::Float(0, 0), 3000});
 

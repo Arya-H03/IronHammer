@@ -33,7 +33,7 @@ class CollisionSystem : public ISetupSystem
 
   private:
     const uint8_t SUBSTEP_COUNT = 4;
-    const Vect2f gravity = {500, 2000};
+    const Vect2f gravity = {50, 200};
 
     Vect2<uint16_t> m_windowSize;
 
@@ -53,9 +53,9 @@ class CollisionSystem : public ISetupSystem
                 if (rigidBody.isStatic) return;
 
                 Vect2f velocity = transform.position - transform.previousPosition;
-                velocity *= 0.98f;
+                velocity *= .99f;
                 transform.previousPosition = transform.position;
-                transform.position += velocity + flowFieldAgent.flowDir * 400 * dt * dt;
+                transform.position += velocity + flowFieldAgent.flowDir * 100 * dt * dt;
             });
     }
 

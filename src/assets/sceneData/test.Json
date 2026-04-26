@@ -10,8 +10,8 @@
           "y": 0.0
         },
         "size": {
-          "x": 84.0,
-          "y": 84.0
+          "x": 16.0,
+          "y": 16.0
         }
       },
       "CollisionEvent": null,
@@ -40,8 +40,8 @@
           255
         ],
         "size": {
-          "x": 84.0,
-          "y": 84.0
+          "x": 16.0,
+          "y": 16.0
         },
         "textureName": "Square",
         "textureRect": [
@@ -54,8 +54,566 @@
       "Tower": null,
       "Transform": {
         "position": {
-          "x": 486.0,
-          "y": 384.0
+          "x": 468.0,
+          "y": 334.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 382.0,
+          "y": 137.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 188.0,
+          "y": 270.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 317.0,
+          "y": 464.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 415.0,
+          "y": 464.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 598.0,
+          "y": 465.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 693.0,
+          "y": 464.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 823.0,
+          "y": 270.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 572.0,
+          "y": 137.0
+        },
+        "rotation": 0.0,
+        "scale": {
+          "x": 1.0,
+          "y": 1.0
+        }
+      }
+    },
+    {
+      "Collider": {
+        "isTrigger": false,
+        "layer": 1,
+        "mask": 4294967295,
+        "offset": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        }
+      },
+      "FlowFieldObstacle": null,
+      "Molded": {
+        "moldName": "Obstacle"
+      },
+      "RigidBody": {
+        "acceleration": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "bounciness": 0.5,
+        "isStatic": true,
+        "mass": 0.0,
+        "velocity": {
+          "x": 10.0,
+          "y": 10.0
+        }
+      },
+      "Sprite": {
+        "color": [
+          67,
+          115,
+          255,
+          255
+        ],
+        "size": {
+          "x": 100.0,
+          "y": 100.0
+        },
+        "textureName": "Square",
+        "textureRect": [
+          0,
+          0,
+          32,
+          32
+        ]
+      },
+      "Transform": {
+        "position": {
+          "x": 475.0,
+          "y": 137.0
         },
         "rotation": 0.0,
         "scale": {
