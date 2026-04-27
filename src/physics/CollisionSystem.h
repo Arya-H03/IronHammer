@@ -18,7 +18,6 @@
 #include "physics/CollisionResolutionSystem.h"
 #include "physics/NarrowPhaseCollisionSystem.h"
 #include "physics/PhysicsComponents.hpp"
-#include "rendering/RenderingComponents.hpp"
 
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -127,7 +126,6 @@ class CollisionSystem : public ISetupSystem
     void HandleCollisionSystem(World* worldPtr, float dt)
     {
         ZoneScoped;
-
 
         std::vector<PotentialCollisionPair>* potentialCollisionPairVector;
         std::vector<CollisionCorrectionData>* collisionDataVector;

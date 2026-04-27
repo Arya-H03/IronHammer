@@ -42,11 +42,11 @@ class CollisionEventSystem : ISetupSystem
         // stay and exit events
         for (auto& collisionPair : m_previousFramePairs)
         {
+            CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
+            CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
+
             if (m_currentFramePairs.contains(collisionPair))
             {
-                CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
-                CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
-
                 if (e1CollisionEventComp)
                 {
                     e1CollisionEventComp->stayEvents.Push(collisionPair.e2);
@@ -58,9 +58,6 @@ class CollisionEventSystem : ISetupSystem
             }
             else
             {
-                CCollisionEvent* e1CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e1);
-                CCollisionEvent* e2CollisionEventComp = worldptr->TryGetComponent<CCollisionEvent>(collisionPair.e2);
-
                 if (e1CollisionEventComp)
                 {
                     e1CollisionEventComp->exitEvents.Push(collisionPair.e2);

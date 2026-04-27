@@ -197,7 +197,9 @@ void Engine::UpdatePhysics()
     if (m_sceneManager.GetCurrentScenePtr()->GetScenePaused()) return;
 
     ZoneScopedN("CollisionSystem");
-    while (m_frameRateHandler.CanUpdatePhysics())
+    // could use a while loop here so that the physics
+    // can catch up if fps falls behind.
+    if (m_frameRateHandler.CanUpdatePhysics())
     {
         m_collisionSystem.HandleCollisionSystem(m_currentWorld, Time::FixedDeltaTime());
         m_frameRateHandler.OnAfterPhysicsUpdate();

@@ -102,6 +102,7 @@ class FrameRateHandler
 
     void OnAfterPhysicsUpdate()
     {
-        m_accumulator -= Time::FixedDeltaTime();
+        // m_accumulator -= Time::FixedDeltaTime();
+        m_accumulator = 0;
     }
 };
