@@ -32,7 +32,7 @@ class CollisionSystem : public ISetupSystem
 
   private:
     const uint8_t SUBSTEP_COUNT = 4;
-    const Vect2f gravity = {50, 200};
+    const Vect2f gravity = {0, 500};
 
     Vect2<uint16_t> m_windowSize;
 
@@ -46,6 +46,8 @@ class CollisionSystem : public ISetupSystem
 
     void UpdatePositions(float dt)
     {
+        ZoneScopedN("CollisionSystem/UpdatePositions");
+
         m_updatePositionQueryPtr->ForEach<CTransform, CRigidBody, CMovement, CFlowFieldAgent>(
             [&](CTransform& transform, CRigidBody& rigidBody, CMovement& movement, CFlowFieldAgent& flowFieldAgent)
             {
@@ -54,7 +56,7 @@ class CollisionSystem : public ISetupSystem
                 Vect2f velocity = transform.position - transform.previousPosition;
                 velocity *= .99f;
                 transform.previousPosition = transform.position;
-                transform.position += velocity + flowFieldAgent.flowDir * 100 * dt * dt;
+                transform.position += velocity + gravity * dt * dt;
             });
     }
 
@@ -125,8 +127,6 @@ class CollisionSystem : public ISetupSystem
 
     void HandleCollisionSystem(World* worldPtr, float dt)
     {
-        ZoneScoped;
-
         std::vector<PotentialCollisionPair>* potentialCollisionPairVector;
         std::vector<CollisionCorrectionData>* collisionDataVector;
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
@@ -135,8 +135,8 @@ class CollisionSystem : public ISetupSystem
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
             UpdatePositions(substepDt);
-
             CheckForScreenBorderCollision();
+
             potentialCollisionPairVector = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
             collisionDataVector = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *potentialCollisionPairVector);
             m_collisionResolutionSystem.ResolveCollisions(*collisionDataVector);

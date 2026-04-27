@@ -11,7 +11,7 @@
 class FrameRateHandler
 {
   private:
-    static inline size_t m_targetFrameRate = 60; // 0 for unlimited
+    static inline size_t m_targetFrameRate = 0; // 0 for unlimited
     static inline size_t m_currentFrameRate = 0;
     static inline size_t m_currentFrame = 0;
     static inline float m_accumulator = 0;

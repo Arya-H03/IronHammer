@@ -35,7 +35,7 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent, CTower>>();
 
-    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { m_spawn = true; });
+    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { SpawnTestEntities(); });
     m_inputManager.CreateInputAction("StopEnemy", sf::Keyboard::Key::P, InputTrigger::Pressed, [&]() { m_spawn = false; });
 }
 
@@ -68,17 +68,14 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
-    float cd = 1.f;
-    static float currentTime = 0;
+    // float cd = 0.25f;
+    // static float currentTime = 0;
 
-    if (currentTime >= cd && m_spawn)
-    {
-        SpawnTestEntities();
-        currentTime = 0;
-    }
-    // // Lemao refactor later
-    // // Probably a BFS or a simple 1D loop
-    currentTime += Time::DeltaTime();
+    // if (currentTime >= cd && m_spawn)
+    // {
+    //     currentTime = 0;
+    // }
+    // currentTime += Time::DeltaTime();
 
     {
         ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
@@ -100,7 +97,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 {
     float speed = Random::Float(50, 75);
-    float radius = Random::Float(15, 15);
+    float radius = Random::Float(12, 12);
     float bounce = 0.0f;
     float mass = radius;
 
@@ -111,32 +108,31 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 
 void GameScene::SpawnTestEntities()
 {
-    // SpawnEnemy({50, 100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({250, 100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({450, 100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({650, 100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({850, 100}, {Random::Float(0, 0), 600});
-    // SpawnEnemy({500, 25}, {0, 1000});
-    // SpawnEnemy({(float)Viewport::GetSize().x - 25, 25}, {Random::Float(0, 0), 3000});
-
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    for (int i = 12; i < Viewport::GetSize().x - 12; i += 12)
     {
-        Vect2f startPos{(float)i, 10};
-        SpawnEnemy(startPos, {0, 0});
+        for (int j = 12; j < Viewport::GetSize().y - 12; j += 12)
+        {
+            SpawnEnemy({(float)i, (float)j}, {0, 0});
+        }
     }
-    for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
-    {
-        Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
-        SpawnEnemy(startPos, {0, 0});
-    }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    {
-        Vect2f startPos{0, (float)i};
-        SpawnEnemy(startPos, {0, 0});
-    }
-    for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
-    {
-        Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
-        SpawnEnemy(startPos, {0, 0});
-    }
+    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    // {
+    //     Vect2f startPos{(float)i, 10};
+    //     SpawnEnemy(startPos, {0, 0});
+    // }
+    // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
+    // {
+    //     Vect2f startPos{(float)i, (float)Viewport::GetSize().y - 10};
+    //     SpawnEnemy(startPos, {0, 0});
+    // }
+    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    // {
+    //     Vect2f startPos{0, (float)i};
+    //     SpawnEnemy(startPos, {0, 0});
+    // }
+    // for (int i = 10; i <= Viewport::GetSize().y - 10; i += 24)
+    // {
+    //     Vect2f startPos{(float)Viewport::GetSize().x - 10, float(i)};
+    //     SpawnEnemy(startPos, {0, 0});
+    // }
 }

@@ -29,7 +29,7 @@ class CollisionEventSystem : ISetupSystem
 
     void HandleCollisionEvents(World* worldptr, const std::vector<CollisionCorrectionData>& collisionDataVector)
     {
-        ZoneScopedN("HandleCollisionEvents");
+        ZoneScopedN("CollisionEventSystem/HandleCollsionEvents");
 
         for (const auto& collisionData : collisionDataVector)
         {
@@ -93,6 +93,7 @@ class CollisionEventSystem : ISetupSystem
     // Call at the start of the Collision.h Update tick
     void ClearCollisionEvents(World* worldPtr)
     {
+        ZoneScopedN("CollisionEventSystem/ClearCollisionEvents");
         m_currentFramePairs.clear();
 
         m_collisionEventQueryPtr->ForEach<CCollisionEvent>(
