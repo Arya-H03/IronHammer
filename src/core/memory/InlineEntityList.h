@@ -26,19 +26,25 @@ struct InlineEntityList
 #endif
         }
     }
+
     void clear()
     {
         count = 0;
         overFlow = false;
     }
 
-    Entity* Begin()
+    Entity* Begin() const
     {
         return list;
     }
 
-    Entity* End()
+    Entity* End() const
     {
         return list + count;
+    }
+
+    size_t Size() const
+    {
+        return count;
     }
 };
