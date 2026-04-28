@@ -3,36 +3,37 @@
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
 #include "core/utils/Vect2.hpp"
+#include "ecs/World.h"
 #include "physics/CollisionCommon.h"
 #include "physics/PhysicsComponents.hpp"
 
 #include <cstdint>
 #include <vector>
 
-void CollisionResolutionSystem::ResolveCollisionOverlaps(std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
     const float percent = .25f;
     const float slop = 0.01f;
 
-    for (auto& c : collisionDataVector)
+    for (auto& collisionData : collisionDataVector)
     {
-        float invMass1 = c.e1RigidBodyPtr->inverseMass;
-        float invMass2 = c.e2RigidBodyPtr->inverseMass;
+        float invMass1 = collisionData.e1RigidbodyPtr->inverseMass;
+        float invMass2 = collisionData.e2RigidbodyPtr->inverseMass;
         float invMassSum = invMass1 + invMass2;
         if (invMassSum == 0.0f) continue;
 
-        float penetration = std::max(c.penetration - slop, 0.0f);
+        float penetration = std::max(collisionData.penetration - slop, 0.0f);
         if (penetration <= 0.0f) continue;
 
-        Vect2f correction = c.normal * ((penetration * percent) / invMassSum);
-        c.e1TransformPtr->position -= correction * invMass1;
-        c.e2TransformPtr->position += correction * invMass2;
+        Vect2f correction = collisionData.normal * ((penetration * percent) / invMassSum);
+        collisionData.e1TransformPtr->position -= correction * invMass1;
+        collisionData.e2TransformPtr->position += correction * invMass2;
     }
 }
 
-void CollisionResolutionSystem::RefreshCollisionPenetrations(std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     ZoneScopedN("CollisionResolutionSystem/RefreshCollisionPenetrations");
 
@@ -65,13 +66,13 @@ void CollisionResolutionSystem::RefreshCollisionPenetrations(std::vector<Collisi
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisions(std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
 {
     for (uint8_t i = 0; i < m_iterationCount; ++i)
     {
-        ResolveCollisionOverlaps(collisionDataVector);
+        ResolveCollisionOverlaps(worldPtr, collisionDataVector);
         if (i == m_iterationCount - 1) break;
-        RefreshCollisionPenetrations(collisionDataVector);
+        RefreshCollisionPenetrations(worldPtr, collisionDataVector);
     }
 }
 

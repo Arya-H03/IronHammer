@@ -5,6 +5,7 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "physics/CollisionCommon.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <cstdlib>
 
@@ -16,12 +17,12 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const PotentialColli
         {
 
             // AABB check
-            Vect2f e1Center = collisionPairData.e1TransformPtr->position + collisionPairData.e1ColliderPtr->offset;
-            Vect2f e2Center = collisionPairData.e2TransformPtr->position + collisionPairData.e2ColliderPtr->offset;
+            Vect2f e1Center = collisionPairData.e1Center;
+            Vect2f e2Center = collisionPairData.e2Center;
 
             Vect2f distance = e2Center - e1Center;
             Vect2f distanceAbs = distance.Abs();
-            Vect2f overlap = (collisionPairData.e1ColliderPtr->halfSize + collisionPairData.e2ColliderPtr->halfSize) - distanceAbs;
+            Vect2f overlap = (collisionPairData.e1ColliderHalfSize + collisionPairData.e2ColliderHalfSize) - distanceAbs;
 
             // Will Collide
             if (overlap.x > 0 && overlap.y > 0)
@@ -42,10 +43,13 @@ void NarrowPhaseCollisionSystem::AABBCheck(World* worldPtr, const PotentialColli
 
                 {
                     ZoneScopedN("NarrowPhaseSystem/AABB_Checks/CreatePenetrationData");
-                    m_collisionPenetrationData.emplace_back(collisionPairData.e1, collisionPairData.e2, normal, penetration,
-                                                            collisionPairData.e1TransformPtr, collisionPairData.e1RigidBodyPtr,
-                                                            collisionPairData.e1ColliderPtr, collisionPairData.e2TransformPtr,
-                                                            collisionPairData.e2RigidBodyPtr, collisionPairData.e2ColliderPtr);
+                    m_collisionPenetrationData.emplace_back(
+                        collisionPairData.e1, collisionPairData.e2, worldPtr->TryGetComponent<CTransform>(collisionPairData.e1),
+                        worldPtr->TryGetComponent<CTransform>(collisionPairData.e2),
+                        worldPtr->TryGetComponent<CRigidBody>(collisionPairData.e1),
+                        worldPtr->TryGetComponent<CRigidBody>(collisionPairData.e2),
+                        worldPtr->TryGetComponent<CCollider>(collisionPairData.e1),
+                        worldPtr->TryGetComponent<CCollider>(collisionPairData.e2), normal, penetration);
                 }
             }
         }

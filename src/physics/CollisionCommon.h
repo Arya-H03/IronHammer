@@ -50,14 +50,10 @@ struct CollisionPair
 struct PotentialCollisionPair
 {
     Entity e1, e2;
-
-    CTransform* e1TransformPtr;
-    CCollider* e1ColliderPtr;
-    CRigidBody* e1RigidBodyPtr;
-
-    CTransform* e2TransformPtr;
-    CCollider* e2ColliderPtr;
-    CRigidBody* e2RigidBodyPtr;
+    Vect2f e1Center = {0, 0};
+    Vect2f e2Center = {0, 0};
+    Vect2f e1ColliderHalfSize = {0, 0};
+    Vect2f e2ColliderHalfSize = {0, 0};
 
     bool operator==(const CollisionPairOld& otherPair) const
     {
@@ -67,9 +63,10 @@ struct PotentialCollisionPair
 
 struct BroadPhaseCellData
 {
-    CTransform* transformPtr;
-    CCollider* colliderPtr;
-    CRigidBody* rigidBodyPtr;
+    Vect2f center = {0, 0};
+    Vect2f colliderHalfSize = {0, 0};
+    uint32_t collisionMask = ~0u;
+    Layer collisionLayer = Layer::Default;
 
     Entity entity;
     Vect2<uint16_t> minCell;
@@ -87,15 +84,16 @@ struct CollisionPairHash
 
 struct CollisionCorrectionData
 {
-    Entity e1, e2;
-    Vect2f normal;
-    float penetration;
+    Entity e1;
+    Entity e2;
 
     CTransform* e1TransformPtr;
-    CRigidBody* e1RigidBodyPtr;
-    CCollider* e1ColliderPtr;
-
     CTransform* e2TransformPtr;
-    CRigidBody* e2RigidBodyPtr;
+    CRigidBody* e1RigidbodyPtr;
+    CRigidBody* e2RigidbodyPtr;
+    CCollider* e1ColliderPtr;
     CCollider* e2ColliderPtr;
+
+    Vect2f normal;
+    float penetration;
 };

@@ -12,8 +12,8 @@ class CollisionResolutionSystem
   public:
     CollisionResolutionSystem() = default;
 
-    void ResolveCollisionOverlaps(std::vector<CollisionCorrectionData>& collisionDataVector);
-    void RefreshCollisionPenetrations(std::vector<CollisionCorrectionData>& collisionDataVector);
+    void ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
+    void RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
     void ResolveCollisionImpulse(std::vector<CollisionCorrectionData>& collisionDataVector);
-    void ResolveCollisions(std::vector<CollisionCorrectionData>& collisionDataVector);
+    void ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector);
 };

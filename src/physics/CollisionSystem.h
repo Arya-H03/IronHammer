@@ -139,7 +139,7 @@ class CollisionSystem : public ISetupSystem
 
             potentialCollisionPairVector = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
             collisionDataVector = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *potentialCollisionPairVector);
-            m_collisionResolutionSystem.ResolveCollisions(*collisionDataVector);
+            m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionDataVector);
         }
 
         m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);

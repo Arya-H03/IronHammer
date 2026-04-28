@@ -19,7 +19,7 @@ BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize)
     m_gridRows = m_windowSize.y / m_cellSize;
     m_gridCols = m_windowSize.x / m_cellSize;
 
-    m_flatGridData.resize(m_gridRows * m_gridCols);
+    m_broadPhaseGrid.resize(m_gridRows * m_gridCols);
 }
 
 void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
@@ -51,7 +51,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
 {
     ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
-    for (auto& dataList : m_flatGridData)
+    for (auto& dataList : m_broadPhaseGrid)
     {
         dataList.clear();
     }
@@ -70,8 +70,10 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
                     if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
                     uint16_t index = j * m_gridCols + i;
                     bool isHome = (homeCoord.x == i && homeCoord.y == j);
-                    m_flatGridData[index].Push(
-                        {&transformComp, &colliderComp, &rigidBodyComp, entity, static_cast<Vect2<uint16_t>>(topLeftCoord)});
+
+                    Vect2f center = transformComp.position + colliderComp.offset;
+                    m_broadPhaseGrid[index].Push({center, colliderComp.halfSize, colliderComp.mask, colliderComp.layer, entity,
+                                                  static_cast<Vect2<uint16_t>>(topLeftCoord)});
                 }
             }
         });
@@ -83,50 +85,53 @@ void BroadPhaseCollisionSystem::FindCollisionPairs()
 
     m_potentialCollisionPairs.clear();
 
-    for (uint16_t currentCellIndex = 0; currentCellIndex < m_flatGridData.size(); ++currentCellIndex)
+    for (uint16_t currentCellIndex = 0; currentCellIndex < m_broadPhaseGrid.size(); ++currentCellIndex)
     {
-        const auto& dataList = m_flatGridData[currentCellIndex];
+        const auto& dataList = m_broadPhaseGrid[currentCellIndex];
 
         for (size_t i = 0; i < dataList.Size(); ++i)
         {
-            const BroadPhaseCellData& cellA = dataList.list[i];
+            const BroadPhaseCellData& cellDataA = dataList.list[i];
             for (size_t j = i + 1; j < dataList.Size(); ++j)
             {
-                const BroadPhaseCellData& cellB = dataList.list[j];
+                const BroadPhaseCellData& cellDataB = dataList.list[j];
 
-                if (!CanCollidersContact(cellA.colliderPtr, cellB.colliderPtr)) continue;
+                if (!CanCollidersContact(cellDataA.collisionMask, cellDataB.collisionMask, cellDataA.collisionLayer,
+                                         cellDataB.collisionLayer))
+                    continue;
 
-                const uint16_t sharedMinX = std::max(cellA.minCell.x, cellB.minCell.x);
-                const uint16_t sharedMinY = std::max(cellA.minCell.y, cellB.minCell.y);
+                const uint16_t sharedMinX = std::max(cellDataA.minCell.x, cellDataB.minCell.x);
+                const uint16_t sharedMinY = std::max(cellDataA.minCell.y, cellDataB.minCell.y);
                 const uint16_t ownerCellIndex = sharedMinY * m_gridCols + sharedMinX;
                 if (currentCellIndex != ownerCellIndex) continue;
 
-                const bool aIsLower = cellA.entity.id < cellB.entity.id;
+                const bool aIsLower = cellDataA.entity.id < cellDataB.entity.id;
 
                 if (aIsLower)
                 {
-                    m_potentialCollisionPairs.push_back({cellA.entity, cellB.entity, cellA.transformPtr, cellA.colliderPtr,
-                                                         cellA.rigidBodyPtr, cellB.transformPtr, cellB.colliderPtr, cellB.rigidBodyPtr});
+                    m_potentialCollisionPairs.push_back({cellDataA.entity, cellDataB.entity, cellDataA.center, cellDataB.center,
+                                                         cellDataA.colliderHalfSize, cellDataB.colliderHalfSize});
                 }
                 else
                 {
-                    m_potentialCollisionPairs.push_back({cellB.entity, cellA.entity, cellB.transformPtr, cellB.colliderPtr,
-                                                         cellB.rigidBodyPtr, cellA.transformPtr, cellA.colliderPtr, cellA.rigidBodyPtr});
+                    m_potentialCollisionPairs.push_back({cellDataB.entity, cellDataA.entity, cellDataB.center, cellDataA.center,
+                                                         cellDataB.colliderHalfSize, cellDataA.colliderHalfSize});
                 }
             }
         }
     }
 }
 
-bool BroadPhaseCollisionSystem::CanCollidersContact(CCollider* collider1, CCollider* collider2)
+bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA,
+                                                    Layer colliderLayerB)
 {
-    uint32_t e1Bit = static_cast<uint32_t>(collider1->layer);
-    uint32_t e2Bit = static_cast<uint32_t>(collider2->layer);
+    uint32_t bitA = static_cast<uint32_t>(colliderLayerA);
+    uint32_t bitB = static_cast<uint32_t>(colliderLayerB);
 
-    bool e1WantsE2 = (collider1->mask & e2Bit) != 0;
-    bool e2WantsE1 = (collider2->mask & e1Bit) != 0;
+    bool aWantsB = (colliderMaskA & bitB) != 0;
+    bool bWantsA = (colliderMaskB & bitA) != 0;
 
-    if (!e1WantsE2 || !e2WantsE1)
+    if (!aWantsB || !bWantsA)
     {
         return false;
     }

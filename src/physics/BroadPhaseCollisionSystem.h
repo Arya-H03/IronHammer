@@ -4,6 +4,7 @@
 #include "ecs/World.h"
 #include "ecs/system/ISystem.h"
 #include "physics/CollisionCommon.h"
+#include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
@@ -22,12 +23,11 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
-    std::vector<InlineVector<BroadPhaseCellData, 12>> m_flatGridData;
+    std::vector<InlineVector<BroadPhaseCellData, 12>> m_broadPhaseGrid;
     std::vector<PotentialCollisionPair> m_potentialCollisionPairs;
 
     Query* m_broadPhaseQuery;
 
-    // Flags
     bool m_canDisplayGrid = false;
     bool m_canHighlightGrid = false;
 
@@ -35,7 +35,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     void FillCellsWithOverlappingEntities(World* worldPtr);
     void FindCollisionPairs();
 
-    bool CanCollidersContact(CCollider* collider1, CCollider* collider2);
+    bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 
   public:
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
