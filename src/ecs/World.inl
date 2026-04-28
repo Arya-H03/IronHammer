@@ -151,6 +151,12 @@ inline bool World::HasComponent(Entity entity)
 }
 
 template <typename Component>
+inline Component* World::TryGetComponentFast(Entity entity)
+{
+    return m_entityManager.TryGetComponentFast<Component>(entity);
+}
+
+template <typename Component>
 inline Component* World::TryGetComponent(Entity entity)
 {
     return m_entityManager.TryGetComponent<Component>(entity);

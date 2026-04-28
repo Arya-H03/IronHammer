@@ -66,7 +66,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                //LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
+                // LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Id.", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -77,7 +77,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                //LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
+                // LOG_WARNING(std::format("Tried to valid an occupied Entity({},{})", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -88,7 +88,7 @@ class EntityManager
 #ifndef NDEBUG
             if (log)
             {
-                //LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
+                // LOG_WARNING(std::format("Tried to valid Entity({},{}) with invalid Generation.", entity.id, entity.generation));
             }
 #endif
             return false;
@@ -111,6 +111,14 @@ class EntityManager
         EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
         Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
         return archetype.HasComponent(componentId);
+    }
+
+    template <typename Component>
+    Component* TryGetComponentFast(Entity entity)
+    {
+        EntityStorageLocation& entityLocation = m_entityStorageLocations[entity.id];
+        Archetype& archetype = m_archetypeRegistry.GetArchetypeById(entityLocation.archetypeId);
+        return archetype.GetComponentPtrByTemplateFast<Component>(entityLocation);
     }
 
     template <typename Component>

@@ -62,6 +62,9 @@ class World
     bool HasComponent(Entity entity);
 
     template <typename Component>
+    Component* TryGetComponentFast(Entity entity);
+
+    template <typename Component>
     Component* TryGetComponent(Entity entity);
 
     void* TryGetComponent(Entity entity, ComponentId id);

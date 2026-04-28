@@ -60,7 +60,7 @@ class Archetype
     {
         for (size_t i = 0; i < m_chunks.size(); ++i)
         {
-            if(!m_chunks[i].IsFull()) return i;
+            if (!m_chunks[i].IsFull()) return i;
         }
 
         return CreateChunk();
@@ -138,9 +138,24 @@ class Archetype
     }
 
     template <typename Component>
+    Component* GetComponentPtrByTemplateFast(const EntityStorageLocation& entityLocation)
+    {
+        const ComponentId id = ComponentRegistry::GetComponentID<Component>();
+
+        uint16_t denseIndex = m_sparse[id];
+        ArchetypeChunk& chunk = m_chunks[entityLocation.chunkIndex];
+
+        void* base = chunk.components[denseIndex];
+        char* byteBase = static_cast<char*>(base);
+
+        return reinterpret_cast<Component*>(byteBase + (entityLocation.indexInChunk * sizeof(Component)));
+    }
+
+
+    template <typename Component>
     Component* GetComponentPtrByTemplate(const EntityStorageLocation& entityLocation)
     {
-        ComponentId id = ComponentRegistry::GetComponentID<Component>();
+        const ComponentId id = ComponentRegistry::GetComponentID<Component>();
         if (id >= MaxComponents)
         {
             assert(false);
