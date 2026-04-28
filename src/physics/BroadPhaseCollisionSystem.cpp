@@ -2,11 +2,14 @@
 
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
+#include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
+#include "ecs/common/ECSCommon.h"
 #include "physics/CollisionCommon.h"
 #include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -16,8 +19,7 @@ BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize)
     m_gridRows = m_windowSize.y / m_cellSize;
     m_gridCols = m_windowSize.x / m_cellSize;
 
-    m_flatGridData.reserve(5000);
-    m_flatGridBuffer.reserve(5000);
+    m_flatGridData.resize(m_gridRows * m_gridCols);
 }
 
 void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
@@ -49,7 +51,10 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
 {
     ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
-    m_flatGridData.clear();
+    for (auto& dataList : m_flatGridData)
+    {
+        dataList.clear();
+    }
 
     m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform, CRigidBody>(
         [&](Entity entity, CCollider& colliderComp, CTransform& transformComp, CRigidBody& rigidBodyComp)
@@ -63,105 +68,52 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
                 for (int i = topLeftCoord.x; i <= bottomRightCoord.x; ++i)
                 {
                     if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
-                    size_t index = (size_t)j * m_gridCols + (size_t)i;
+                    uint16_t index = j * m_gridCols + i;
                     bool isHome = (homeCoord.x == i && homeCoord.y == j);
-                    m_flatGridData.push_back({index, entity, isHome, &transformComp, &colliderComp, &rigidBodyComp});
+                    m_flatGridData[index].Push(
+                        {&transformComp, &colliderComp, &rigidBodyComp, entity, static_cast<Vect2<uint16_t>>(topLeftCoord)});
                 }
             }
         });
 }
 
-
-void BroadPhaseCollisionSystem::CountSort(std::vector<BroadPhaseCellData>& toSort, int exponent)
-{
-    size_t size = toSort.size();
-    size_t counts[10] = {0};
-
-    m_flatGridBuffer.clear();
-    m_flatGridBuffer.resize(size);
-
-    // Calculate digit counts
-    for (size_t i = 0; i < size; ++i)
-    {
-        ++counts[(toSort[i].cellIndex / exponent) % 10];
-    }
-
-    for (size_t i = 1; i < 10; ++i)
-    {
-        counts[i] += counts[i - 1];
-    }
-
-    for (int i = size - 1; i >= 0; --i)
-    {
-        m_flatGridBuffer[counts[(toSort[i].cellIndex / exponent) % 10] - 1] = toSort[i];
-        --counts[(toSort[i].cellIndex / exponent) % 10];
-    }
-
-    for (size_t i = 0; i < size; ++i)
-    {
-        toSort[i] = m_flatGridBuffer[i];
-    }
-}
-
-void BroadPhaseCollisionSystem::RadixSortGridData(std::vector<BroadPhaseCellData>& toSort)
-{
-    ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/RadixSortGridData");
-
-    if (toSort.size() <= 1) return;
-    size_t maxCellIndex = toSort[0].cellIndex;
-    for (size_t i = 0; i < toSort.size(); ++i)
-    {
-        if (toSort[i].cellIndex > maxCellIndex) maxCellIndex = toSort[i].cellIndex;
-    }
-
-    for (size_t exponent = 1; maxCellIndex / exponent > 0; exponent *= 10)
-    {
-        CountSort(toSort, exponent);
-    }
-}
 void BroadPhaseCollisionSystem::FindCollisionPairs()
 {
-    RadixSortGridData(m_flatGridData);
-
     ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/FilterOutCollisionPairs");
 
     m_potentialCollisionPairs.clear();
-    size_t left = 0;
-    for (size_t right = 0; right <= m_flatGridData.size(); ++right)
+
+    for (uint16_t currentCellIndex = 0; currentCellIndex < m_flatGridData.size(); ++currentCellIndex)
     {
-        bool isEnd = right == m_flatGridData.size();
-        bool newCell = !isEnd && (m_flatGridData[right].cellIndex != m_flatGridData[left].cellIndex);
+        const auto& dataList = m_flatGridData[currentCellIndex];
 
-        if (isEnd || newCell)
+        for (size_t i = 0; i < dataList.Size(); ++i)
         {
-            for (size_t a = left; a < right; ++a)
+            const BroadPhaseCellData& cellA = dataList.list[i];
+            for (size_t j = i + 1; j < dataList.Size(); ++j)
             {
-                for (size_t b = a + 1; b < right; ++b)
+                const BroadPhaseCellData& cellB = dataList.list[j];
+
+                if (!CanCollidersContact(cellA.colliderPtr, cellB.colliderPtr)) continue;
+
+                const uint16_t sharedMinX = std::max(cellA.minCell.x, cellB.minCell.x);
+                const uint16_t sharedMinY = std::max(cellA.minCell.y, cellB.minCell.y);
+                const uint16_t ownerCellIndex = sharedMinY * m_gridCols + sharedMinX;
+                if (currentCellIndex != ownerCellIndex) continue;
+
+                const bool aIsLower = cellA.entity.id < cellB.entity.id;
+
+                if (aIsLower)
                 {
-                    BroadPhaseCellData& cellA = m_flatGridData[a];
-                    BroadPhaseCellData& cellB = m_flatGridData[b];
-
-                    if (!CanCollidersContact(cellA.colliderPtr, cellB.colliderPtr)) continue;
-
-                    bool aIsHigher = cellA.entity.id > cellB.entity.id;
-                    bool highrIsHome = aIsHigher ? cellA.isHome : cellB.isHome;
-                    if (!cellA.isHome && !cellB.isHome) continue;
-
-                    if (aIsHigher)
-                    {
-                        m_potentialCollisionPairs.push_back({cellB.entity, cellA.entity, cellB.transformPtr, cellB.colliderPtr,
-                                                             cellB.rigidBodyPtr, cellA.transformPtr, cellA.colliderPtr,
-                                                             cellA.rigidBodyPtr});
-                    }
-                    else
-                    {
-                        m_potentialCollisionPairs.push_back({cellA.entity, cellB.entity, cellA.transformPtr, cellA.colliderPtr,
-                                                             cellA.rigidBodyPtr, cellB.transformPtr, cellB.colliderPtr,
-                                                             cellB.rigidBodyPtr});
-                    }
+                    m_potentialCollisionPairs.push_back({cellA.entity, cellB.entity, cellA.transformPtr, cellA.colliderPtr,
+                                                         cellA.rigidBodyPtr, cellB.transformPtr, cellB.colliderPtr, cellB.rigidBodyPtr});
+                }
+                else
+                {
+                    m_potentialCollisionPairs.push_back({cellB.entity, cellA.entity, cellB.transformPtr, cellB.colliderPtr,
+                                                         cellB.rigidBodyPtr, cellA.transformPtr, cellA.colliderPtr, cellA.rigidBodyPtr});
                 }
             }
-            left = right;
         }
     }
 }

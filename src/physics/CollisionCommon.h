@@ -8,6 +8,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 
 struct Cell
 {
@@ -66,13 +67,14 @@ struct PotentialCollisionPair
 
 struct BroadPhaseCellData
 {
-    size_t cellIndex = SIZE_MAX;
-    Entity entity;
-    bool isHome;
-
     CTransform* transformPtr;
     CCollider* colliderPtr;
     CRigidBody* rigidBodyPtr;
+
+    Entity entity;
+    Vect2<uint16_t> minCell;
+    // uint16_t cellIndex = UINT16_MAX;
+    // bool isHome;
 };
 
 struct CollisionPairHash

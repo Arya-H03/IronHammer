@@ -1,4 +1,5 @@
 #pragma once
+#include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/system/ISystem.h"
@@ -15,14 +16,13 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const float m_cellSize = 12;
+    const float m_cellSize = 24;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
 
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
-    std::vector<BroadPhaseCellData> m_flatGridData;
-    std::vector<BroadPhaseCellData> m_flatGridBuffer;
+    std::vector<InlineVector<BroadPhaseCellData, 12>> m_flatGridData;
     std::vector<PotentialCollisionPair> m_potentialCollisionPairs;
 
     Query* m_broadPhaseQuery;
@@ -36,9 +36,6 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     void FindCollisionPairs();
 
     bool CanCollidersContact(CCollider* collider1, CCollider* collider2);
-
-    void CountSort(std::vector<BroadPhaseCellData>& toSort, int exponent);
-    void RadixSortGridData(std::vector<BroadPhaseCellData>& toSort);
 
   public:
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
