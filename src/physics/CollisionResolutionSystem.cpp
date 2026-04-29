@@ -5,12 +5,12 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "physics/CollisionCommon.h"
-#include "physics/PhysicsComponents.hpp"
 
 #include <cstdint>
 #include <vector>
 
-void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
+                                                         std::vector<SolverBody>& sovlerBodies)
 {
     ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
@@ -19,32 +19,35 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
 
     for (auto& collisionData : collisionDataVector)
     {
-        float invMass1 = collisionData.e1RigidbodyPtr->inverseMass;
-        float invMass2 = collisionData.e2RigidbodyPtr->inverseMass;
-        float invMassSum = invMass1 + invMass2;
+        float invMassA = sovlerBodies[collisionData.solverBodyAIndex].inverseMass;
+        float invMassB = sovlerBodies[collisionData.solverBodyBIndex].inverseMass;
+        float invMassSum = invMassA + invMassB;
         if (invMassSum == 0.0f) continue;
 
         float penetration = std::max(collisionData.penetration - slop, 0.0f);
         if (penetration <= 0.0f) continue;
 
         Vect2f correction = collisionData.normal * ((penetration * percent) / invMassSum);
-        collisionData.e1TransformPtr->position -= correction * invMass1;
-        collisionData.e2TransformPtr->position += correction * invMass2;
+        sovlerBodies[collisionData.solverBodyAIndex].position -= correction * invMassA;
+        sovlerBodies[collisionData.solverBodyBIndex].position += correction * invMassB;
     }
 }
 
-void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
+                                                             std::vector<SolverBody>& sovlerBodies)
 {
     ZoneScopedN("CollisionResolutionSystem/RefreshCollisionPenetrations");
 
     for (auto& collisionData : collisionDataVector)
     {
-        Vect2f e1Center = collisionData.e1TransformPtr->position + collisionData.e1ColliderPtr->offset;
-        Vect2f e2Center = collisionData.e2TransformPtr->position + collisionData.e2ColliderPtr->offset;
+        Vect2f e1Center = sovlerBodies[collisionData.solverBodyAIndex].position;
+        Vect2f e2Center = sovlerBodies[collisionData.solverBodyBIndex].position;
 
         Vect2f distance = e2Center - e1Center;
         Vect2f distanceAbs = distance.Abs();
-        Vect2f overlap = (collisionData.e1ColliderPtr->halfSize + collisionData.e2ColliderPtr->halfSize) - distanceAbs;
+        Vect2f overlap = (sovlerBodies[collisionData.solverBodyAIndex].colliderHalfSize +
+                          sovlerBodies[collisionData.solverBodyBIndex].colliderHalfSize) -
+                         distanceAbs;
 
         if (overlap.x > 0 && overlap.y > 0)
         {
@@ -66,13 +69,18 @@ void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, st
     }
 }
 
-void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector)
+void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
+                                                  std::vector<SolverBody>& sovlerBodies)
 {
     for (uint8_t i = 0; i < m_iterationCount; ++i)
     {
-        ResolveCollisionOverlaps(worldPtr, collisionDataVector);
+        ResolveCollisionOverlaps(worldPtr, collisionDataVector, sovlerBodies);
         if (i == m_iterationCount - 1) break;
-        RefreshCollisionPenetrations(worldPtr, collisionDataVector);
+        RefreshCollisionPenetrations(worldPtr, collisionDataVector, sovlerBodies);
+    }
+    for (auto& solverBody : sovlerBodies)
+    {
+        solverBody.transformPtr->position = solverBody.position;
     }
 }
 

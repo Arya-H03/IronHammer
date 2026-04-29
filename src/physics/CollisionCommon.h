@@ -7,8 +7,10 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 struct Cell
 {
@@ -49,30 +51,27 @@ struct CollisionPair
 
 struct PotentialCollisionPair
 {
-    Entity e1, e2;
-    Vect2f e1Center = {0, 0};
-    Vect2f e2Center = {0, 0};
-    Vect2f e1ColliderHalfSize = {0, 0};
-    Vect2f e2ColliderHalfSize = {0, 0};
-
-    bool operator==(const CollisionPairOld& otherPair) const
-    {
-        return e1 == otherPair.e1 && e2 == otherPair.e2;
-    }
+    std::size_t solverBodyAIndex;
+    std::size_t solverBodyBIndex;
 };
 
 struct BroadPhaseCellData
 {
-    Vect2f center = {0, 0};
-    Vect2f colliderHalfSize = {0, 0};
+    size_t solverBodyIndex;
+    Vect2<int> minCell;
+};
+
+struct SolverBody
+{
+    Entity entity;
+    Vect2f position{};
+    Vect2f colliderHalfSize{};
+    float inverseMass = 0;
     uint32_t collisionMask = ~0u;
     Layer collisionLayer = Layer::Default;
-
-    Entity entity;
-    Vect2<uint16_t> minCell;
-    // uint16_t cellIndex = UINT16_MAX;
-    // bool isHome;
+    CTransform* transformPtr = nullptr;
 };
+
 
 struct CollisionPairHash
 {
@@ -84,16 +83,34 @@ struct CollisionPairHash
 
 struct CollisionCorrectionData
 {
-    Entity e1;
-    Entity e2;
-
-    CTransform* e1TransformPtr;
-    CTransform* e2TransformPtr;
-    CRigidBody* e1RigidbodyPtr;
-    CRigidBody* e2RigidbodyPtr;
-    CCollider* e1ColliderPtr;
-    CCollider* e2ColliderPtr;
+    size_t solverBodyAIndex;
+    size_t solverBodyBIndex;
 
     Vect2f normal;
     float penetration;
+};
+
+struct NarrowPhaseSIMDBatch
+{
+    std::vector<float> aPositionX, aPositionY, aColliderHalfSizeX, aColliderHalfSizeY;
+    std::vector<float> bPositionX, bPositionY, bColliderHalfSizeX, bColliderHalfSizeY;
+
+    std::vector<uint32_t> aSolverBodyIndex;
+    std::vector<uint32_t> bSolverBodyIndex;
+
+    void Clear()
+    {
+        aPositionX.clear();
+        aPositionY.clear();
+        aColliderHalfSizeX.clear();
+        aColliderHalfSizeY.clear();
+
+        bPositionX.clear();
+        bPositionY.clear();
+        bColliderHalfSizeX.clear();
+        bColliderHalfSizeY.clear();
+
+        aSolverBodyIndex.clear();
+        bSolverBodyIndex.clear();
+    }
 };

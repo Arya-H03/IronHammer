@@ -4,6 +4,7 @@
 #include "physics/CollisionCommon.h"
 #include "physics/CollisionEventSystem.h"
 
+#include <cstddef>
 #include <cstdlib>
 #include <vector>
 
@@ -16,12 +17,15 @@ class NarrowPhaseCollisionSystem
 
     std::vector<CollisionCorrectionData> m_collisionPenetrationData;
 
-    void AABBCheck(World* worldPtr, const PotentialCollisionPair& collisionPairData);
+    void ScalarAABBCheck(const NarrowPhaseSIMDBatch& batch,size_t index);
+    void SIMDAABBCheck(const NarrowPhaseSIMDBatch& batch, size_t startsIndex);
+    void GenerateContactForSIMD(const NarrowPhaseSIMDBatch& batchm, size_t index);
 
   public:
     NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem)
     {
     }
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const std::vector<PotentialCollisionPair>& potentialPairs);
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const NarrowPhaseSIMDBatch& batch,
+                                                                         const std::vector<SolverBody>& solverBodies);
 };

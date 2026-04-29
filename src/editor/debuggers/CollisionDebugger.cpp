@@ -62,15 +62,15 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
     {
         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
         {
-            PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
-            ImGui::Text("Entity %i", pair.e1.id);
-            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-            ImGui::SameLine();
-            ImGui::Text("&");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::Text("Entity %i", pair.e2.id);
-            ImGui::Separator();
+            // PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
+            // ImGui::Text("Entity %i", pair.e1.id);
+            // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            // ImGui::SameLine();
+            // ImGui::Text("&");
+            // ImGui::PopStyleColor();
+            // ImGui::SameLine();
+            // ImGui::Text("Entity %i", pair.e2.id);
+            // ImGui::Separator();
         }
     }
 }
@@ -93,15 +93,15 @@ void CollisionDebugger::NarrowPhaseGui() const
     {
         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
         {
-            CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
-            ImGui::Text("Entity %i", pair.e1.id);
-            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-            ImGui::SameLine();
-            ImGui::Text("&");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::Text("Entity %i", pair.e2.id);
-            ImGui::Separator();
+            // CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
+            // ImGui::Text("Entity %i", pair.e1.id);
+            // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            // ImGui::SameLine();
+            // ImGui::Text("&");
+            // ImGui::PopStyleColor();
+            // ImGui::SameLine();
+            // ImGui::Text("Entity %i", pair.e2.id);
+            // ImGui::Separator();
         }
     }
 }

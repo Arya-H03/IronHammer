@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---------------- Build Type ----------------
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # Keep debug symbols even in Release for stack traces
@@ -75,7 +75,7 @@ file(GLOB_RECURSE IRONHAMMER_SOURCES
 
 # Append Tracy if enabled
 if(ENABLE_TRACY)
-    list(APPEND IRONHAMMER_SOURCES
+  list(APPEND IRONHAMMER_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/external/tracy/public/TracyClient.cpp"
     )
 endif()
@@ -85,7 +85,7 @@ add_executable(IronHammer ${IRONHAMMER_SOURCES})
 
 # ---------------- Compile Definitions ----------------
 if(ENABLE_TRACY)
-    target_compile_definitions(IronHammer PRIVATE TRACY_ENABLE)
+  target_compile_definitions(IronHammer PRIVATE TRACY_ENABLE)
 endif()
 
 # ---------------- Include Directories ----------------
@@ -98,6 +98,7 @@ target_include_directories(IronHammer PRIVATE
 target_compile_options(IronHammer PRIVATE
     -g
     -fno-omit-frame-pointer
+    -mavx2
 )
 
 # ---------------- Link Libraries ----------------

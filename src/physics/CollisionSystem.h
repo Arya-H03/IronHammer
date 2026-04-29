@@ -35,6 +35,7 @@ class CollisionSystem : public ISetupSystem
     const Vect2f gravity = {0, 500};
 
     Vect2<uint16_t> m_windowSize;
+    std::vector<SolverBody> m_solverBodies;
 
     CollisionEventSystem m_collsionEventSystem;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
@@ -109,8 +110,9 @@ class CollisionSystem : public ISetupSystem
         m_updateCollisionQueryPtr = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
-        // worldPtr->CreateEntityNoReturn(CTransform({500, 500}, {1, 1}, 0),
-        //                                CSprite("Circle", {500, 500}, sf::IntRect{{0, 0}, {256, 256}}, Colors::ColdSteelBlue_SFML));
+
+        m_solverBodies.clear();
+        m_solverBodies.reserve(5000);
     }
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
@@ -127,21 +129,23 @@ class CollisionSystem : public ISetupSystem
 
     void HandleCollisionSystem(World* worldPtr, float dt)
     {
-        std::vector<PotentialCollisionPair>* potentialCollisionPairVector;
+        NarrowPhaseSIMDBatch* narrowPhaseSIMDBatch;
         std::vector<CollisionCorrectionData>* collisionDataVector;
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
+            m_solverBodies.clear();
             UpdatePositions(substepDt);
             CheckForScreenBorderCollision();
 
-            potentialCollisionPairVector = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
-            collisionDataVector = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *potentialCollisionPairVector);
-            m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionDataVector);
+            narrowPhaseSIMDBatch = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
+            collisionDataVector =
+                &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *narrowPhaseSIMDBatch, m_solverBodies);
+            m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionDataVector, m_solverBodies);
         }
 
-        m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);
+        // m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);
     }
 };

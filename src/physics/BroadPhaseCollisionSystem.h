@@ -25,6 +25,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
     std::vector<InlineVector<BroadPhaseCellData, 12>> m_broadPhaseGrid;
     std::vector<PotentialCollisionPair> m_potentialCollisionPairs;
+    NarrowPhaseSIMDBatch m_narrowPhasebatch;
 
     Query* m_broadPhaseQuery;
 
@@ -32,8 +33,8 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     bool m_canHighlightGrid = false;
 
     void ClearAllCells();
-    void FillCellsWithOverlappingEntities(World* worldPtr);
-    void FindCollisionPairs();
+    void FillCellsWithOverlappingEntities(World* worldPtr, std::vector<SolverBody>& solverBodies);
+    void FindCollisionPairs(const std::vector<SolverBody>& solverBodies);
 
     bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 
@@ -41,7 +42,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 
-    std::vector<PotentialCollisionPair>& HandleBroadPhaseCollisionSystem(World* worldPtr);
+    NarrowPhaseSIMDBatch& HandleBroadPhaseCollisionSystem(World* worldPtr, std::vector<SolverBody>& solverBodies);
 
     bool GetCanDisplayGrid() const;
     bool GetCanHighlightGrid() const;
