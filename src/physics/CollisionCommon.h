@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -57,8 +58,8 @@ struct PotentialCollisionPair
 
 struct BroadPhaseCellData
 {
-    size_t solverBodyIndex;
-    Vect2<int> minCell;
+    uint16_t solverBodyIndex;
+    Vect2<uint8_t> minCell;
 };
 
 struct SolverBody
@@ -98,6 +99,46 @@ struct NarrowPhaseSIMDBatch
     std::vector<uint32_t> aSolverBodyIndex;
     std::vector<uint32_t> bSolverBodyIndex;
 
+    size_t count = 0;
+
+    NarrowPhaseSIMDBatch()
+    {
+        Reserve(75000);
+    }
+
+    void Reserve(size_t size)
+    {
+        aPositionX.reserve(size);
+        aPositionY.reserve(size);
+        aColliderHalfSizeX.reserve(size);
+        aColliderHalfSizeY.reserve(size);
+
+        bPositionX.reserve(size);
+        bPositionY.reserve(size);
+        bColliderHalfSizeX.reserve(size);
+        bColliderHalfSizeY.reserve(size);
+
+        aSolverBodyIndex.reserve(size);
+        bSolverBodyIndex.reserve(size);
+
+        count = size;
+    }
+
+    void Resize(size_t size)
+    {
+        aPositionX.resize(size);
+        aPositionY.resize(size);
+        aColliderHalfSizeX.resize(size);
+        aColliderHalfSizeY.resize(size);
+
+        bPositionX.resize(size);
+        bPositionY.resize(size);
+        bColliderHalfSizeX.resize(size);
+        bColliderHalfSizeY.resize(size);
+
+        aSolverBodyIndex.resize(size);
+        bSolverBodyIndex.resize(size);
+    }
     void Clear()
     {
         aPositionX.clear();

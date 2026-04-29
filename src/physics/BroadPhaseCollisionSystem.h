@@ -8,6 +8,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -24,8 +25,8 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     Vect2<uint16_t> m_windowSize;
 
     std::vector<InlineVector<BroadPhaseCellData, 12>> m_broadPhaseGrid;
-    std::vector<PotentialCollisionPair> m_potentialCollisionPairs;
     NarrowPhaseSIMDBatch m_narrowPhasebatch;
+    size_t m_lastFrameBatchCount = 0;
 
     Query* m_broadPhaseQuery;
 

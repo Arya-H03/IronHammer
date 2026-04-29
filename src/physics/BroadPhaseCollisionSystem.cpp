@@ -5,6 +5,7 @@
 #include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "editor/Viewport.h"
 #include "physics/CollisionCommon.h"
 #include "physics/PhysicsComponents.hpp"
 
@@ -16,14 +17,14 @@
 
 BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize) : m_windowSize(windowSize)
 {
-    m_gridRows = m_windowSize.y / m_cellSize;
-    m_gridCols = m_windowSize.x / m_cellSize;
-
-    m_broadPhaseGrid.resize(m_gridRows * m_gridCols);
 }
 
 void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 {
+    m_gridRows = (Viewport::GetSize().y / m_cellSize) + 5;
+    m_gridCols = (Viewport::GetSize().x / m_cellSize) + 5;
+    m_broadPhaseGrid.resize(m_gridRows * m_gridCols);
+
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
 }
 
@@ -59,21 +60,20 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
     m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform, CRigidBody>(
         [&](Entity entity, CCollider& colliderComp, CTransform& transformComp, CRigidBody& rigidBodyComp)
         {
-            Vect2<int> topLeftCoord = ((transformComp.position + colliderComp.offset - (colliderComp.halfSize)) / m_cellSize).Floor();
-            Vect2<int> bottomRightCoord = ((transformComp.position + colliderComp.offset + (colliderComp.halfSize)) / m_cellSize).Floor();
-            Vect2<int> homeCoord = ((transformComp.position + colliderComp.offset) / m_cellSize).Floor();
-
             Vect2f center = transformComp.position + colliderComp.offset;
+            Vect2<uint8_t> topLeftCell = ((center - (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
+            Vect2<uint8_t> bottomRightCell = ((center + (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
+
             solverBodies.push_back(
                 {entity, center, colliderComp.halfSize, rigidBodyComp.inverseMass, colliderComp.mask, colliderComp.layer, &transformComp});
 
-            for (int j = topLeftCoord.y; j <= bottomRightCoord.y; ++j)
+            for (int j = topLeftCell.y; j <= bottomRightCell.y; ++j)
             {
-                for (int i = topLeftCoord.x; i <= bottomRightCoord.x; ++i)
+                for (int i = topLeftCell.x; i <= bottomRightCell.x; ++i)
                 {
                     if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
                     uint16_t index = j * m_gridCols + i;
-                    m_broadPhaseGrid[index].Push({solverBodies.size() - 1, topLeftCoord});
+                    m_broadPhaseGrid[index].Push({static_cast<uint16_t>(solverBodies.size() - 1), topLeftCell});
                 }
             }
         });
@@ -81,9 +81,7 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
 
 void BroadPhaseCollisionSystem::FindCollisionPairs(const std::vector<SolverBody>& solverBodies)
 {
-    ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/FilterOutCollisionPairs");
-
-    m_potentialCollisionPairs.clear();
+    ZoneScopedN("BroadPhaseSystem/FindCollisionPairs");
 
     for (uint16_t currentCellIndex = 0; currentCellIndex < m_broadPhaseGrid.size(); ++currentCellIndex)
     {
@@ -110,14 +108,24 @@ void BroadPhaseCollisionSystem::FindCollisionPairs(const std::vector<SolverBody>
                 if (currentCellIndex != ownerCellIndex) continue;
 
                 const bool aIsLower = solverBodyA.entity.id < solverBodyB.entity.id;
+                size_t indexA = aIsLower ? cellDataA.solverBodyIndex : cellDataB.solverBodyIndex;
+                size_t indexB = aIsLower ? cellDataB.solverBodyIndex : cellDataA.solverBodyIndex;
+                const SolverBody& sA = solverBodies[indexA];
+                const SolverBody& sB = solverBodies[indexB];
 
-                if (aIsLower)
                 {
-                    m_potentialCollisionPairs.push_back(PotentialCollisionPair{cellDataA.solverBodyIndex, cellDataB.solverBodyIndex});
-                }
-                else
-                {
-                    m_potentialCollisionPairs.push_back(PotentialCollisionPair{cellDataB.solverBodyIndex, cellDataA.solverBodyIndex});
+                    m_narrowPhasebatch.aSolverBodyIndex.push_back(indexA);
+                    m_narrowPhasebatch.bSolverBodyIndex.push_back(indexB);
+
+                    m_narrowPhasebatch.aPositionX.push_back(sA.position.x);
+                    m_narrowPhasebatch.aPositionY.push_back(sA.position.y);
+                    m_narrowPhasebatch.aColliderHalfSizeX.push_back(sA.colliderHalfSize.x);
+                    m_narrowPhasebatch.aColliderHalfSizeY.push_back(sA.colliderHalfSize.y);
+
+                    m_narrowPhasebatch.bPositionX.push_back(sB.position.x);
+                    m_narrowPhasebatch.bPositionY.push_back(sB.position.y);
+                    m_narrowPhasebatch.bColliderHalfSizeX.push_back(sB.colliderHalfSize.x);
+                    m_narrowPhasebatch.bColliderHalfSizeY.push_back(sB.colliderHalfSize.y);
                 }
             }
         }
@@ -138,28 +146,14 @@ bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint
 
 NarrowPhaseSIMDBatch& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr, std::vector<SolverBody>& solverBodies)
 {
+    ZoneScopedN("CollisionBroadPhase");
+
     FillCellsWithOverlappingEntities(worldPtr, solverBodies);
-    FindCollisionPairs(solverBodies);
 
     m_narrowPhasebatch.Clear();
-    for (const PotentialCollisionPair& pair : m_potentialCollisionPairs)
-    {
-        const SolverBody& solverBodyA = solverBodies[pair.solverBodyAIndex];
-        const SolverBody& solverBodyB = solverBodies[pair.solverBodyBIndex];
-
-        m_narrowPhasebatch.aSolverBodyIndex.push_back(pair.solverBodyAIndex);
-        m_narrowPhasebatch.bSolverBodyIndex.push_back(pair.solverBodyBIndex);
-
-        m_narrowPhasebatch.aPositionX.push_back(solverBodyA.position.x);
-        m_narrowPhasebatch.aPositionY.push_back(solverBodyA.position.y);
-        m_narrowPhasebatch.aColliderHalfSizeX.push_back(solverBodyA.colliderHalfSize.x);
-        m_narrowPhasebatch.aColliderHalfSizeY.push_back(solverBodyA.colliderHalfSize.y);
-
-        m_narrowPhasebatch.bPositionX.push_back(solverBodyB.position.x);
-        m_narrowPhasebatch.bPositionY.push_back(solverBodyB.position.y);
-        m_narrowPhasebatch.bColliderHalfSizeX.push_back(solverBodyB.colliderHalfSize.x);
-        m_narrowPhasebatch.bColliderHalfSizeY.push_back(solverBodyB.colliderHalfSize.y);
-    }
+    m_narrowPhasebatch.Reserve(m_lastFrameBatchCount);
+    FindCollisionPairs(solverBodies);
+    m_lastFrameBatchCount = m_narrowPhasebatch.aSolverBodyIndex.size();
 
     return m_narrowPhasebatch;
 }

@@ -12,7 +12,7 @@
 void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
                                                          std::vector<SolverBody>& sovlerBodies)
 {
-    ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
+    // ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
     const float percent = .25f;
     const float slop = 0.01f;
@@ -36,7 +36,7 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
 void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
                                                              std::vector<SolverBody>& sovlerBodies)
 {
-    ZoneScopedN("CollisionResolutionSystem/RefreshCollisionPenetrations");
+    // ZoneScopedN("CollisionResolutionSystem/RefreshCollisionPenetrations");
 
     for (auto& collisionData : collisionDataVector)
     {
@@ -72,6 +72,8 @@ void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, st
 void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
                                                   std::vector<SolverBody>& sovlerBodies)
 {
+    ZoneScopedN("CollisionResolution");
+
     for (uint8_t i = 0; i < m_iterationCount; ++i)
     {
         ResolveCollisionOverlaps(worldPtr, collisionDataVector, sovlerBodies);

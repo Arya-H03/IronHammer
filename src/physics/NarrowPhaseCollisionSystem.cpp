@@ -135,11 +135,11 @@ std::vector<CollisionCorrectionData>&
 NarrowPhaseCollisionSystem::ProccessPotentialCollisonPairs(World* worldPtr, const NarrowPhaseSIMDBatch& batch,
                                                            const std::vector<SolverBody>& solverBodies)
 {
-    ZoneScopedN("CollisionNarrow");
+    ZoneScopedN("CollisionNarrowPhase");
 
     m_collisionPenetrationData.clear();
 
-    size_t count = batch.aPositionX.size();
+    size_t count = batch.count;
     size_t i = 0;
 
     for (; i + 7 < count; i += 8)

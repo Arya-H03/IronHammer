@@ -48,31 +48,31 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 {
     if (!worldPtr || !m_collisionSystemPtr) return;
 
-    BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
+    // BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
-    ImGui::Text("Potentail Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs.size());
-    ImGui::PopStyleColor();
-    ImGui::Separator();
+    // ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
+    // ImGui::Text("Potentail Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs.size());
+    // ImGui::PopStyleColor();
+    // ImGui::Separator();
 
-    ImGuiListClipper clipper;
-    clipper.Begin((int)broadPhaseCollsionSystem.m_potentialCollisionPairs.size());
+    // ImGuiListClipper clipper;
+    // clipper.Begin((int)broadPhaseCollsionSystem.m_potentialCollisionPairs.size());
 
-    while (clipper.Step())
-    {
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-        {
-            // PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
-            // ImGui::Text("Entity %i", pair.e1.id);
-            // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-            // ImGui::SameLine();
-            // ImGui::Text("&");
-            // ImGui::PopStyleColor();
-            // ImGui::SameLine();
-            // ImGui::Text("Entity %i", pair.e2.id);
-            // ImGui::Separator();
-        }
-    }
+    // while (clipper.Step())
+    // {
+    //     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+    //     {
+    //         // PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
+    //         // ImGui::Text("Entity %i", pair.e1.id);
+    //         // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+    //         // ImGui::SameLine();
+    //         // ImGui::Text("&");
+    //         // ImGui::PopStyleColor();
+    //         // ImGui::SameLine();
+    //         // ImGui::Text("Entity %i", pair.e2.id);
+    //         // ImGui::Separator();
+    //     }
+    // }
 }
 
 void CollisionDebugger::NarrowPhaseGui() const

@@ -108,11 +108,13 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 
 void GameScene::SpawnTestEntities()
 {
+    int count = 0;
     for (int i = 12; i < Viewport::GetSize().x - 12; i += 12)
     {
         for (int j = 12; j < Viewport::GetSize().y - 12; j += 12)
         {
             SpawnEnemy({(float)i, (float)j}, {0, 0});
+            count++;
         }
     }
     // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
