@@ -7,6 +7,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <math.h>
 #include <sys/types.h>
@@ -131,6 +132,18 @@ class Vect2
     Vect2<int> Floor()
     {
         return Vect2<int>(std::floor(x), std::floor(y));
+    }
+
+    template <typename U>
+    Vect2<U> FloorCast()
+    {
+        return Vect2<U>(static_cast<U>(std::floor(x)), static_cast<U>(std::floor(y)));
+    }
+
+    template <typename U>
+    Vect2<U> Cast()
+    {
+        return Vect2<U>(static_cast<U>(x), static_cast<U>(y));
     }
 
     Vect2<int> Ceil()
