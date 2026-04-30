@@ -13,14 +13,15 @@ class NarrowPhaseCollisionSystem
     friend class CollisionDebugger;
 
   private:
+    static constexpr size_t CHUNK_SIZE = 32;
     CollisionEventSystem& m_collisionEventSystem;
-    NarrowPhaseSIMDBatch m_narrowPhaseBatch;
 
     std::vector<CollisionCorrectionData> m_collisionPenetrationData;
 
-    void GatherNarrowPhaseBatch(const SolverBodies& solverBodies, const SolverBodyPairs& solverBodyPairs);
-    void ScalarAABBCheck(size_t index);
-    void SIMDAABBCheck(size_t startsIndex);
+    void GatherNarrowPhaseBatch(const SolverBodies& solverBodies, const SolverBodyPairs& solverBodyPairs, NarrowPhaseSIMDBatch& batch,
+                                size_t startIndex);
+    void ScalarAABBCheck(NarrowPhaseSIMDBatch& batch, size_t index);
+    void SIMDAABBCheck(NarrowPhaseSIMDBatch& batch, size_t startsIndex);
     void GenerateContactForSIMD(size_t index);
 
   public:

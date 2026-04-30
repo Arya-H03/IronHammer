@@ -179,7 +179,25 @@ struct SolverBodyPairs
     }
 };
 
-struct NarrowPhaseSIMDBatch
+struct alignas(32) NarrowPhaseSIMDBatch
+{
+    float aPositionX[32];
+    float aPositionY[32];
+    float aColliderHalfSizeX[32];
+    float aColliderHalfSizeY[32];
+
+    float bPositionX[32];
+    float bPositionY[32];
+    float bColliderHalfSizeX[32];
+    float bColliderHalfSizeY[32];
+
+    uint16_t aSolverBodyIndices[32];
+    uint16_t bSolverBodyIndices[32];
+
+    size_t count = 0;
+};
+
+struct NarrowPhaseSIMDBatchs
 {
     std::vector<float> aPositionX, aPositionY, aColliderHalfSizeX, aColliderHalfSizeY;
     std::vector<float> bPositionX, bPositionY, bColliderHalfSizeX, bColliderHalfSizeY;
@@ -202,7 +220,7 @@ struct NarrowPhaseSIMDBatch
         bColliderHalfSizeY.push_back(bHalfSizeY);
     }
 
-    NarrowPhaseSIMDBatch()
+    NarrowPhaseSIMDBatchs()
     {
         Reserve(100000);
     }
