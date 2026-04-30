@@ -71,15 +71,15 @@ void NarrowPhaseCollisionSystem::SIMDAABBCheck(NarrowPhaseSIMDBatch& batch, size
     const __m256 zero = _mm256_setzero_ps();
 
     // use aligned load maybe??
-    __m256 aPositionX = _mm256_loadu_ps(&batch.aPositionX[startsIndex]);
-    __m256 aPositionY = _mm256_loadu_ps(&batch.aPositionY[startsIndex]);
-    __m256 aColliderHalfSizeX = _mm256_loadu_ps(&batch.aColliderHalfSizeX[startsIndex]);
-    __m256 aColliderHalfSizeY = _mm256_loadu_ps(&batch.aColliderHalfSizeY[startsIndex]);
+    __m256 aPositionX = _mm256_load_ps(&batch.aPositionX[startsIndex]);
+    __m256 aPositionY = _mm256_load_ps(&batch.aPositionY[startsIndex]);
+    __m256 aColliderHalfSizeX = _mm256_load_ps(&batch.aColliderHalfSizeX[startsIndex]);
+    __m256 aColliderHalfSizeY = _mm256_load_ps(&batch.aColliderHalfSizeY[startsIndex]);
 
-    __m256 bPositionX = _mm256_loadu_ps(&batch.bPositionX[startsIndex]);
-    __m256 bPositionY = _mm256_loadu_ps(&batch.bPositionY[startsIndex]);
-    __m256 bColliderHalfSizeX = _mm256_loadu_ps(&batch.bColliderHalfSizeX[startsIndex]);
-    __m256 bColliderHalfSizeY = _mm256_loadu_ps(&batch.bColliderHalfSizeY[startsIndex]);
+    __m256 bPositionX = _mm256_load_ps(&batch.bPositionX[startsIndex]);
+    __m256 bPositionY = _mm256_load_ps(&batch.bPositionY[startsIndex]);
+    __m256 bColliderHalfSizeX = _mm256_load_ps(&batch.bColliderHalfSizeX[startsIndex]);
+    __m256 bColliderHalfSizeY = _mm256_load_ps(&batch.bColliderHalfSizeY[startsIndex]);
 
     // Distance
     __m256 dx = _mm256_sub_ps(bPositionX, aPositionX);
