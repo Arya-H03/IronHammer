@@ -25,7 +25,7 @@ struct InlineVector
         }
     }
 
-    void clear()
+    void Clear()
     {
         count = 0;
         overFlow = false;

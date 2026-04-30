@@ -1,9 +1,6 @@
 #pragma once
 #include "Tracy.hpp"
-#include "backward.hpp"
 #include "core/CoreComponents.hpp"
-#include "core/utils/Colors.h"
-#include "core/utils/Time.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
@@ -35,7 +32,7 @@ class CollisionSystem : public ISetupSystem
     const Vect2f gravity = {0, 500};
 
     Vect2<uint16_t> m_windowSize;
-    std::vector<SolverBody> m_solverBodies;
+    SolverBodies m_solverBodies;
 
     CollisionEventSystem m_collsionEventSystem;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
@@ -111,8 +108,8 @@ class CollisionSystem : public ISetupSystem
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
 
-        m_solverBodies.clear();
-        m_solverBodies.reserve(5000);
+        m_solverBodies.Clear();
+        m_solverBodies.Reserve(10000);
     }
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
@@ -129,20 +126,20 @@ class CollisionSystem : public ISetupSystem
 
     void HandleCollisionSystem(World* worldPtr, float dt)
     {
-        NarrowPhaseSIMDBatch* narrowPhaseSIMDBatch;
+        SolverBodyPairs* solverBodyPairsPtr;
         std::vector<CollisionCorrectionData>* collisionDataVector;
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            m_solverBodies.clear();
+            m_solverBodies.Clear();
             UpdatePositions(substepDt);
             CheckForScreenBorderCollision();
 
-            narrowPhaseSIMDBatch = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
+            solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
             collisionDataVector =
-                &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, *narrowPhaseSIMDBatch, m_solverBodies);
+                &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);
             m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionDataVector, m_solverBodies);
         }
 

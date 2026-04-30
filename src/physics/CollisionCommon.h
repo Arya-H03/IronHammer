@@ -1,16 +1,14 @@
 #pragma once
 
 #include "core/CoreComponents.hpp"
+#include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
-#include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
-#include <memory>
 #include <vector>
 
 struct Cell
@@ -22,6 +20,15 @@ struct Cell
     Cell() = default;
     Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p)
     {
+    }
+};
+struct CollisionPair
+{
+    Entity e1, e2;
+
+    bool operator==(const CollisionPair& otherPair) const
+    {
+        return e1 == otherPair.e1 && e2 == otherPair.e2;
     }
 };
 struct CollisionPairOld
@@ -40,40 +47,6 @@ struct CollisionPairOld
     }
 };
 
-struct CollisionPair
-{
-    Entity e1, e2;
-
-    bool operator==(const CollisionPair& otherPair) const
-    {
-        return e1 == otherPair.e1 && e2 == otherPair.e2;
-    }
-};
-
-struct PotentialCollisionPair
-{
-    std::size_t solverBodyAIndex;
-    std::size_t solverBodyBIndex;
-};
-
-struct BroadPhaseCellData
-{
-    uint16_t solverBodyIndex;
-    Vect2<uint8_t> minCell;
-};
-
-struct SolverBody
-{
-    Entity entity;
-    Vect2f position{};
-    Vect2f colliderHalfSize{};
-    float inverseMass = 0;
-    uint32_t collisionMask = ~0u;
-    Layer collisionLayer = Layer::Default;
-    CTransform* transformPtr = nullptr;
-};
-
-
 struct CollisionPairHash
 {
     size_t operator()(const CollisionPair& pair) const
@@ -91,6 +64,121 @@ struct CollisionCorrectionData
     float penetration;
 };
 
+
+template <size_t size>
+struct BroadGridCell
+{
+    InlineVector<Entity, size> entities;
+    InlineVector<uint16_t, size> solverBodyIndices;
+    InlineVector<uint8_t, size> minCellX;
+    InlineVector<uint8_t, size> minCellY;
+    InlineVector<uint32_t, size> collisionMasks;
+    InlineVector<uint32_t, size> collisionLayers;
+
+    void Add(Entity entity, uint16_t solverBodyIndex, Vect2<uint8_t> minCell, uint32_t collisionMask, uint32_t collisionLayer)
+    {
+        entities.Push(entity);
+        solverBodyIndices.Push(solverBodyIndex);
+        this->minCellX.Push(minCell.x);
+        this->minCellY.Push(minCell.y);
+        collisionMasks.Push(collisionMask);
+        collisionLayers.Push(collisionLayer);
+    }
+
+    void Clear()
+    {
+        solverBodyIndices.Clear();
+        entities.Clear();
+        minCellX.Clear();
+        minCellY.Clear();
+        collisionMasks.Clear();
+        collisionLayers.Clear();
+    }
+
+    size_t Size() const
+    {
+        return solverBodyIndices.Size();
+    }
+};
+
+struct SolverBodies
+{
+    std::vector<Entity> entites;
+    std::vector<float> posX;
+    std::vector<float> posY;
+    std::vector<float> colliderHalfSizeX;
+    std::vector<float> colliderHalfSizeY;
+    std::vector<float> inverseMasses;
+    std::vector<CTransform*> transformPtrs;
+
+    void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& colliderHalfSize, float inverseMass, CTransform* transformPtr)
+    {
+        entites.push_back(entity);
+        posX.push_back(position.x);
+        posY.push_back(position.y);
+        colliderHalfSizeX.push_back(colliderHalfSize.x);
+        colliderHalfSizeY.push_back(colliderHalfSize.y);
+        inverseMasses.push_back(inverseMass);
+        transformPtrs.push_back(transformPtr);
+    }
+
+    void Reserve(size_t size)
+    {
+        entites.reserve(size);
+        posX.reserve(size);
+        posY.reserve(size);
+        colliderHalfSizeX.reserve(size);
+        colliderHalfSizeY.reserve(size);
+        inverseMasses.reserve(size);
+        transformPtrs.reserve(size);
+    }
+
+    void Clear()
+    {
+        entites.clear();
+        posX.clear();
+        posY.clear();
+        colliderHalfSizeX.clear();
+        colliderHalfSizeY.clear();
+        inverseMasses.clear();
+        transformPtrs.clear();
+    }
+
+    size_t Count()
+    {
+        return entites.size();
+    }
+};
+
+struct SolverBodyPairs
+{
+    std::vector<uint16_t> bodyAIndices;
+    std::vector<uint16_t> bodyBIndices;
+
+    size_t Count() const
+    {
+        return bodyAIndices.size();
+    }
+
+    void AddPair(uint16_t bodyAIndex, uint16_t bodyBIndex)
+    {
+        bodyAIndices.push_back(bodyAIndex);
+        bodyBIndices.push_back(bodyBIndex);
+    }
+
+    void Clear()
+    {
+        bodyAIndices.clear();
+        bodyBIndices.clear();
+    }
+
+    void Reserve(size_t size)
+    {
+        bodyAIndices.reserve(size);
+        bodyBIndices.reserve(size);
+    }
+};
+
 struct NarrowPhaseSIMDBatch
 {
     std::vector<float> aPositionX, aPositionY, aColliderHalfSizeX, aColliderHalfSizeY;
@@ -99,11 +187,29 @@ struct NarrowPhaseSIMDBatch
     std::vector<uint32_t> aSolverBodyIndex;
     std::vector<uint32_t> bSolverBodyIndex;
 
-    size_t count = 0;
+    void Add(uint32_t aIndex, uint32_t bIndex, float aPosX, float aPosY, float aHalfSizeX, float aHalfSizeY, float bPosX, float bPosY,
+             float bHalfSizeX, float bHalfSizeY)
+    {
+        aSolverBodyIndex.push_back(aIndex);
+        bSolverBodyIndex.push_back(bIndex);
+        aPositionX.push_back(aPosX);
+        aPositionY.push_back(aPosY);
+        aColliderHalfSizeX.push_back(aHalfSizeX);
+        aColliderHalfSizeY.push_back(aHalfSizeY);
+        bPositionX.push_back(bPosX);
+        bPositionY.push_back(bPosY);
+        bColliderHalfSizeX.push_back(bHalfSizeX);
+        bColliderHalfSizeY.push_back(bHalfSizeY);
+    }
 
     NarrowPhaseSIMDBatch()
     {
-        Reserve(75000);
+        Reserve(100000);
+    }
+
+    size_t Count() const
+    {
+        return aSolverBodyIndex.size();
     }
 
     void Reserve(size_t size)
@@ -120,8 +226,6 @@ struct NarrowPhaseSIMDBatch
 
         aSolverBodyIndex.reserve(size);
         bSolverBodyIndex.reserve(size);
-
-        count = size;
     }
 
     void Resize(size_t size)
@@ -139,6 +243,7 @@ struct NarrowPhaseSIMDBatch
         aSolverBodyIndex.resize(size);
         bSolverBodyIndex.resize(size);
     }
+
     void Clear()
     {
         aPositionX.clear();

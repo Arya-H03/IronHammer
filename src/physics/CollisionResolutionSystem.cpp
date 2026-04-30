@@ -10,7 +10,7 @@
 #include <vector>
 
 void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
-                                                         std::vector<SolverBody>& sovlerBodies)
+                                                         SolverBodies& sovlerBodies)
 {
     // ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
@@ -19,8 +19,8 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
 
     for (auto& collisionData : collisionDataVector)
     {
-        float invMassA = sovlerBodies[collisionData.solverBodyAIndex].inverseMass;
-        float invMassB = sovlerBodies[collisionData.solverBodyBIndex].inverseMass;
+        float invMassA = sovlerBodies.inverseMasses[collisionData.solverBodyAIndex];
+        float invMassB = sovlerBodies.inverseMasses[collisionData.solverBodyBIndex];
         float invMassSum = invMassA + invMassB;
         if (invMassSum == 0.0f) continue;
 
@@ -28,25 +28,29 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, std::v
         if (penetration <= 0.0f) continue;
 
         Vect2f correction = collisionData.normal * ((penetration * percent) / invMassSum);
-        sovlerBodies[collisionData.solverBodyAIndex].position -= correction * invMassA;
-        sovlerBodies[collisionData.solverBodyBIndex].position += correction * invMassB;
+        sovlerBodies.posX[collisionData.solverBodyAIndex] -= correction.x * invMassA;
+        sovlerBodies.posY[collisionData.solverBodyAIndex] -= correction.y * invMassA;
+        sovlerBodies.posX[collisionData.solverBodyBIndex] += correction.x * invMassB;
+        sovlerBodies.posY[collisionData.solverBodyBIndex] += correction.y * invMassB;
     }
 }
 
 void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
-                                                             std::vector<SolverBody>& sovlerBodies)
+                                                             SolverBodies& solverBodies)
 {
     // ZoneScopedN("CollisionResolutionSystem/RefreshCollisionPenetrations");
 
     for (auto& collisionData : collisionDataVector)
     {
-        Vect2f e1Center = sovlerBodies[collisionData.solverBodyAIndex].position;
-        Vect2f e2Center = sovlerBodies[collisionData.solverBodyBIndex].position;
+        Vect2f e1Center = Vect2f(solverBodies.posX[collisionData.solverBodyAIndex], solverBodies.posY[collisionData.solverBodyAIndex]);
+        Vect2f e2Center = Vect2f(solverBodies.posX[collisionData.solverBodyBIndex], solverBodies.posY[collisionData.solverBodyBIndex]);
 
         Vect2f distance = e2Center - e1Center;
         Vect2f distanceAbs = distance.Abs();
-        Vect2f overlap = (sovlerBodies[collisionData.solverBodyAIndex].colliderHalfSize +
-                          sovlerBodies[collisionData.solverBodyBIndex].colliderHalfSize) -
+        Vect2f overlap = (Vect2f(solverBodies.colliderHalfSizeX[collisionData.solverBodyAIndex],
+                                 solverBodies.colliderHalfSizeY[collisionData.solverBodyAIndex]) +
+                          Vect2f(solverBodies.colliderHalfSizeX[collisionData.solverBodyBIndex],
+                                 solverBodies.colliderHalfSizeY[collisionData.solverBodyBIndex])) -
                          distanceAbs;
 
         if (overlap.x > 0 && overlap.y > 0)
@@ -70,19 +74,19 @@ void CollisionResolutionSystem::RefreshCollisionPenetrations(World* worldPtr, st
 }
 
 void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
-                                                  std::vector<SolverBody>& sovlerBodies)
+                                                  SolverBodies& solverBodies)
 {
     ZoneScopedN("CollisionResolution");
 
     for (uint8_t i = 0; i < m_iterationCount; ++i)
     {
-        ResolveCollisionOverlaps(worldPtr, collisionDataVector, sovlerBodies);
+        ResolveCollisionOverlaps(worldPtr, collisionDataVector, solverBodies);
         if (i == m_iterationCount - 1) break;
-        RefreshCollisionPenetrations(worldPtr, collisionDataVector, sovlerBodies);
+        RefreshCollisionPenetrations(worldPtr, collisionDataVector, solverBodies);
     }
-    for (auto& solverBody : sovlerBodies)
+    for (size_t i = 0; i < solverBodies.Count(); ++i)
     {
-        solverBody.transformPtr->position = solverBody.position;
+        solverBodies.transformPtrs[i]->position = Vect2f(solverBodies.posX[i], solverBodies.posY[i]);
     }
 }
 

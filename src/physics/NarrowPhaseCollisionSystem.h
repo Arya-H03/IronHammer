@@ -14,18 +14,20 @@ class NarrowPhaseCollisionSystem
 
   private:
     CollisionEventSystem& m_collisionEventSystem;
+    NarrowPhaseSIMDBatch m_narrowPhaseBatch;
 
     std::vector<CollisionCorrectionData> m_collisionPenetrationData;
 
-    void ScalarAABBCheck(const NarrowPhaseSIMDBatch& batch,size_t index);
-    void SIMDAABBCheck(const NarrowPhaseSIMDBatch& batch, size_t startsIndex);
-    void GenerateContactForSIMD(const NarrowPhaseSIMDBatch& batchm, size_t index);
+    void GatherNarrowPhaseBatch(const SolverBodies& solverBodies, const SolverBodyPairs& solverBodyPairs);
+    void ScalarAABBCheck(size_t index);
+    void SIMDAABBCheck(size_t startsIndex);
+    void GenerateContactForSIMD(size_t index);
 
   public:
     NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem)
     {
     }
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const NarrowPhaseSIMDBatch& batch,
-                                                                         const std::vector<SolverBody>& solverBodies);
+    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const SolverBodies& solverBodies,
+                                                                         const SolverBodyPairs& solverBodyPairs);
 };

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <immintrin.h>
 #include <vector>
 
 BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize) : m_windowSize(windowSize)
@@ -24,38 +25,21 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
     m_gridRows = (Viewport::GetSize().y / m_cellSize) + 5;
     m_gridCols = (Viewport::GetSize().x / m_cellSize) + 5;
     m_broadPhaseGrid.resize(m_gridRows * m_gridCols);
+    m_activeBroadGridCellIndices.reserve(m_gridCols * m_gridRows);
+    m_solverBodyPairs.Reserve(100000);
 
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
 }
 
-bool BroadPhaseCollisionSystem::GetCanDisplayGrid() const
-{
-    return m_canDisplayGrid;
-}
-
-bool BroadPhaseCollisionSystem::GetCanHighlightGrid() const
-{
-    return m_canHighlightGrid;
-}
-
-void BroadPhaseCollisionSystem::SetCanDisplayGrid(World* worldPtr, bool val)
-{
-    m_canDisplayGrid = val;
-}
-
-void BroadPhaseCollisionSystem::SetCanHighlightGrid(World* worldPtr, bool val)
-{
-    m_canHighlightGrid = val;
-}
-
-void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr, std::vector<SolverBody>& solverBodies)
+void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies)
 {
     ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
-    for (auto& dataList : m_broadPhaseGrid)
+    for (uint16_t cellIndex : m_activeBroadGridCellIndices)
     {
-        dataList.clear();
+        m_broadPhaseGrid[cellIndex].Clear();
     }
+    m_activeBroadGridCellIndices.clear();
 
     m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform, CRigidBody>(
         [&](Entity entity, CCollider& colliderComp, CTransform& transformComp, CRigidBody& rigidBodyComp)
@@ -64,69 +48,66 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
             Vect2<uint8_t> topLeftCell = ((center - (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
             Vect2<uint8_t> bottomRightCell = ((center + (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
 
-            solverBodies.push_back(
-                {entity, center, colliderComp.halfSize, rigidBodyComp.inverseMass, colliderComp.mask, colliderComp.layer, &transformComp});
+            solverBodies.AddSolverBody(entity, center, colliderComp.halfSize, rigidBodyComp.inverseMass, &transformComp);
 
             for (int j = topLeftCell.y; j <= bottomRightCell.y; ++j)
             {
                 for (int i = topLeftCell.x; i <= bottomRightCell.x; ++i)
                 {
                     if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
+
                     uint16_t index = j * m_gridCols + i;
-                    m_broadPhaseGrid[index].Push({static_cast<uint16_t>(solverBodies.size() - 1), topLeftCell});
+                    auto& broadGridCell = m_broadPhaseGrid[index];
+                    if (broadGridCell.Size() == 0)
+                    {
+                        m_activeBroadGridCellIndices.push_back(index);
+                    }
+
+                    broadGridCell.Add(entity, static_cast<uint16_t>(solverBodies.Count() - 1), topLeftCell, colliderComp.mask,
+                                      static_cast<uint32_t>(colliderComp.layer));
                 }
             }
         });
 }
 
-void BroadPhaseCollisionSystem::FindCollisionPairs(const std::vector<SolverBody>& solverBodies)
+void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBodies)
 {
     ZoneScopedN("BroadPhaseSystem/FindCollisionPairs");
 
-    for (uint16_t currentCellIndex = 0; currentCellIndex < m_broadPhaseGrid.size(); ++currentCellIndex)
+    for (uint16_t currentCellIndex : m_activeBroadGridCellIndices)
     {
-        const auto& dataList = m_broadPhaseGrid[currentCellIndex];
+        const auto& broadGridCell = m_broadPhaseGrid[currentCellIndex];
+        const size_t count = broadGridCell.Size();
+        if (count < 2) continue;
 
-        for (size_t i = 0; i < dataList.Size(); ++i)
+        for (size_t i = 0; i < count; ++i)
         {
-            const BroadPhaseCellData& cellDataA = dataList.list[i];
-            const SolverBody& solverBodyA = solverBodies[cellDataA.solverBodyIndex];
-            for (size_t j = i + 1; j < dataList.Size(); ++j)
+            const uint16_t solverBodyAIndex = broadGridCell.solverBodyIndices.list[i];
+            const uint8_t aMinX = broadGridCell.minCellX.list[i];
+            const uint8_t aMinY = broadGridCell.minCellY.list[i];
+            const uint32_t maskA = broadGridCell.collisionMasks.list[i];
+            const uint32_t layerA = broadGridCell.collisionLayers.list[i];
+            const Entity entityA = broadGridCell.entities.list[i];
+
+            for (size_t j = i + 1; j < count; ++j)
             {
-                const BroadPhaseCellData& cellDataB = dataList.list[j];
-                const SolverBody& solverBodyB = solverBodies[cellDataB.solverBodyIndex];
-
-                if (!CanCollidersContact(solverBodyA.collisionMask, solverBodyB.collisionMask, solverBodyA.collisionLayer,
-                                         solverBodyB.collisionLayer))
-                {
-                    continue;
-                }
-
-                const uint16_t sharedMinX = std::max(cellDataA.minCell.x, cellDataB.minCell.x);
-                const uint16_t sharedMinY = std::max(cellDataA.minCell.y, cellDataB.minCell.y);
+                const uint16_t sharedMinX = std::max(aMinX, broadGridCell.minCellX.list[j]);
+                const uint16_t sharedMinY = std::max(aMinY, broadGridCell.minCellY.list[j]);
                 const uint16_t ownerCellIndex = sharedMinY * m_gridCols + sharedMinX;
                 if (currentCellIndex != ownerCellIndex) continue;
 
-                const bool aIsLower = solverBodyA.entity.id < solverBodyB.entity.id;
-                size_t indexA = aIsLower ? cellDataA.solverBodyIndex : cellDataB.solverBodyIndex;
-                size_t indexB = aIsLower ? cellDataB.solverBodyIndex : cellDataA.solverBodyIndex;
-                const SolverBody& sA = solverBodies[indexA];
-                const SolverBody& sB = solverBodies[indexB];
+                uint32_t maskB = broadGridCell.collisionMasks.list[j];
+                uint32_t layerB = broadGridCell.collisionLayers.list[j];
 
-                {
-                    m_narrowPhasebatch.aSolverBodyIndex.push_back(indexA);
-                    m_narrowPhasebatch.bSolverBodyIndex.push_back(indexB);
+                if (!CanCollidersContact(maskA, maskB, static_cast<Layer>(layerA), static_cast<Layer>(layerB))) continue;
 
-                    m_narrowPhasebatch.aPositionX.push_back(sA.position.x);
-                    m_narrowPhasebatch.aPositionY.push_back(sA.position.y);
-                    m_narrowPhasebatch.aColliderHalfSizeX.push_back(sA.colliderHalfSize.x);
-                    m_narrowPhasebatch.aColliderHalfSizeY.push_back(sA.colliderHalfSize.y);
+                const Entity entityB = broadGridCell.entities.list[j];
+                const uint16_t solverBodyBIndex = broadGridCell.solverBodyIndices.list[j];
+                const bool aIsLower = entityA.id < entityB.id;
+                uint16_t sA = aIsLower ? solverBodyAIndex : solverBodyBIndex;
+                uint16_t sB = aIsLower ? solverBodyBIndex : solverBodyAIndex;
 
-                    m_narrowPhasebatch.bPositionX.push_back(sB.position.x);
-                    m_narrowPhasebatch.bPositionY.push_back(sB.position.y);
-                    m_narrowPhasebatch.bColliderHalfSizeX.push_back(sB.colliderHalfSize.x);
-                    m_narrowPhasebatch.bColliderHalfSizeY.push_back(sB.colliderHalfSize.y);
-                }
+                m_solverBodyPairs.AddPair(sA, sB);
             }
         }
     }
@@ -144,16 +125,130 @@ bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint
     return aWantsB && bWantsA;
 }
 
-NarrowPhaseSIMDBatch& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr, std::vector<SolverBody>& solverBodies)
+SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr, SolverBodies& solverBodies)
 {
     ZoneScopedN("CollisionBroadPhase");
 
     FillCellsWithOverlappingEntities(worldPtr, solverBodies);
 
-    m_narrowPhasebatch.Clear();
-    m_narrowPhasebatch.Reserve(m_lastFrameBatchCount);
+    m_solverBodyPairs.Clear();
     FindCollisionPairs(solverBodies);
-    m_lastFrameBatchCount = m_narrowPhasebatch.aSolverBodyIndex.size();
 
-    return m_narrowPhasebatch;
+    return m_solverBodyPairs;
 }
+
+// void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBodies)
+// {
+//     ZoneScopedN("BroadPhaseSystem/FindCollisionPairs");
+
+//     const __m256i gridCols = _mm256_set1_epi16(m_gridCols);
+//     const __m256i zero = _mm256_setzero_si256();
+//     {
+//         ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/ForeachActiveCell1");
+//         for (uint16_t currentCellIndex : m_activeBroadGridCellIndices)
+//         {
+//             const auto& broadGridCell = m_broadPhaseGrid[currentCellIndex];
+//             const size_t count = broadGridCell.Size();
+//             if (count < 2) continue;
+
+//             const __m256i currentCell = _mm256_set1_epi16(currentCellIndex);
+//             {
+//                 ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/ForeachActiveCell2");
+//                 for (size_t i = 0; i < count; ++i)
+//                 {
+//                     const uint16_t solverBodyAIndex = broadGridCell.solverBodyIndices.list[i];
+//                     const uint8_t aMinX = broadGridCell.minCellX.list[i];
+//                     const uint8_t aMinY = broadGridCell.minCellY.list[i];
+//                     const uint32_t maskA = broadGridCell.collisionMasks.list[i];
+//                     const uint32_t layerA = broadGridCell.collisionLayers.list[i];
+//                     const Entity entityA = broadGridCell.entities.list[i];
+
+//                     const __m256i aMinXVec = _mm256_set1_epi8(aMinX);
+//                     const __m256i aMinYVec = _mm256_set1_epi8(aMinY);
+
+//                     size_t j = i + 1;
+//                     // for (; j + 31 < count; j += 32)
+//                     // {
+//                     //     __m256i bMinXVec = _mm256_loadu_si256((__m256i*)&broadGridCell.minCellX.list[j]);
+//                     //     __m256i bMinYVec = _mm256_loadu_si256((__m256i*)&broadGridCell.minCellY.list[j]);
+
+//                     //     __m256i sharedMinX = _mm256_max_epu8(aMinXVec, bMinXVec);
+//                     //     __m256i sharedMinY = _mm256_max_epu8(aMinYVec, bMinYVec);
+
+//                     //     __m256i sharedMinXLo = _mm256_unpacklo_epi8(sharedMinX, zero);
+//                     //     __m256i sharedMinXHi = _mm256_unpackhi_epi8(sharedMinX, zero);
+//                     //     __m256i sharedMinYLo = _mm256_unpacklo_epi8(sharedMinY, zero);
+//                     //     __m256i sharedMinYHi = _mm256_unpackhi_epi8(sharedMinY, zero);
+
+//                     //     __m256i ownerLo = _mm256_add_epi16(_mm256_mullo_epi16(sharedMinYLo, gridCols), sharedMinXLo);
+//                     //     __m256i ownerHi = _mm256_add_epi16(_mm256_mullo_epi16(sharedMinYHi, gridCols), sharedMinXHi);
+
+//                     //     __m256i matchLo = _mm256_cmpeq_epi16(ownerLo, currentCell);
+//                     //     __m256i matchHi = _mm256_cmpeq_epi16(ownerHi, currentCell);
+
+//                     //     __m256i match = _mm256_packs_epi16(matchLo, matchHi);
+//                     //     uint32_t ownerMask = _mm256_movemask_epi8(match);
+
+//                     //     while (ownerMask)
+//                     //     {
+//                     //         int lane = std::countr_zero(ownerMask);
+//                     //         size_t index = j + lane;
+
+//                     //         uint32_t maskB = broadGridCell.collisionMasks.list[index];
+//                     //         uint32_t layerB = broadGridCell.collisionLayers.list[index];
+
+//                     //         if (!CanCollidersContact(maskA, maskB, static_cast<Layer>(layerA), static_cast<Layer>(layerB)))
+//                     //         {
+//                     //             ownerMask &= ownerMask - 1;
+//                     //             continue;
+//                     //         }
+
+//                     //         const uint16_t solverBodyBIndex = broadGridCell.solverBodyIndices.list[index];
+//                     //         const bool aIsLower = solverBodies[solverBodyAIndex].entity.id < solverBodies[solverBodyBIndex].entity.id;
+//                     //         size_t sA = aIsLower ? solverBodyAIndex : solverBodyBIndex;
+//                     //         size_t sB = aIsLower ? solverBodyBIndex : solverBodyAIndex;
+
+//                     //         m_narrowPhasebatch.aSolverBodyIndex.push_back(sA);
+//                     //         m_narrowPhasebatch.bSolverBodyIndex.push_back(sB);
+//                     //         m_narrowPhasebatch.aPositionX.push_back(solverBodies[sA].position.x);
+//                     //         m_narrowPhasebatch.aPositionY.push_back(solverBodies[sA].position.y);
+//                     //         m_narrowPhasebatch.aColliderHalfSizeX.push_back(solverBodies[sA].colliderHalfSize.x);
+//                     //         m_narrowPhasebatch.aColliderHalfSizeY.push_back(solverBodies[sA].colliderHalfSize.y);
+//                     //         m_narrowPhasebatch.bPositionX.push_back(solverBodies[sB].position.x);
+//                     //         m_narrowPhasebatch.bPositionY.push_back(solverBodies[sB].position.y);
+//                     //         m_narrowPhasebatch.bColliderHalfSizeX.push_back(solverBodies[sB].colliderHalfSize.x);
+//                     //         m_narrowPhasebatch.bColliderHalfSizeY.push_back(solverBodies[sB].colliderHalfSize.y);
+//                     //     }
+//                     // }
+
+//                     {
+//                         ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/ForeachActiveCell3");
+//                         for (; j < count; ++j)
+//                         {
+//                             {
+//                                 ZoneScopedN("BroadPhaseSystem/FindCollisionPairs/ForeachActiveCell3/PreGather");
+//                                 const uint16_t sharedMinX = std::max(aMinX, broadGridCell.minCellX.list[j]);
+//                                 const uint16_t sharedMinY = std::max(aMinY, broadGridCell.minCellY.list[j]);
+//                                 const uint16_t ownerCellIndex = sharedMinY * m_gridCols + sharedMinX;
+//                                 if (currentCellIndex != ownerCellIndex) continue;
+
+//                                 uint32_t maskB = broadGridCell.collisionMasks.list[j];
+//                                 uint32_t layerB = broadGridCell.collisionLayers.list[j];
+
+//                                 if (!CanCollidersContact(maskA, maskB, static_cast<Layer>(layerA), static_cast<Layer>(layerB))) continue;
+
+//                                 const Entity entityB = broadGridCell.entities.list[j];
+//                                 const uint16_t solverBodyBIndex = broadGridCell.solverBodyIndices.list[j];
+//                                 const bool aIsLower = entityA.id < entityB.id;
+//                                 uint16_t sA = aIsLower ? solverBodyAIndex : solverBodyBIndex;
+//                                 uint16_t sB = aIsLower ? solverBodyBIndex : solverBodyAIndex;
+
+//                                 m_solverBodyPairs.AddPair(sA, sB);
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }

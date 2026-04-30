@@ -1,5 +1,4 @@
 #pragma once
-#include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/system/ISystem.h"
@@ -8,7 +7,6 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -24,18 +22,15 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
-    std::vector<InlineVector<BroadPhaseCellData, 12>> m_broadPhaseGrid;
-    NarrowPhaseSIMDBatch m_narrowPhasebatch;
-    size_t m_lastFrameBatchCount = 0;
+    std::vector<BroadGridCell<24>> m_broadPhaseGrid;
+    std::vector<uint16_t> m_activeBroadGridCellIndices;
+    SolverBodyPairs m_solverBodyPairs;
 
     Query* m_broadPhaseQuery;
 
-    bool m_canDisplayGrid = false;
-    bool m_canHighlightGrid = false;
-
     void ClearAllCells();
-    void FillCellsWithOverlappingEntities(World* worldPtr, std::vector<SolverBody>& solverBodies);
-    void FindCollisionPairs(const std::vector<SolverBody>& solverBodies);
+    void FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies);
+    void FindCollisionPairs(const SolverBodies& solverBodies);
 
     bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 
@@ -43,10 +38,5 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     BroadPhaseCollisionSystem(Vect2<uint16_t> windowSize);
     void SetupSystem(World* worldPtr) override;
 
-    NarrowPhaseSIMDBatch& HandleBroadPhaseCollisionSystem(World* worldPtr, std::vector<SolverBody>& solverBodies);
-
-    bool GetCanDisplayGrid() const;
-    bool GetCanHighlightGrid() const;
-    void SetCanDisplayGrid(World* worldPtr, bool val);
-    void SetCanHighlightGrid(World* worldPtr, bool val);
+    SolverBodyPairs& HandleBroadPhaseCollisionSystem(World* worldPtr, SolverBodies& solverBodies);
 };
