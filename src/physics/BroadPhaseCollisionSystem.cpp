@@ -33,7 +33,7 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 
 void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies)
 {
-    // ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
+    ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
     for (uint16_t cellIndex : m_activeBroadGridCellIndices)
     {
@@ -41,33 +41,30 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
     }
     m_activeBroadGridCellIndices.clear();
 
-    m_broadPhaseQuery->ForEachWithEntity<CCollider, CTransform, CRigidBody>(
-        [&](Entity entity, CCollider& colliderComp, CTransform& transformComp, CRigidBody& rigidBodyComp)
+    for (uint16_t k = 0; k < solverBodies.Count(); ++k)
+    {
+        Vect2f center{solverBodies.posX[k], solverBodies.posY[k]};
+        Vect2f colliderHalfSize{solverBodies.colliderHalfSizeX[k], solverBodies.colliderHalfSizeY[k]};
+        Vect2<uint8_t> topLeftCell = ((center - (colliderHalfSize)) / m_cellSize).FloorCast<uint8_t>();
+        Vect2<uint8_t> bottomRightCell = ((center + (colliderHalfSize)) / m_cellSize).FloorCast<uint8_t>();
+
+        for (int j = topLeftCell.y; j <= bottomRightCell.y; ++j)
         {
-            Vect2f center = transformComp.position + colliderComp.offset;
-            Vect2<uint8_t> topLeftCell = ((center - (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
-            Vect2<uint8_t> bottomRightCell = ((center + (colliderComp.halfSize)) / m_cellSize).FloorCast<uint8_t>();
-
-            solverBodies.AddSolverBody(entity, center, colliderComp.halfSize, rigidBodyComp.inverseMass, &transformComp);
-
-            for (int j = topLeftCell.y; j <= bottomRightCell.y; ++j)
+            for (int i = topLeftCell.x; i <= bottomRightCell.x; ++i)
             {
-                for (int i = topLeftCell.x; i <= bottomRightCell.x; ++i)
+                if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
+
+                uint16_t index = j * m_gridCols + i;
+                auto& broadGridCell = m_broadPhaseGrid[index];
+                if (broadGridCell.Size() == 0)
                 {
-                    if (j < 0 || j >= (int)m_gridRows || i < 0 || i >= (int)m_gridCols) continue;
-
-                    uint16_t index = j * m_gridCols + i;
-                    auto& broadGridCell = m_broadPhaseGrid[index];
-                    if (broadGridCell.Size() == 0)
-                    {
-                        m_activeBroadGridCellIndices.push_back(index);
-                    }
-
-                    broadGridCell.Add(entity, static_cast<uint16_t>(solverBodies.Count() - 1), topLeftCell, colliderComp.mask,
-                                      static_cast<uint32_t>(colliderComp.layer));
+                    m_activeBroadGridCellIndices.push_back(index);
                 }
+
+                broadGridCell.Add(solverBodies.entites[k], k, topLeftCell, solverBodies.colliderMasks[k], solverBodies.colliderLayers[k]);
             }
-        });
+        }
+    }
 }
 
 void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBodies)

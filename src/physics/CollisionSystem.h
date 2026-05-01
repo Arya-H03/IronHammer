@@ -19,6 +19,7 @@
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Time.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
@@ -108,7 +109,6 @@ class CollisionSystem : public ISetupSystem
         m_broadPhaseCollisionSystem.SetupSystem(worldPtr);
         m_collsionEventSystem.SetupSystem(worldPtr);
 
-        m_solverBodies.Clear();
         m_solverBodies.Reserve(10000);
     }
 
@@ -129,13 +129,24 @@ class CollisionSystem : public ISetupSystem
         SolverBodyPairs* solverBodyPairsPtr;
         CollisionResults* collisionResults;
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
-
+        m_solverBodies.Clear();
+        m_updateCollisionQueryPtr->ForEachWithEntity<CTransform, CRigidBody, CCollider>(
+            [&](Entity entity, CTransform& transform, CRigidBody& rigidBody, CCollider& collider)
+            {
+                m_solverBodies.AddSolverBody(entity, transform.position + collider.offset, collider.halfSize, rigidBody.inverseMass,
+                                             collider.mask, static_cast<uint32_t>(collider.layer), &transform);
+            });
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            m_solverBodies.Clear();
             UpdatePositions(substepDt);
             CheckForScreenBorderCollision();
+
+            for (size_t j = 0; j < m_solverBodies.Count(); ++j)
+            {
+                m_solverBodies.posX[j] = m_solverBodies.transformPtrs[j]->position.x;
+                m_solverBodies.posY[j] = m_solverBodies.transformPtrs[j]->position.y;
+            }
 
             solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
             collisionResults = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);

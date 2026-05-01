@@ -141,9 +141,12 @@ struct SolverBodies
     std::vector<float> colliderHalfSizeX;
     std::vector<float> colliderHalfSizeY;
     std::vector<float> inverseMasses;
+    std::vector<uint32_t> colliderMasks;
+    std::vector<uint32_t> colliderLayers;
     std::vector<CTransform*> transformPtrs;
 
-    void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& colliderHalfSize, float inverseMass, CTransform* transformPtr)
+    void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& colliderHalfSize, float inverseMass, uint32_t collisionMask,
+                       uint32_t collisionLayer, CTransform* transformPtr)
     {
         entites.push_back(entity);
         posX.push_back(position.x);
@@ -151,6 +154,8 @@ struct SolverBodies
         colliderHalfSizeX.push_back(colliderHalfSize.x);
         colliderHalfSizeY.push_back(colliderHalfSize.y);
         inverseMasses.push_back(inverseMass);
+        colliderMasks.push_back(collisionMask);
+        colliderLayers.push_back(collisionLayer);
         transformPtrs.push_back(transformPtr);
     }
 
@@ -162,6 +167,8 @@ struct SolverBodies
         colliderHalfSizeX.reserve(size);
         colliderHalfSizeY.reserve(size);
         inverseMasses.reserve(size);
+        colliderMasks.reserve(size);
+        colliderLayers.reserve(size);
         transformPtrs.reserve(size);
     }
 
@@ -173,6 +180,8 @@ struct SolverBodies
         colliderHalfSizeX.clear();
         colliderHalfSizeY.clear();
         inverseMasses.clear();
+        colliderMasks.clear();
+        colliderLayers.clear();
         transformPtrs.clear();
     }
 
