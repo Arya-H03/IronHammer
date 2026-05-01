@@ -127,7 +127,7 @@ class CollisionSystem : public ISetupSystem
     void HandleCollisionSystem(World* worldPtr, float dt)
     {
         SolverBodyPairs* solverBodyPairsPtr;
-        std::vector<CollisionCorrectionData>* collisionDataVector;
+        CollisionResults* collisionResults;
         m_collsionEventSystem.ClearCollisionEvents(worldPtr);
 
         float substepDt = dt / SUBSTEP_COUNT;
@@ -138,9 +138,8 @@ class CollisionSystem : public ISetupSystem
             CheckForScreenBorderCollision();
 
             solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
-            collisionDataVector =
-                &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);
-            m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionDataVector, m_solverBodies);
+            collisionResults = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);
+            m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionResults, m_solverBodies);
         }
 
         // m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);

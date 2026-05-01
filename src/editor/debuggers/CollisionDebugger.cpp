@@ -81,29 +81,29 @@ void CollisionDebugger::NarrowPhaseGui() const
 
     NarrowPhaseCollisionSystem& narrowPhaseCollisionSystem = m_collisionSystemPtr->m_narrowPhaseCollisionSystem;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-    ImGui::Text("Confirmed Collison Pairs: %zu", narrowPhaseCollisionSystem.m_collisionPenetrationData.size());
-    ImGui::PopStyleColor();
-    ImGui::Separator();
+    // ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
+    // ImGui::Text("Confirmed Collison Pairs: %zu", narrowPhaseCollisionSystem.m_collisionConstraintBatches.size());
+    // ImGui::PopStyleColor();
+    // ImGui::Separator();
 
-    ImGuiListClipper clipper;
-    clipper.Begin((int)narrowPhaseCollisionSystem.m_collisionPenetrationData.size());
+    // ImGuiListClipper clipper;
+    // clipper.Begin((int)narrowPhaseCollisionSystem.m_collisionConstraintBatches.size());
 
-    while (clipper.Step())
-    {
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-        {
-            // CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
-            // ImGui::Text("Entity %i", pair.e1.id);
-            // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-            // ImGui::SameLine();
-            // ImGui::Text("&");
-            // ImGui::PopStyleColor();
-            // ImGui::SameLine();
-            // ImGui::Text("Entity %i", pair.e2.id);
-            // ImGui::Separator();
-        }
-    }
+    // while (clipper.Step())
+    // {
+    //     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+    //     {
+    //         // CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
+    //         // ImGui::Text("Entity %i", pair.e1.id);
+    //         // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+    //         // ImGui::SameLine();
+    //         // ImGui::Text("&");
+    //         // ImGui::PopStyleColor();
+    //         // ImGui::SameLine();
+    //         // ImGui::Text("Entity %i", pair.e2.id);
+    //         // ImGui::Separator();
+    //     }
+    // }
 }
 
 void CollisionDebugger::CollisionEventsGui() const

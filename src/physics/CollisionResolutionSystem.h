@@ -3,7 +3,6 @@
 #include "physics/CollisionCommon.h"
 
 #include <cstdint>
-#include <vector>
 class CollisionResolutionSystem
 {
   private:
@@ -12,9 +11,6 @@ class CollisionResolutionSystem
   public:
     CollisionResolutionSystem() = default;
 
-    void ResolveCollisionOverlaps(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector, SolverBodies& sovlerBodies);
-    void RefreshCollisionPenetrations(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector,
-                                      SolverBodies& sovlerBodies);
-    void ResolveCollisionImpulse(std::vector<CollisionCorrectionData>& collisionDataVector);
-    void ResolveCollisions(World* worldPtr, std::vector<CollisionCorrectionData>& collisionDataVector, SolverBodies& sovlerBodies);
+    void ResolveCollisionOverlaps(World* worldPtr, CollisionResults& collisionDataVector, SolverBodies& sovlerBodies);
+    void ResolveCollisions(World* worldPtr, CollisionResults& collisionDataVector, SolverBodies& sovlerBodies);
 };

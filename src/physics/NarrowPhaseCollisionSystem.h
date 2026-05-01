@@ -6,29 +6,24 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <vector>
 
 class NarrowPhaseCollisionSystem
 {
     friend class CollisionDebugger;
 
   private:
-    static constexpr size_t CHUNK_SIZE = 32;
     CollisionEventSystem& m_collisionEventSystem;
 
-    std::vector<CollisionCorrectionData> m_collisionPenetrationData;
+    CollisionResults m_collisionResults;
 
-    void GatherNarrowPhaseBatch(const SolverBodies& solverBodies, const SolverBodyPairs& solverBodyPairs, NarrowPhaseSIMDBatch& batch,
-                                size_t startIndex);
-    void ScalarAABBCheck(NarrowPhaseSIMDBatch& batch, size_t index);
-    void SIMDAABBCheck(NarrowPhaseSIMDBatch& batch, size_t startsIndex);
-    void GenerateContactForSIMD(size_t index);
+    void ScalarAABBCheck(const SolverBodies& solverBodies, uint16_t bodyAIndex, uint16_t bodyBIndex);
+    void SIMDAABBCheckGather(const SolverBodies& solverBodies, const SolverBodyPairs& solverBodyPairs, size_t startIndex);
 
   public:
     NarrowPhaseCollisionSystem(CollisionEventSystem& collisionEventSystem) : m_collisionEventSystem(collisionEventSystem)
     {
     }
 
-    std::vector<CollisionCorrectionData>& ProccessPotentialCollisonPairs(World* worldPtr, const SolverBodies& solverBodies,
-                                                                         const SolverBodyPairs& solverBodyPairs);
+    CollisionResults& ProccessPotentialCollisonPairs(World* worldPtr, const SolverBodies& solverBodies,
+                                                     const SolverBodyPairs& solverBodyPairs);
 };

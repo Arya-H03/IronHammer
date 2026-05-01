@@ -27,7 +27,7 @@ class CollisionEventSystem : ISetupSystem
         m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent>>();
     }
 
-    void HandleCollisionEvents(World* worldptr, const std::vector<CollisionCorrectionData>& collisionDataVector)
+    void HandleCollisionEvents(World* worldptr, const CollisionResults& collisionResults)
     {
         // ZoneScopedN("CollisionEventSystem/HandleCollsionEvents");
 

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 
 struct Cell
@@ -55,13 +56,44 @@ struct CollisionPairHash
     }
 };
 
-struct CollisionCorrectionData
+struct CollisionResults
 {
-    size_t solverBodyAIndex;
-    size_t solverBodyBIndex;
+    std::vector<float> normalX;
+    std::vector<float> normalY;
+    std::vector<float> penetration;
 
-    Vect2f normal;
-    float penetration;
+    std::vector<float> invMassA;
+    std::vector<float> invMassB;
+
+    std::vector<uint16_t> solverBodyAIndex;
+    std::vector<uint16_t> solverBodyBIndex;
+
+    size_t Count() const
+    {
+        return normalX.size();
+    }
+
+    void Clear()
+    {
+        normalX.clear();
+        normalY.clear();
+        penetration.clear();
+        invMassA.clear();
+        invMassB.clear();
+        solverBodyAIndex.clear();
+        solverBodyBIndex.clear();
+    }
+
+    void Reserve(size_t count)
+    {
+        normalX.reserve(count);
+        normalY.reserve(count);
+        penetration.reserve(count);
+        invMassA.reserve(count);
+        invMassB.reserve(count);
+        solverBodyAIndex.reserve(count);
+        solverBodyBIndex.reserve(count);
+    }
 };
 
 
@@ -191,90 +223,11 @@ struct alignas(32) NarrowPhaseSIMDBatch
     float bColliderHalfSizeX[32];
     float bColliderHalfSizeY[32];
 
+    float aMass[32];
+    float bMass[32];
+
     uint16_t aSolverBodyIndices[32];
     uint16_t bSolverBodyIndices[32];
 
     size_t count = 0;
-};
-
-struct NarrowPhaseSIMDBatchs
-{
-    std::vector<float> aPositionX, aPositionY, aColliderHalfSizeX, aColliderHalfSizeY;
-    std::vector<float> bPositionX, bPositionY, bColliderHalfSizeX, bColliderHalfSizeY;
-
-    std::vector<uint32_t> aSolverBodyIndex;
-    std::vector<uint32_t> bSolverBodyIndex;
-
-    void Add(uint32_t aIndex, uint32_t bIndex, float aPosX, float aPosY, float aHalfSizeX, float aHalfSizeY, float bPosX, float bPosY,
-             float bHalfSizeX, float bHalfSizeY)
-    {
-        aSolverBodyIndex.push_back(aIndex);
-        bSolverBodyIndex.push_back(bIndex);
-        aPositionX.push_back(aPosX);
-        aPositionY.push_back(aPosY);
-        aColliderHalfSizeX.push_back(aHalfSizeX);
-        aColliderHalfSizeY.push_back(aHalfSizeY);
-        bPositionX.push_back(bPosX);
-        bPositionY.push_back(bPosY);
-        bColliderHalfSizeX.push_back(bHalfSizeX);
-        bColliderHalfSizeY.push_back(bHalfSizeY);
-    }
-
-    NarrowPhaseSIMDBatchs()
-    {
-        Reserve(100000);
-    }
-
-    size_t Count() const
-    {
-        return aSolverBodyIndex.size();
-    }
-
-    void Reserve(size_t size)
-    {
-        aPositionX.reserve(size);
-        aPositionY.reserve(size);
-        aColliderHalfSizeX.reserve(size);
-        aColliderHalfSizeY.reserve(size);
-
-        bPositionX.reserve(size);
-        bPositionY.reserve(size);
-        bColliderHalfSizeX.reserve(size);
-        bColliderHalfSizeY.reserve(size);
-
-        aSolverBodyIndex.reserve(size);
-        bSolverBodyIndex.reserve(size);
-    }
-
-    void Resize(size_t size)
-    {
-        aPositionX.resize(size);
-        aPositionY.resize(size);
-        aColliderHalfSizeX.resize(size);
-        aColliderHalfSizeY.resize(size);
-
-        bPositionX.resize(size);
-        bPositionY.resize(size);
-        bColliderHalfSizeX.resize(size);
-        bColliderHalfSizeY.resize(size);
-
-        aSolverBodyIndex.resize(size);
-        bSolverBodyIndex.resize(size);
-    }
-
-    void Clear()
-    {
-        aPositionX.clear();
-        aPositionY.clear();
-        aColliderHalfSizeX.clear();
-        aColliderHalfSizeY.clear();
-
-        bPositionX.clear();
-        bPositionY.clear();
-        bColliderHalfSizeX.clear();
-        bColliderHalfSizeY.clear();
-
-        aSolverBodyIndex.clear();
-        bSolverBodyIndex.clear();
-    }
 };

@@ -33,7 +33,7 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 
 void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies)
 {
-    ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
+    // ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
     for (uint16_t cellIndex : m_activeBroadGridCellIndices)
     {
