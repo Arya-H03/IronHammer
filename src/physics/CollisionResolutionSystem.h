@@ -6,7 +6,7 @@
 class CollisionResolutionSystem
 {
   private:
-    const uint8_t m_iterationCount = 4;
+    const uint8_t m_iterationCount = 2;
 
   public:
     CollisionResolutionSystem() = default;

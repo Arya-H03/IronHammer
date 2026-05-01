@@ -16,13 +16,13 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     friend class CollisionDebugger;
 
   private:
-    const float m_cellSize = 24;
+    const float m_cellSize = 12;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
 
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
-    std::vector<BroadGridCell<24>> m_broadPhaseGrid;
+    std::vector<BroadGridCell<16>> m_broadPhaseGrid;
     std::vector<uint16_t> m_activeBroadGridCellIndices;
     SolverBodyPairs m_solverBodyPairs;
 

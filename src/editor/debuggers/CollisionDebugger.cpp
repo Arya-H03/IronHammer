@@ -48,62 +48,63 @@ void CollisionDebugger::BroadPhaseGui(World* worldPtr) const
 {
     if (!worldPtr || !m_collisionSystemPtr) return;
 
-    // BroadPhaseCollisionSystem& broadPhaseCollsionSystem = m_collisionSystemPtr->m_broadPhaseCollisionSystem;
+    const SolverBodyPairs& solverBodyPairs = m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_solverBodyPairs;
 
-    // ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
-    // ImGui::Text("Potentail Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_potentialCollisionPairs.size());
-    // ImGui::PopStyleColor();
-    // ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::IndustrialOrange_ImGui);
+    ImGui::Text("Potential Collision Pairs: %zu", m_collisionSystemPtr->m_broadPhaseCollisionSystem.m_solverBodyPairs.Count());
+    ImGui::PopStyleColor();
+    ImGui::Separator();
 
-    // ImGuiListClipper clipper;
-    // clipper.Begin((int)broadPhaseCollsionSystem.m_potentialCollisionPairs.size());
+    ImGuiListClipper clipper;
+    clipper.Begin((int)solverBodyPairs.Count());
 
-    // while (clipper.Step())
-    // {
-    //     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-    //     {
-    //         // PotentialCollisionPair& pair = broadPhaseCollsionSystem.m_potentialCollisionPairs[i];
-    //         // ImGui::Text("Entity %i", pair.e1.id);
-    //         // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-    //         // ImGui::SameLine();
-    //         // ImGui::Text("&");
-    //         // ImGui::PopStyleColor();
-    //         // ImGui::SameLine();
-    //         // ImGui::Text("Entity %i", pair.e2.id);
-    //         // ImGui::Separator();
-    //     }
-    // }
+    while (clipper.Step())
+    {
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+        {
+            ImGui::Text("Entity %i", solverBodyPairs.bodyAIndices[i]);
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", solverBodyPairs.bodyBIndices[i]);
+            ImGui::Separator();
+        }
+    }
 }
 
 void CollisionDebugger::NarrowPhaseGui() const
 {
     if (!m_collisionSystemPtr) return;
 
-    NarrowPhaseCollisionSystem& narrowPhaseCollisionSystem = m_collisionSystemPtr->m_narrowPhaseCollisionSystem;
+    const CollisionResults& collisionResults = m_collisionSystemPtr->m_narrowPhaseCollisionSystem.m_collisionResults;
 
-    // ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
-    // ImGui::Text("Confirmed Collison Pairs: %zu", narrowPhaseCollisionSystem.m_collisionConstraintBatches.size());
-    // ImGui::PopStyleColor();
-    // ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::OxidizedGreen_ImGui);
+    ImGui::Text("Confirmed Collison Pairs: %zu", collisionResults.Count());
 
-    // ImGuiListClipper clipper;
-    // clipper.Begin((int)narrowPhaseCollisionSystem.m_collisionConstraintBatches.size());
+    ImGui::PopStyleColor();
+    ImGui::Separator();
 
-    // while (clipper.Step())
-    // {
-    //     for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
-    //     {
-    //         // CollisionCorrectionData pair = narrowPhaseCollisionSystem.m_collisionPenetrationData[i];
-    //         // ImGui::Text("Entity %i", pair.e1.id);
-    //         // ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
-    //         // ImGui::SameLine();
-    //         // ImGui::Text("&");
-    //         // ImGui::PopStyleColor();
-    //         // ImGui::SameLine();
-    //         // ImGui::Text("Entity %i", pair.e2.id);
-    //         // ImGui::Separator();
-    //     }
-    // }
+    ImGuiListClipper clipper;
+    clipper.Begin((int)collisionResults.Count());
+
+    while (clipper.Step())
+    {
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+        {
+            uint16_t sloverBodyAIndex = collisionResults.solverBodyAIndex[i];
+            uint16_t sloverBodyBIndex = collisionResults.solverBodyBIndex[i];
+            ImGui::Text("Entity %i", m_collisionSystemPtr->m_solverBodies.entites[sloverBodyAIndex].id);
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::ColdSteelBlue_ImGui);
+            ImGui::SameLine();
+            ImGui::Text("&");
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("Entity %i", m_collisionSystemPtr->m_solverBodies.entites[sloverBodyBIndex].id);
+            ImGui::Separator();
+        }
+    }
 }
 
 void CollisionDebugger::CollisionEventsGui() const

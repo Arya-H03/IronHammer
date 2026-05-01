@@ -14,7 +14,7 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, Collis
 {
     // ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
-    const float percent = 0.25f;
+    const float percent = 0.45f;
 
     for (size_t i = 0; i < collisionResults.Count(); ++i)
     {
