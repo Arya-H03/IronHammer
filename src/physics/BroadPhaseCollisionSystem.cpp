@@ -6,10 +6,12 @@
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
 #include "editor/Viewport.h"
+#include "pathfinding/FlowField.h"
 #include "physics/CollisionCommon.h"
 #include "physics/PhysicsComponents.hpp"
 
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Window/Joystick.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -26,12 +28,39 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
     m_gridCols = (Viewport::GetSize().x / m_cellSize) + 5;
     m_broadPhaseGrid.resize(m_gridRows * m_gridCols);
     m_activeBroadGridCellIndices.reserve(m_gridCols * m_gridRows);
+    m_broadPhaseGridCenterCell.resize(m_gridCols * m_gridRows);
     m_solverBodyPairs.Reserve(100000);
 
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
 }
+void BroadPhaseCollisionSystem::FillCellsWithEntityCenters(World* worldPtr, SolverBodies& solverBodies)
+{
+    // ZoneScopedN("BroadPhaseSystem/FillCellsWithEntityCenters");
 
-void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies)
+    for (uint16_t cellIndex : m_activeBroadGridCellIndices)
+    {
+        m_broadPhaseGridCenterCell[cellIndex].Clear();
+    }
+    m_activeBroadGridCellIndices.clear();
+
+    for (uint16_t k = 0; k < solverBodies.Count(); ++k)
+    {
+        Vect2f center{solverBodies.posX[k], solverBodies.posY[k]};
+        Vect2<uint8_t> centerCell = ((center) / m_cellSize).FloorCast<uint8_t>();
+
+        if (centerCell.x < 0 || centerCell.x >= (int)m_gridCols || centerCell.y < 0 || centerCell.y >= (int)m_gridRows) continue;
+
+        uint16_t index = centerCell.y * m_gridCols + centerCell.x;
+        auto& broadGridCell = m_broadPhaseGridCenterCell[index];
+        if (broadGridCell.Size() == 0)
+        {
+            m_activeBroadGridCellIndices.push_back(index);
+        }
+
+        broadGridCell.Add(solverBodies.entites[k], k, solverBodies.colliderMasks[k], solverBodies.colliderLayers[k]);
+    }
+}
+void BroadPhaseCollisionSystem::FillCellsWithEntityOverlaps(World* worldPtr, SolverBodies& solverBodies)
 {
     ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
 
@@ -67,7 +96,58 @@ void BroadPhaseCollisionSystem::FillCellsWithOverlappingEntities(World* worldPtr
     }
 }
 
-void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBodies)
+void BroadPhaseCollisionSystem::FindCollisionPairsFromCenters(const SolverBodies& solverBodies)
+{
+    // ZoneScopedN("BroadPhaseSystem/FindCollisionPairsFromCenters");
+
+    for (uint16_t currentCellIndex : m_activeBroadGridCellIndices)
+    {
+        const auto& currentActiveCell = m_broadPhaseGridCenterCell[currentCellIndex];
+        const size_t count = currentActiveCell.Size();
+        if (count < 1) continue;
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            const uint16_t solverBodyAIndex = currentActiveCell.solverBodyIndices.list[i];
+            const uint32_t maskA = currentActiveCell.collisionMasks.list[i];
+            const uint32_t layerA = currentActiveCell.collisionLayers.list[i];
+            const Entity entityA = currentActiveCell.entities.list[i];
+
+            for (const auto& dir : NineDirections)
+            {
+                bool isSelfCell = (dir.x == 0 && dir.y == 0);
+                size_t kStart = isSelfCell ? i + 1 : 0;
+                uint8_t currentCellX = currentCellIndex % m_gridCols;
+                uint8_t currentCellY = currentCellIndex / m_gridCols;
+
+                int nx = (int)currentCellX + dir.x;
+                int ny = (int)currentCellY + dir.y;
+                if (nx < 0 || nx >= m_gridCols || ny < 0 || ny >= m_gridRows) continue;
+                uint16_t neighborIndex = ny * m_gridCols + nx;
+
+                const auto& neighborCell = m_broadPhaseGridCenterCell[neighborIndex];
+
+                for (size_t k = 0; k < neighborCell.Size(); ++k)
+                {
+                    const uint16_t solverBodyBIndex = neighborCell.solverBodyIndices.list[k];
+                    const Entity entityB = neighborCell.entities.list[k];
+                    uint32_t maskB = neighborCell.collisionMasks.list[k];
+                    uint32_t layerB = neighborCell.collisionLayers.list[k];
+                    if (!CanCollidersContact(maskA, maskB, static_cast<Layer>(layerA), static_cast<Layer>(layerB))) continue;
+
+                    if (entityA.id < entityB.id)
+                    {
+                        uint16_t sA = solverBodyAIndex;
+                        uint16_t sB = solverBodyBIndex;
+                        m_solverBodyPairs.AddPair(sA, sB);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void BroadPhaseCollisionSystem::FindCollisionPairsFromOverlaps(const SolverBodies& solverBodies)
 {
     ZoneScopedN("BroadPhaseSystem/FindCollisionPairs");
 
@@ -79,27 +159,27 @@ void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBod
 
         for (size_t i = 0; i < count; ++i)
         {
-            const uint16_t solverBodyAIndex = broadGridCell.solverBodyIndices.list[i];
-            const uint8_t aMinX = broadGridCell.minCellX.list[i];
-            const uint8_t aMinY = broadGridCell.minCellY.list[i];
-            const uint32_t maskA = broadGridCell.collisionMasks.list[i];
-            const uint32_t layerA = broadGridCell.collisionLayers.list[i];
-            const Entity entityA = broadGridCell.entities.list[i];
+            const uint16_t solverBodyAIndex = broadGridCell.solverBodyIndices[i];
+            const uint8_t aMinX = broadGridCell.minCellX[i];
+            const uint8_t aMinY = broadGridCell.minCellY[i];
+            const uint32_t maskA = broadGridCell.collisionMasks[i];
+            const uint32_t layerA = broadGridCell.collisionLayers[i];
+            const Entity entityA = broadGridCell.entities[i];
 
             for (size_t j = i + 1; j < count; ++j)
             {
-                const uint16_t sharedMinX = std::max(aMinX, broadGridCell.minCellX.list[j]);
-                const uint16_t sharedMinY = std::max(aMinY, broadGridCell.minCellY.list[j]);
+                const uint16_t sharedMinX = std::max(aMinX, broadGridCell.minCellX[j]);
+                const uint16_t sharedMinY = std::max(aMinY, broadGridCell.minCellY[j]);
                 const uint16_t ownerCellIndex = sharedMinY * m_gridCols + sharedMinX;
                 if (currentCellIndex != ownerCellIndex) continue;
 
-                uint32_t maskB = broadGridCell.collisionMasks.list[j];
-                uint32_t layerB = broadGridCell.collisionLayers.list[j];
+                uint32_t maskB = broadGridCell.collisionMasks[j];
+                uint32_t layerB = broadGridCell.collisionLayers[j];
 
                 if (!CanCollidersContact(maskA, maskB, static_cast<Layer>(layerA), static_cast<Layer>(layerB))) continue;
 
-                const Entity entityB = broadGridCell.entities.list[j];
-                const uint16_t solverBodyBIndex = broadGridCell.solverBodyIndices.list[j];
+                const Entity entityB = broadGridCell.entities[j];
+                const uint16_t solverBodyBIndex = broadGridCell.solverBodyIndices[j];
                 const bool aIsLower = entityA.id < entityB.id;
                 uint16_t sA = aIsLower ? solverBodyAIndex : solverBodyBIndex;
                 uint16_t sB = aIsLower ? solverBodyBIndex : solverBodyAIndex;
@@ -124,12 +204,11 @@ bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint
 
 SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(World* worldPtr, SolverBodies& solverBodies)
 {
-    ZoneScopedN("CollisionBroadPhase");
+    // ZoneScopedN("CollisionBroadPhase");
 
-    FillCellsWithOverlappingEntities(worldPtr, solverBodies);
-
+    FillCellsWithEntityOverlaps(worldPtr, solverBodies);
     m_solverBodyPairs.Clear();
-    FindCollisionPairs(solverBodies);
+    FindCollisionPairsFromOverlaps(solverBodies);
 
     return m_solverBodyPairs;
 }

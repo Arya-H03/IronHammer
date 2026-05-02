@@ -22,15 +22,18 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
-    std::vector<BroadGridCell<16>> m_broadPhaseGrid;
+    std::vector<BroadPhaseGridCell<16>> m_broadPhaseGrid;
+    std::vector<BroadGridCellCenterCell<16>> m_broadPhaseGridCenterCell;
     std::vector<uint16_t> m_activeBroadGridCellIndices;
     SolverBodyPairs m_solverBodyPairs;
 
     Query* m_broadPhaseQuery;
 
     void ClearAllCells();
-    void FillCellsWithOverlappingEntities(World* worldPtr, SolverBodies& solverBodies);
-    void FindCollisionPairs(const SolverBodies& solverBodies);
+    void FillCellsWithEntityOverlaps(World* worldPtr, SolverBodies& solverBodies);
+    void FindCollisionPairsFromOverlaps(const SolverBodies& solverBodies);
+    void FillCellsWithEntityCenters(World* worldPtr, SolverBodies& solverBodies);
+    void FindCollisionPairsFromCenters(const SolverBodies& solverBodies);
 
     bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 

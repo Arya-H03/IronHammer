@@ -1,15 +1,17 @@
 #pragma once
 
 #include "core/CoreComponents.hpp"
+#include "core/memory/InlineEntityList.h"
 #include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
+#include "editor/entityInspector/componentGui/ComponentGui.h"
 
 #include <SFML/Graphics/Color.hpp>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 #include <vector>
 
 struct Cell
@@ -98,21 +100,52 @@ struct CollisionResults
 
 
 template <size_t size>
-struct BroadGridCell
+struct BroadPhaseGridCell
 {
-    InlineVector<Entity, size> entities;
-    InlineVector<uint16_t, size> solverBodyIndices;
-    InlineVector<uint8_t, size> minCellX;
-    InlineVector<uint8_t, size> minCellY;
-    InlineVector<uint32_t, size> collisionMasks;
-    InlineVector<uint32_t, size> collisionLayers;
+    Entity entities[size];
+    uint16_t solverBodyIndices[size];
+    uint8_t minCellX[size];
+    uint8_t minCellY[size];
+    uint32_t collisionMasks[size];
+    uint32_t collisionLayers[size];
+
+    size_t count = 0;
 
     void Add(Entity entity, uint16_t solverBodyIndex, Vect2<uint8_t> minCell, uint32_t collisionMask, uint32_t collisionLayer)
     {
+        entities[count] = entity;
+        solverBodyIndices[count] = solverBodyIndex;
+        this->minCellX[count] = minCell.x;
+        this->minCellY[count] = minCell.y;
+        collisionMasks[count] = collisionMask;
+        collisionLayers[count] = collisionLayer;
+        count++;
+        assert(count <= size && "BroadGridCell overflow");
+    }
+
+    void Clear()
+    {
+        count = 0;
+    }
+
+    size_t Size() const
+    {
+        return count;
+    }
+};
+
+template <size_t size>
+struct BroadGridCellCenterCell
+{
+    InlineVector<Entity, size> entities;
+    InlineVector<uint16_t, size> solverBodyIndices;
+    InlineVector<uint32_t, size> collisionMasks;
+    InlineVector<uint32_t, size> collisionLayers;
+
+    void Add(Entity entity, uint16_t solverBodyIndex, uint32_t collisionMask, uint32_t collisionLayer)
+    {
         entities.Push(entity);
         solverBodyIndices.Push(solverBodyIndex);
-        this->minCellX.Push(minCell.x);
-        this->minCellY.Push(minCell.y);
         collisionMasks.Push(collisionMask);
         collisionLayers.Push(collisionLayer);
     }
@@ -121,8 +154,6 @@ struct BroadGridCell
     {
         solverBodyIndices.Clear();
         entities.Clear();
-        minCellX.Clear();
-        minCellY.Clear();
         collisionMasks.Clear();
         collisionLayers.Clear();
     }
