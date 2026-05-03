@@ -7,7 +7,9 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <thread>
 #include <vector>
 
 
@@ -18,20 +20,26 @@ class BroadPhaseCollisionSystem : public ISetupSystem
   private:
     const float m_cellSize = 12;
     const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
+    const size_t m_threadPoolSize = 11;
 
     uint16_t m_gridCols, m_gridRows;
     Vect2<uint16_t> m_windowSize;
 
     std::vector<BroadPhaseGridCell<16>> m_broadPhaseGrid;
     std::vector<BroadGridCellCenterCell<16>> m_broadPhaseGridCenterCell;
+    std::vector<std::thread> m_threadPool;
     std::vector<uint16_t> m_activeBroadGridCellIndices;
+    std::vector<BroadPhaseThreadBuffer> m_threadBuffers;
     SolverBodyPairs m_solverBodyPairs;
 
     Query* m_broadPhaseQuery;
 
     void ClearAllCells();
+    void FillCellWithThread(const SolverBodies& solverBodies, size_t threadIndex);
+    void MergeThreads();
     void FillCellsWithEntityOverlaps(World* worldPtr, SolverBodies& solverBodies);
     void FindCollisionPairsFromOverlaps(const SolverBodies& solverBodies);
+
     void FillCellsWithEntityCenters(World* worldPtr, SolverBodies& solverBodies);
     void FindCollisionPairsFromCenters(const SolverBodies& solverBodies);
 

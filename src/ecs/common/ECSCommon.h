@@ -11,12 +11,12 @@ using ArchetypeId = uint32_t;
 using ComponentSignatureMask = std::bitset<MaxComponents>;
 static constexpr ArchetypeId InvalidArchetypeID = UINT32_MAX;
 
-using EntityID = uint32_t;
-static constexpr EntityID InvalidEntityID = UINT32_MAX;
+using EntityId = uint32_t;
+static constexpr EntityId InvalidEntityID = UINT32_MAX;
 
 struct Entity
 {
-    EntityID id = InvalidEntityID;
+    EntityId id = InvalidEntityID;
     uint32_t generation = InvalidEntityID;
 
     bool operator==(const Entity otherEntity) const

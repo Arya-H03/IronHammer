@@ -8,6 +8,7 @@
 #include "editor/entityInspector/componentGui/ComponentGui.h"
 
 #include <SFML/Graphics/Color.hpp>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -102,18 +103,18 @@ struct CollisionResults
 template <size_t size>
 struct BroadPhaseGridCell
 {
-    Entity entities[size];
-    uint16_t solverBodyIndices[size];
-    uint8_t minCellX[size];
-    uint8_t minCellY[size];
-    uint32_t collisionMasks[size];
-    uint32_t collisionLayers[size];
+    uint8_t minCellX[size];           // 16 * 1 = 16 bytes
+    uint8_t minCellY[size];           // 16 * 1 = 16 bytes
+    uint32_t collisionMasks[size];    // 16 * 4 = 64 bytes
+    uint32_t collisionLayers[size];   // 16 * 4 = 64 bytes
+    EntityId entityIds[size];         // 16 * 4 = 64 bytes
+    uint16_t solverBodyIndices[size]; // 16 * 2 = 32 bytes
 
     size_t count = 0;
 
-    void Add(Entity entity, uint16_t solverBodyIndex, Vect2<uint8_t> minCell, uint32_t collisionMask, uint32_t collisionLayer)
+    void Add(EntityId entityId, uint16_t solverBodyIndex, Vect2<uint8_t> minCell, uint32_t collisionMask, uint32_t collisionLayer)
     {
-        entities[count] = entity;
+        entityIds[count] = entityId;
         solverBodyIndices[count] = solverBodyIndex;
         this->minCellX[count] = minCell.x;
         this->minCellY[count] = minCell.y;
@@ -164,16 +165,47 @@ struct BroadGridCellCenterCell
     }
 };
 
+struct BroadPhaseCellDataEntry
+{
+    uint16_t cellIndex;
+    uint8_t minCellX, minCellY;
+    uint32_t collisionMask;
+    uint32_t collisionLayer;
+    uint16_t solverBoduyIndex;
+    EntityId entityId;
+};
+
+struct BroadPhaseThreadBuffer
+{
+    std::vector<BroadPhaseCellDataEntry> entries;
+
+    void Clear()
+    {
+        entries.clear();
+    }
+
+    void Reserve(size_t size)
+    {
+        entries.reserve(size);
+    }
+
+    void Sort()
+    {
+        std::sort(entries.begin(), entries.end(),
+                  [](const BroadPhaseCellDataEntry& a, const BroadPhaseCellDataEntry& b) { return a.cellIndex < b.cellIndex; });
+    }
+};
+
 struct SolverBodies
 {
-    std::vector<Entity> entites;
     std::vector<float> posX;
     std::vector<float> posY;
     std::vector<float> colliderHalfSizeX;
     std::vector<float> colliderHalfSizeY;
-    std::vector<float> inverseMasses;
     std::vector<uint32_t> colliderMasks;
     std::vector<uint32_t> colliderLayers;
+    std::vector<float> inverseMasses;
+    std::vector<Entity> entites;
     std::vector<CTransform*> transformPtrs;
 
     void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& colliderHalfSize, float inverseMass, uint32_t collisionMask,
@@ -216,7 +248,7 @@ struct SolverBodies
         transformPtrs.clear();
     }
 
-    size_t Count()
+    size_t Count() const
     {
         return entites.size();
     }
