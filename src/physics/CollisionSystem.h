@@ -1,6 +1,7 @@
 #pragma once
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
+#include "core/utils/Threadpool.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "ecs/archetype/ArchetypeRegistry.hpp"
@@ -34,6 +35,7 @@ class CollisionSystem : public ISetupSystem
 
     Vect2<uint16_t> m_windowSize;
     SolverBodies m_solverBodies;
+    ThreadPool m_threadPool;
 
     CollisionEventSystem m_collsionEventSystem;
     BroadPhaseCollisionSystem m_broadPhaseCollisionSystem;
@@ -113,7 +115,8 @@ class CollisionSystem : public ISetupSystem
     }
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
-        : m_windowSize(windowSize), m_broadPhaseCollisionSystem({1500, 1500}), m_narrowPhaseCollisionSystem(m_collsionEventSystem)
+        : m_windowSize(windowSize), m_broadPhaseCollisionSystem(m_solverBodies, m_threadPool),
+          m_narrowPhaseCollisionSystem(m_collsionEventSystem), m_threadPool(23)
     {
         SetupSystem(worldPtr);
         SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);
@@ -148,7 +151,7 @@ class CollisionSystem : public ISetupSystem
                 m_solverBodies.posY[j] = m_solverBodies.transformPtrs[j]->position.y;
             }
 
-            solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr, m_solverBodies);
+            solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
             collisionResults = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);
             m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionResults, m_solverBodies);
         }

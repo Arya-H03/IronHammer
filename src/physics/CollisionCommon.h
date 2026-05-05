@@ -171,11 +171,11 @@ struct BroadPhaseCellDataEntry
     uint8_t minCellX, minCellY;
     uint32_t collisionMask;
     uint32_t collisionLayer;
-    uint16_t solverBoduyIndex;
+    uint16_t solverBodyIndex;
     EntityId entityId;
 };
 
-struct BroadPhaseThreadBuffer
+struct alignas(64) BroadPhaseThreadBuffer
 {
     std::vector<BroadPhaseCellDataEntry> entries;
 
