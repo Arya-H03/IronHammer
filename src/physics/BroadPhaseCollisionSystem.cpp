@@ -32,6 +32,10 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
     m_activeBroadGridCellIndices.reserve(m_gridCols * m_gridRows);
     m_broadPhaseGridCenterCell.resize(m_gridCols * m_gridRows);
     m_threadBuffers.resize(m_threadPool.ThreadCount() + 1);
+    for (auto& buffer : m_threadBuffers)
+    {
+        buffer.Reserve(20000, m_gridCols * m_gridRows);
+    }
     m_solverBodyPairs.Reserve(100000);
 
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
@@ -39,8 +43,6 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 
 void BroadPhaseCollisionSystem::FillCellsWithEntityOverlaps(World* worldPtr)
 {
-    ZoneScopedN("BroadPhaseSystem/FillCellsWithOverlappingEntities");
-
     for (uint16_t cellIndex : m_activeBroadGridCellIndices)
     {
         m_broadPhaseGrid[cellIndex].Clear();
@@ -112,8 +114,7 @@ void BroadPhaseCollisionSystem::FillCellWithThread(size_t threadIndex)
             }
         }
     }
-
-    threadBuffer.Sort();
+    // threadBuffer.Sort(m_gridCols * m_gridRows - 1);
 }
 void BroadPhaseCollisionSystem::MergeThreads()
 {
@@ -193,7 +194,7 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
 
     // {
     //     ZoneScopedN("BroadPhase/Regular");
-    //     FillCellsWithEntityOverlaps(worldPtr, solverBodies);
+    //     FillCellsWithEntityOverlaps(worldPtr);
     // }
 
     {
@@ -203,6 +204,18 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
     }
 
     return m_solverBodyPairs;
+}
+
+bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA,
+                                                    Layer colliderLayerB)
+{
+    uint32_t bitA = static_cast<uint32_t>(colliderLayerA);
+    uint32_t bitB = static_cast<uint32_t>(colliderLayerB);
+
+    bool aWantsB = (colliderMaskA & bitB) != 0;
+    bool bWantsA = (colliderMaskB & bitA) != 0;
+
+    return aWantsB && bWantsA;
 }
 
 // void BroadPhaseCollisionSystem::FindCollisionPairs(const SolverBodies& solverBodies)
@@ -320,15 +333,3 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
 //         }
 //     }
 // }
-
-bool BroadPhaseCollisionSystem::CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA,
-                                                    Layer colliderLayerB)
-{
-    uint32_t bitA = static_cast<uint32_t>(colliderLayerA);
-    uint32_t bitB = static_cast<uint32_t>(colliderLayerB);
-
-    bool aWantsB = (colliderMaskA & bitB) != 0;
-    bool bWantsA = (colliderMaskB & bitA) != 0;
-
-    return aWantsB && bWantsA;
-}

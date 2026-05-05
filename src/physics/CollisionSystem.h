@@ -116,7 +116,7 @@ class CollisionSystem : public ISetupSystem
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem(m_solverBodies, m_threadPool),
-          m_narrowPhaseCollisionSystem(m_collsionEventSystem), m_threadPool(23)
+          m_narrowPhaseCollisionSystem(m_collsionEventSystem), m_threadPool(11)
     {
         SetupSystem(worldPtr);
         SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);

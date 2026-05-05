@@ -97,7 +97,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
 void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 {
     float speed = Random::Float(50, 75);
-    float radius = Random::Float(10, 10);
+    float radius = Random::Float(8, 8);
     float bounce = 0.0f;
     float mass = radius;
 
@@ -109,9 +109,9 @@ void GameScene::SpawnEnemy(const Vect2f& spawnPos, const Vect2f& velocity)
 void GameScene::SpawnTestEntities()
 {
     int count = 0;
-    for (int i = 10; i < Viewport::GetSize().x - 10; i += 10)
+    for (int i = 8; i < Viewport::GetSize().x - 8; i += 8)
     {
-        for (int j = 10; j < Viewport::GetSize().y - 10; j += 10)
+        for (int j = 8; j < Viewport::GetSize().y - 8; j += 8)
         {
             SpawnEnemy({(float)i, (float)j}, {0, 0});
             count++;

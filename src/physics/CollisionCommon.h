@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 struct Cell
@@ -178,21 +179,45 @@ struct BroadPhaseCellDataEntry
 struct alignas(64) BroadPhaseThreadBuffer
 {
     std::vector<BroadPhaseCellDataEntry> entries;
+    std::vector<BroadPhaseCellDataEntry> sortedEntries;
+    std::vector<uint16_t> countBuffer;
 
     void Clear()
     {
         entries.clear();
+        sortedEntries.clear();
     }
 
-    void Reserve(size_t size)
+    void Reserve(size_t size, uint16_t maxCellIndex)
     {
         entries.reserve(size);
+        sortedEntries.reserve(size);
+        countBuffer.reserve(maxCellIndex);
     }
 
-    void Sort()
+    void Sort(uint16_t maxCellIndex)
     {
-        std::sort(entries.begin(), entries.end(),
-                  [](const BroadPhaseCellDataEntry& a, const BroadPhaseCellDataEntry& b) { return a.cellIndex < b.cellIndex; });
+        const size_t k = maxCellIndex + 1;
+        countBuffer.assign(k, 0);
+
+        for (auto entry : entries)
+        {
+            countBuffer[entry.cellIndex]++;
+        }
+
+        for (size_t i = 1; i < k; ++i)
+        {
+            countBuffer[i] += countBuffer[i - 1];
+        }
+
+        sortedEntries.resize(entries.size());
+
+        for (int i = (int)entries.size() - 1; i >= 0; --i)
+        {
+            sortedEntries[--countBuffer[entries[i].cellIndex]] = entries[i];
+        }
+
+        std::swap(entries, sortedEntries);
     }
 };
 
