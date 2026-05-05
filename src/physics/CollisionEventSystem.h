@@ -93,7 +93,7 @@ class CollisionEventSystem : ISetupSystem
     // Call at the start of the Collision.h Update tick
     void ClearCollisionEvents(World* worldPtr)
     {
-        ZoneScopedN("CollisionEventSystem/ClearCollisionEvents");
+        // ZoneScopedN("CollisionEventSystem/ClearCollisionEvents");
         m_currentFramePairs.clear();
 
         m_collisionEventQueryPtr->ForEach<CCollisionEvent>(

@@ -18,13 +18,10 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
   private:
     const float m_cellSize = 8;
-    const float m_cellRadius = std::sqrt((m_cellSize * m_cellSize) / 2);
 
     uint16_t m_gridCols, m_gridRows;
 
     std::vector<BroadPhaseGridCell<16>> m_broadPhaseGrid;
-    std::vector<BroadGridCellCenterCell<16>> m_broadPhaseGridCenterCell;
-    std::vector<uint16_t> m_activeBroadGridCellIndices;
 
     ThreadPool& m_threadPool;
     std::vector<BroadPhaseThreadBuffer> m_threadBuffers;
@@ -36,7 +33,7 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
 
     void FillCellWithThread(size_t threadIndex);
-    void MergeThreads();
+    void MergeThreadBuffers();
 
     void FillCellsWithEntityOverlaps(World* worldPtr);
     void FindCollisionPairsFromOverlaps();

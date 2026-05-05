@@ -1,11 +1,8 @@
 #pragma once
 
 #include "core/CoreComponents.hpp"
-#include "core/memory/InlineEntityList.h"
-#include "core/memory/InlineVector.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/common/ECSCommon.h"
-#include "editor/entityInspector/componentGui/ComponentGui.h"
 
 #include <SFML/Graphics/Color.hpp>
 #include <algorithm>
@@ -16,37 +13,11 @@
 #include <utility>
 #include <vector>
 
-struct Cell
-{
-    Vect2<int> coord;
-    Vect2f pos;
-    std::vector<Entity> overlapingEntities;
-
-    Cell() = default;
-    Cell(Vect2<int> c, Vect2f p) : coord(c), pos(p)
-    {
-    }
-};
 struct CollisionPair
 {
     Entity e1, e2;
 
     bool operator==(const CollisionPair& otherPair) const
-    {
-        return e1 == otherPair.e1 && e2 == otherPair.e2;
-    }
-};
-struct CollisionPairOld
-{
-    Entity e1, e2;
-
-    CollisionPairOld(Entity a, Entity b)
-    {
-        e1 = a.id < b.id ? a : b;
-        e2 = a.id < b.id ? b : a;
-    }
-
-    bool operator==(const CollisionPairOld& otherPair) const
     {
         return e1 == otherPair.e1 && e2 == otherPair.e2;
     }
@@ -133,36 +104,6 @@ struct BroadPhaseGridCell
     size_t Size() const
     {
         return count;
-    }
-};
-
-template <size_t size>
-struct BroadGridCellCenterCell
-{
-    InlineVector<Entity, size> entities;
-    InlineVector<uint16_t, size> solverBodyIndices;
-    InlineVector<uint32_t, size> collisionMasks;
-    InlineVector<uint32_t, size> collisionLayers;
-
-    void Add(Entity entity, uint16_t solverBodyIndex, uint32_t collisionMask, uint32_t collisionLayer)
-    {
-        entities.Push(entity);
-        solverBodyIndices.Push(solverBodyIndex);
-        collisionMasks.Push(collisionMask);
-        collisionLayers.Push(collisionLayer);
-    }
-
-    void Clear()
-    {
-        solverBodyIndices.Clear();
-        entities.Clear();
-        collisionMasks.Clear();
-        collisionLayers.Clear();
-    }
-
-    size_t Size() const
-    {
-        return solverBodyIndices.Size();
     }
 };
 
@@ -306,25 +247,4 @@ struct SolverBodyPairs
         bodyAIndices.reserve(size);
         bodyBIndices.reserve(size);
     }
-};
-
-struct alignas(32) NarrowPhaseSIMDBatch
-{
-    float aPositionX[32];
-    float aPositionY[32];
-    float aColliderHalfSizeX[32];
-    float aColliderHalfSizeY[32];
-
-    float bPositionX[32];
-    float bPositionY[32];
-    float bColliderHalfSizeX[32];
-    float bColliderHalfSizeY[32];
-
-    float aMass[32];
-    float bMass[32];
-
-    uint16_t aSolverBodyIndices[32];
-    uint16_t bSolverBodyIndices[32];
-
-    size_t count = 0;
 };

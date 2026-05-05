@@ -64,7 +64,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     m_inputManager.Update(inputSystem);
 
     {
-        ZoneScopedN("GameScene/FlowFieldUpdate");
+        // ZoneScopedN("GameScene/FlowFieldUpdate");
         m_flowFieldSystem.UpdateFlowAgents();
     }
 
@@ -78,7 +78,7 @@ void GameScene::Update(size_t currentFrame, World* worldPtr, InputSystem& inputS
     // currentTime += Time::DeltaTime();
 
     {
-        ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
+        // ZoneScopedN("GameScene/Towe&EnemyCollisionEvent");
         m_collisionEventQueryPtr->ForEach<CCollisionEvent>(
             [&](CCollisionEvent& collisionEvent)
             {

@@ -35,6 +35,8 @@ class CollisionSystem : public ISetupSystem
 
     Vect2<uint16_t> m_windowSize;
     SolverBodies m_solverBodies;
+
+    const size_t m_threadPoolCount = 11;
     ThreadPool m_threadPool;
 
     CollisionEventSystem m_collsionEventSystem;
@@ -116,7 +118,7 @@ class CollisionSystem : public ISetupSystem
 
     CollisionSystem(World* worldPtr, Vect2<uint16_t> windowSize)
         : m_windowSize(windowSize), m_broadPhaseCollisionSystem(m_solverBodies, m_threadPool),
-          m_narrowPhaseCollisionSystem(m_collsionEventSystem), m_threadPool(11)
+          m_narrowPhaseCollisionSystem(m_collsionEventSystem), m_threadPool(m_threadPoolCount)
     {
         SetupSystem(worldPtr);
         SystemDebuggerHub::Instance().GetCollsionDebugger().RegisterCollisionSystem(this);
@@ -131,14 +133,17 @@ class CollisionSystem : public ISetupSystem
     {
         SolverBodyPairs* solverBodyPairsPtr;
         CollisionResults* collisionResults;
-        m_collsionEventSystem.ClearCollisionEvents(worldPtr);
+
+        // m_collsionEventSystem.ClearCollisionEvents(worldPtr);
         m_solverBodies.Clear();
+
         m_updateCollisionQueryPtr->ForEachWithEntity<CTransform, CRigidBody, CCollider>(
             [&](Entity entity, CTransform& transform, CRigidBody& rigidBody, CCollider& collider)
             {
                 m_solverBodies.AddSolverBody(entity, transform.position + collider.offset, collider.halfSize, rigidBody.inverseMass,
                                              collider.mask, static_cast<uint32_t>(collider.layer), &transform);
             });
+
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {

@@ -180,12 +180,12 @@ void Engine::UpdateRuntime()
     ZoneScopedN("Update Runtime");
 
     {
-        ZoneScopedN("Update World");
+        // ZoneScopedN("Update World");
         m_currentWorld->UpdateWorld();
     }
 
     {
-        ZoneScopedN("Update Scene");
+        // ZoneScopedN("Update Scene");
         if (m_sceneManager.GetCurrentScenePtr() && m_engineMode == EngineMode::Play)
             m_sceneManager.GetCurrentScenePtr()->Update(m_currentFrame, m_currentWorld, m_inputSystem);
     }
@@ -193,7 +193,7 @@ void Engine::UpdateRuntime()
 
 void Engine::UpdatePhysics()
 {
-    ZoneScopedN("UpdatePhysics");
+    ZoneScopedN("Update Physics");
 
     if (m_engineMode != EngineMode::Play) return;
     if (m_sceneManager.GetCurrentScenePtr()->GetScenePaused()) return;

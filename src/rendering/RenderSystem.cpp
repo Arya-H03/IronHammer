@@ -111,7 +111,7 @@ size_t RenderingSystem::AddColliderToBatch(CCollider& ccollider, CTransform& ctr
 
 void RenderingSystem::AddSpriteToBatch(const CSprite& sprite, const CTransform& transform, sf::VertexArray& batch)
 {
-    ZoneScopedN("Add Sprite to Batch");
+    // ZoneScopedN("Add Sprite to Batch");
 
     float width = sprite.size.x * transform.scale.x;
     float height = sprite.size.y * transform.scale.y;
@@ -198,7 +198,7 @@ void RenderingSystem::RenderShapes(sf::RenderTarget& renderTarget)
 
             if (verticesInBatch >= maxVerticesPerBatch)
             {
-                ZoneScopedN("Draw Shape Batch");
+                // ZoneScopedN("Draw Shape Batch");
                 renderTarget.draw(batch);
                 batch.clear();
                 verticesInBatch = 0;
@@ -252,21 +252,21 @@ void RenderingSystem::HandleRenderSystem(sf::RenderTarget& renderTarget)
 {
 
     {
-        ZoneScopedN("Render Shapes");
+        // ZoneScopedN("Render Shapes");
         if (m_canDrawShapes) RenderShapes(renderTarget);
     }
 
     {
-        ZoneScopedN("Render Colliders");
+        // ZoneScopedN("Render Colliders");
         if (m_canDrawColliders) RenderColliders(renderTarget);
     }
 
     {
-        ZoneScopedN("Render Sprites");
+        // ZoneScopedN("Render Sprites");
         if (m_canDrawSprites) RenderSprites(renderTarget);
     }
     {
-        ZoneScopedN("Render Text");
+        // ZoneScopedN("Render Text");
         if (m_canDrawText) RenderText(renderTarget);
     }
 }

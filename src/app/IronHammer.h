@@ -18,7 +18,7 @@ public:
     {
         while (m_engine.GetRenderWindow().isOpen())
         {
-            ZoneScoped;
+            // ZoneScoped;
 
             m_engine.BeginFrame();
             m_engine.UpdateRuntime();
