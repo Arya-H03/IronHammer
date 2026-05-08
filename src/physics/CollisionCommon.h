@@ -75,23 +75,18 @@ struct CollisionResults
 template <size_t size>
 struct BroadPhaseGridCell
 {
-    uint8_t minCellX[size];           // 16 * 1 = 16 bytes
-    uint8_t minCellY[size];           // 16 * 1 = 16 bytes
-    uint32_t collisionMasks[size];    // 16 * 4 = 64 bytes
-    uint32_t collisionLayers[size];   // 16 * 4 = 64 bytes
-    EntityId entityIds[size];         // 16 * 4 = 64 bytes
-    uint16_t solverBodyIndices[size]; // 16 * 2 = 32 bytes
+    uint16_t solverBodyIndices[size];
+    uint8_t minCellX[size];
+    uint8_t minCellY[size];
 
     size_t count = 0;
 
-    void Add(EntityId entityId, uint16_t solverBodyIndex, Vect2<uint8_t> minCell, uint32_t collisionMask, uint32_t collisionLayer)
+    void Add(uint16_t solverBodyIndex, uint8_t minX, uint8_t minY)
     {
-        entityIds[count] = entityId;
         solverBodyIndices[count] = solverBodyIndex;
-        this->minCellX[count] = minCell.x;
-        this->minCellY[count] = minCell.y;
-        collisionMasks[count] = collisionMask;
-        collisionLayers[count] = collisionLayer;
+        minCellX[count] = minX;
+        minCellY[count] = minY;
+
         count++;
         assert(count <= size && "BroadGridCell overflow");
     }
@@ -105,19 +100,33 @@ struct BroadPhaseGridCell
     {
         return count;
     }
+
+    void Sort()
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            for (size_t j = i + 1; j < count; ++j)
+            {
+                if (solverBodyIndices[i] > solverBodyIndices[j])
+                {
+                    uint16_t temp = solverBodyIndices[i];
+                    solverBodyIndices[i] = solverBodyIndices[j];
+                    solverBodyIndices[j] = temp;
+                }
+            }
+        }
+    }
 };
 
 struct BroadPhaseCellDataEntry
 {
     uint16_t cellIndex;
-    uint8_t minCellX, minCellY;
-    uint32_t collisionMask;
-    uint32_t collisionLayer;
     uint16_t solverBodyIndex;
-    EntityId entityId;
+    uint8_t minCellX;
+    uint8_t minCellY;
 };
 
-struct alignas(64) BroadPhaseThreadBuffer
+struct alignas(64) BroadPhaseCellDataBuffer
 {
     std::vector<BroadPhaseCellDataEntry> entries;
     std::vector<BroadPhaseCellDataEntry> sortedEntries;
@@ -126,7 +135,6 @@ struct alignas(64) BroadPhaseThreadBuffer
     void Clear()
     {
         entries.clear();
-        sortedEntries.clear();
     }
 
     void Reserve(size_t size, uint16_t maxCellIndex)
@@ -166,51 +174,80 @@ struct SolverBodies
 {
     std::vector<float> posX;
     std::vector<float> posY;
+    std::vector<float> prePosX;
+    std::vector<float> prePosY;
+
     std::vector<float> colliderHalfSizeX;
     std::vector<float> colliderHalfSizeY;
+    std::vector<float> colliderOffsetX;
+    std::vector<float> colliderOffsetY;
     std::vector<uint32_t> colliderMasks;
     std::vector<uint32_t> colliderLayers;
+
     std::vector<float> inverseMasses;
     std::vector<Entity> entites;
     std::vector<CTransform*> transformPtrs;
 
-    void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& colliderHalfSize, float inverseMass, uint32_t collisionMask,
-                       uint32_t collisionLayer, CTransform* transformPtr)
+    void AddSolverBody(Entity entity, const Vect2f& position, const Vect2f& prePosition, const Vect2f& colliderOffset,
+                       const Vect2f& colliderHalfSize, float inverseMass, uint32_t collisionMask, uint32_t collisionLayer,
+                       CTransform* transformPtr)
     {
         entites.push_back(entity);
+
         posX.push_back(position.x);
         posY.push_back(position.y);
+
+        prePosX.push_back(prePosition.x);
+        prePosY.push_back(prePosition.y);
+
         colliderHalfSizeX.push_back(colliderHalfSize.x);
         colliderHalfSizeY.push_back(colliderHalfSize.y);
-        inverseMasses.push_back(inverseMass);
+        colliderOffsetX.push_back(colliderOffset.x);
+        colliderOffsetY.push_back(colliderOffset.y);
         colliderMasks.push_back(collisionMask);
         colliderLayers.push_back(collisionLayer);
+
+        inverseMasses.push_back(inverseMass);
         transformPtrs.push_back(transformPtr);
     }
 
     void Reserve(size_t size)
     {
         entites.reserve(size);
+
         posX.reserve(size);
         posY.reserve(size);
+        prePosX.reserve(size);
+        prePosY.reserve(size);
+
+        colliderOffsetX.reserve(size);
+        colliderOffsetY.reserve(size);
         colliderHalfSizeX.reserve(size);
         colliderHalfSizeY.reserve(size);
-        inverseMasses.reserve(size);
         colliderMasks.reserve(size);
         colliderLayers.reserve(size);
+
+        inverseMasses.reserve(size);
         transformPtrs.reserve(size);
     }
 
     void Clear()
     {
         entites.clear();
+
         posX.clear();
         posY.clear();
+        prePosX.clear();
+        prePosY.clear();
+
         colliderHalfSizeX.clear();
         colliderHalfSizeY.clear();
-        inverseMasses.clear();
+        colliderOffsetX.clear();
+        colliderOffsetY.clear();
         colliderMasks.clear();
         colliderLayers.clear();
+
+        inverseMasses.clear();
         transformPtrs.clear();
     }
 
@@ -221,6 +258,35 @@ struct SolverBodies
 };
 
 struct SolverBodyPairs
+{
+    std::vector<uint16_t> bodyAIndices;
+    std::vector<uint16_t> bodyBIndices;
+
+    size_t Count() const
+    {
+        return bodyAIndices.size();
+    }
+
+    void AddPair(uint16_t bodyAIndex, uint16_t bodyBIndex)
+    {
+        bodyAIndices.push_back(bodyAIndex);
+        bodyBIndices.push_back(bodyBIndex);
+    }
+
+    void Clear()
+    {
+        bodyAIndices.clear();
+        bodyBIndices.clear();
+    }
+
+    void Reserve(size_t size)
+    {
+        bodyAIndices.reserve(size);
+        bodyBIndices.reserve(size);
+    }
+};
+
+struct alignas(64) BroadPhaseBodyPairBuffer
 {
     std::vector<uint16_t> bodyAIndices;
     std::vector<uint16_t> bodyBIndices;

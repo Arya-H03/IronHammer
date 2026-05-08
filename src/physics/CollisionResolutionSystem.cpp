@@ -1,7 +1,6 @@
 #include "CollisionResolutionSystem.h"
 
 #include "Tracy.hpp"
-#include "core/CoreComponents.hpp"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
 #include "physics/CollisionCommon.h"
@@ -14,7 +13,7 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, Collis
 {
     // ZoneScopedN("CollisionResolutionSystem/ResolveCollisionOverlaps");
 
-    const float percent = 0.45f;
+    const float percent = 1.f;
 
     for (size_t i = 0; i < collisionResults.Count(); ++i)
     {
@@ -27,8 +26,10 @@ void CollisionResolutionSystem::ResolveCollisionOverlaps(World* worldPtr, Collis
 
         sovlerBodies.posX[collisionResults.solverBodyAIndex[i]] -= correction.x * invMassA;
         sovlerBodies.posY[collisionResults.solverBodyAIndex[i]] -= correction.y * invMassA;
+
         sovlerBodies.posX[collisionResults.solverBodyBIndex[i]] += correction.x * invMassB;
         sovlerBodies.posY[collisionResults.solverBodyBIndex[i]] += correction.y * invMassB;
+
     }
 }
 
@@ -41,11 +42,4 @@ void CollisionResolutionSystem::ResolveCollisions(World* worldPtr, CollisionResu
         ResolveCollisionOverlaps(worldPtr, collisionResults, solverBodies);
     }
 
-    {
-        // ZoneScopedN("CollisionResolutionSystem/UpdateSolverBodies");
-        for (size_t i = 0; i < solverBodies.Count(); ++i)
-        {
-            solverBodies.transformPtrs[i]->position = Vect2f(solverBodies.posX[i], solverBodies.posY[i]);
-        }
-    }
 }

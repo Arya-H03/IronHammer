@@ -35,8 +35,10 @@ void GameScene::OnStartPlay(World* worldPtr)
     m_enemyQuery = worldPtr->Query<RequiredComponents<CEnemy, CTransform>>();
     m_collisionEventQueryPtr = worldPtr->Query<RequiredComponents<CCollisionEvent, CTower>>();
 
-    m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { SpawnTestEntities(); });
-    m_inputManager.CreateInputAction("StopEnemy", sf::Keyboard::Key::P, InputTrigger::Pressed, [&]() { m_spawn = false; });
+    // m_inputManager.CreateInputAction("SpawnEnemy", sf::Keyboard::Key::S, InputTrigger::Pressed, [&]() { SpawnTestEntities(); });
+    // m_inputManager.CreateInputAction("StopEnemy", sf::Keyboard::Key::P, InputTrigger::Pressed, [&]() { m_spawn = false; });
+    //
+    SpawnTestEntities();
 }
 
 void GameScene::OnExitPlay(World* worldPtr)
@@ -115,6 +117,10 @@ void GameScene::SpawnTestEntities()
         {
             SpawnEnemy({(float)i, (float)j}, {0, 0});
             count++;
+            // if (count >= 5)
+            // {
+            //     return;
+            // }
         }
     }
     // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)
