@@ -1,7 +1,6 @@
 #pragma once
 #include "Tracy.hpp"
 #include "core/CoreComponents.hpp"
-#include "core/utils/Debug.h"
 #include "core/utils/Threadpool.h"
 #include "core/utils/Vect2.hpp"
 #include "ecs/World.h"
@@ -48,7 +47,7 @@ class CollisionSystem : public ISetupSystem
     Query* m_updateCollisionQueryPtr;
     Query* m_updatePositionQueryPtr;
 
-    void UpdatePositions(float dt)
+    void UpdateSolverBodyPositions(float dt)
     {
         ZoneScopedN("CollisionSystem/UpdatePositions");
 
@@ -71,7 +70,7 @@ class CollisionSystem : public ISetupSystem
         }
     }
 
-    void CheckForScreenBorderCollision()
+    void ApplyViewportConstraints()
     {
         ZoneScopedN("CollisionSystem/CheckForScreenBorderCollision");
 
@@ -103,6 +102,14 @@ class CollisionSystem : public ISetupSystem
         }
     }
 
+    void UpdateEntityPositions()
+    {
+        for (size_t i = 0; i < m_solverBodies.Count(); ++i)
+        {
+            m_solverBodies.transformPtrs[i]->position = Vect2f(m_solverBodies.posX[i], m_solverBodies.posY[i]);
+            m_solverBodies.transformPtrs[i]->previousPosition = Vect2f(m_solverBodies.prePosX[i], m_solverBodies.prePosY[i]);
+        }
+    }
 
   public:
     void SetupSystem(World* worldPtr) override
@@ -150,19 +157,15 @@ class CollisionSystem : public ISetupSystem
         float substepDt = dt / SUBSTEP_COUNT;
         for (size_t i = 0; i < SUBSTEP_COUNT; ++i)
         {
-            UpdatePositions(substepDt);
-            CheckForScreenBorderCollision();
+            UpdateSolverBodyPositions(substepDt);
+            ApplyViewportConstraints();
 
             solverBodyPairsPtr = &m_broadPhaseCollisionSystem.HandleBroadPhaseCollisionSystem(worldPtr);
             collisionResults = &m_narrowPhaseCollisionSystem.ProccessPotentialCollisonPairs(worldPtr, m_solverBodies, *solverBodyPairsPtr);
             m_collisionResolutionSystem.ResolveCollisions(worldPtr, *collisionResults, m_solverBodies);
         }
 
-        for (size_t i = 0; i < m_solverBodies.Count(); ++i)
-        {
-            m_solverBodies.transformPtrs[i]->position = Vect2f(m_solverBodies.posX[i], m_solverBodies.posY[i]);
-            m_solverBodies.transformPtrs[i]->previousPosition = Vect2f(m_solverBodies.prePosX[i], m_solverBodies.prePosY[i]);
-        }
+        UpdateEntityPositions();
 
         // m_collsionEventSystem.HandleCollisionEvents(worldPtr, *collisionDataVector);
     }

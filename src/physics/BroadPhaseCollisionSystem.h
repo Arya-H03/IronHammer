@@ -18,14 +18,17 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
   private:
     const float m_cellSize = 8;
+    const float m_cellSizeInv = 1.0f / m_cellSize;
 
     uint16_t m_gridCols, m_gridRows;
 
     std::vector<BroadPhaseGridCell<16>> m_broadPhaseGrid;
+    std::vector<uint16_t> m_activeCellIndices;
 
     ThreadPool& m_threadPool;
-    std::vector<BroadPhaseThreadBuffer> m_threadBuffers;
+    std::vector<BroadPhaseCellDataBuffer> m_cellDataBuffer;
 
+    std::vector<BroadPhaseBodyPairBuffer> m_bodyPairBuffer;
     SolverBodyPairs m_solverBodyPairs;
 
     Query* m_broadPhaseQuery;
@@ -33,10 +36,12 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
 
     void FillCellWithThread(size_t threadIndex);
-    void MergeThreadBuffers();
+    void MergeCellDataBuffers();
+    void FindCollisionPairsThread(size_t threadIndex);
+    void MergeBodyPairBuffers();
 
-    void FillCellsWithEntityOverlaps(World* worldPtr);
     void FindCollisionPairsFromOverlaps();
+    void FillCellsWithEntityOverlaps(World* worldPtr);
 
     bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 

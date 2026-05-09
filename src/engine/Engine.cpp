@@ -121,6 +121,9 @@ void Engine::EnterPlayMode()
     m_collisionSystem.SetupSystem(m_currentWorld);
     m_renderSystem.SetupSystem(m_currentWorld);
     m_sceneManager.GetCurrentScenePtr()->OnStartPlay(m_currentWorld);
+    m_currentWorld->UpdateWorld();
+    LOG_INFO("msg");
+    m_collisionSystem.CreateSolverBodies(m_currentWorld);
 
     m_engineMode = EngineMode::Play;
     LOG_INFO("Changed to PlayMode");
