@@ -103,42 +103,64 @@ void BroadPhaseCollisionSystem::MergeCellDataBuffers()
 void BroadPhaseCollisionSystem::SortCellData()
 {
     const size_t cellCount = m_gridCols * m_gridRows;
-    m_tempCellData.resize(m_mergedCellData.size());
-    m_coutingCells.assign(cellCount, 0);
 
-    for (const auto& entry : m_mergedCellData)
     {
-        ++m_coutingCells[entry.cellIndex];
+        ZoneScopedN("CollisionBroadPhase/SortCellData/Setup");
+        m_tempCellData.resize(m_mergedCellData.size());
+        m_coutingCells.assign(cellCount, 0);
     }
 
-    for (size_t i = 1; i < cellCount; ++i)
     {
-        m_coutingCells[i] += m_coutingCells[i - 1];
+        ZoneScopedN("CollisionBroadPhase/SortCellData/CellDataLoop");
+        for (const auto& entry : m_mergedCellData)
+        {
+            ++m_coutingCells[entry.cellIndex];
+        }
     }
 
-    for (int i = (int)m_mergedCellData.size() - 1; i >= 0; --i)
     {
-        m_tempCellData[--m_coutingCells[m_mergedCellData[i].cellIndex]] = m_mergedCellData[i];
+        ZoneScopedN("CollisionBroadPhase/SortCellData/CoutingCellLoop");
+        for (size_t i = 1; i < cellCount; ++i)
+        {
+            m_coutingCells[i] += m_coutingCells[i - 1];
+        }
     }
 
-    std::swap(m_mergedCellData, m_tempCellData);
+    {
+        ZoneScopedN("CollisionBroadPhase/SortCellData/SortLoop");
+        for (int i = (int)m_mergedCellData.size() - 1; i >= 0; --i)
+        {
+            m_tempCellData[--m_coutingCells[m_mergedCellData[i].cellIndex]] = m_mergedCellData[i];
+        }
+    }
+
+    {
+        ZoneScopedN("CollisionBroadPhase/SortCellData/Swap");
+        std::swap(m_mergedCellData, m_tempCellData);
+    }
 }
 
 void BroadPhaseCollisionSystem::FindThreadWorkloadBounds()
 {
     const size_t minThreadLoad = m_mergedCellData.size() / (m_threadPool.ThreadCount() + 1);
+    const size_t cellCount = m_gridCols * m_gridRows;
     m_threadIndexBounds.clear();
-    size_t left = 0;
-    while (left < m_mergedCellData.size())
+
+    size_t boundsStartIndex = 0;
+    size_t boundsLength = 0;
+
+    for (size_t i = 0; i < cellCount; ++i)
     {
-        size_t right = left + 1;
-        while (right + 1 < m_mergedCellData.size() &&
-               (right - left < minThreadLoad - 1 || m_mergedCellData[right].cellIndex == m_mergedCellData[right + 1].cellIndex))
+        size_t nextStartIndex = (i + 1 < cellCount) ? m_coutingCells[i + 1] : m_mergedCellData.size();
+        size_t currentBoundsLength = nextStartIndex - m_coutingCells[i];
+        boundsLength += currentBoundsLength;
+
+        if (boundsLength >= minThreadLoad || i == cellCount - 1)
         {
-            ++right;
+            m_threadIndexBounds.push_back({boundsStartIndex, boundsStartIndex + boundsLength - 1});
+            boundsStartIndex += boundsLength;
+            boundsLength = 0;
         }
-        m_threadIndexBounds.push_back({left, right});
-        left = right + 1;
     }
 }
 
