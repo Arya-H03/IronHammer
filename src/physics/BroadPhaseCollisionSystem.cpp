@@ -36,7 +36,6 @@ void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
         buffer.Reserve(20000, m_gridCols * m_gridRows);
     }
 
-    m_solverBodyPairs.Reserve(100000);
     m_bodyPairBuffer.resize(m_threadPool.ThreadCount() + 1);
     for (auto& buffer : m_bodyPairBuffer)
     {
@@ -103,7 +102,7 @@ void BroadPhaseCollisionSystem::MergeCellDataBuffers()
 
 void BroadPhaseCollisionSystem::SortCellData()
 {
-    const size_t cellCount = m_gridCols * m_gridCols;
+    const size_t cellCount = m_gridCols * m_gridRows;
     m_tempCellData.resize(m_mergedCellData.size());
     m_coutingCells.assign(cellCount, 0);
 
@@ -190,14 +189,22 @@ void BroadPhaseCollisionSystem::GatherCollisionPairsIntoBuffer(size_t threadInde
 
 void BroadPhaseCollisionSystem::MergeCollisionPairBuffers()
 {
+    size_t totalCount = 0;
+    for (const auto& bodyPairBuffer : m_bodyPairBuffer)
     {
-        for (const auto& bodyPairBuffer : m_bodyPairBuffer)
-        {
-            for (size_t i = 0; i < bodyPairBuffer.Count(); ++i)
-            {
-                m_solverBodyPairs.AddPair(bodyPairBuffer.bodyAIndices[i], bodyPairBuffer.bodyBIndices[i]);
-            }
-        }
+        totalCount += bodyPairBuffer.Count();
+    }
+    m_solverBodyPairs.Resize(totalCount);
+
+    size_t currentCount = 0;
+    for (const auto& bodyPairBuffer : m_bodyPairBuffer)
+    {
+        size_t bufferSize = bodyPairBuffer.Count();
+        std::memcpy(m_solverBodyPairs.bodyAIndices.data() + currentCount, bodyPairBuffer.bodyAIndices.data(),
+                    bufferSize * sizeof(uint16_t));
+        std::memcpy(m_solverBodyPairs.bodyBIndices.data() + currentCount, bodyPairBuffer.bodyBIndices.data(),
+                    bufferSize * sizeof(uint16_t));
+        currentCount += bufferSize;
     }
 }
 
@@ -206,7 +213,7 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
     ZoneScopedN("CollisionBroadPhase");
 
     {
-        ZoneScopedN("CollisionBroadPhase/CreateCellDataBuffers(Threaded)");
+        ZoneScopedN("CollisionBroadPhase/GatherCellDataIntoBuffer(Threaded)");
         m_threadPool.Dispatch(m_threadPool.ThreadCount() + 1, [this](size_t threadIndex) { GatherCellDataIntoBuffer(threadIndex); });
     }
     {
@@ -224,7 +231,6 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
 
     {
         ZoneScopedN("CollisionBroadPhase/FindCollisionPairs(Threaded)");
-        m_solverBodyPairs.Clear();
         m_threadPool.Dispatch(m_threadPool.ThreadCount() + 1, [this](size_t threadIndex) { GatherCollisionPairsIntoBuffer(threadIndex); });
     }
 

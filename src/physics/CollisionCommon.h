@@ -98,22 +98,6 @@ struct BroadPhaseGridCell
     {
         return count;
     }
-
-    void Sort()
-    {
-        for (size_t i = 0; i < count; ++i)
-        {
-            for (size_t j = i + 1; j < count; ++j)
-            {
-                if (solverBodyIndices[i] > solverBodyIndices[j])
-                {
-                    uint16_t temp = solverBodyIndices[i];
-                    solverBodyIndices[i] = solverBodyIndices[j];
-                    solverBodyIndices[j] = temp;
-                }
-            }
-        }
-    }
 };
 
 struct BroadPhaseCellDataEntry
@@ -127,8 +111,6 @@ struct BroadPhaseCellDataEntry
 struct alignas(64) BroadPhaseCellDataBuffer
 {
     std::vector<BroadPhaseCellDataEntry> entries;
-    // std::vector<BroadPhaseCellDataEntry> sortedEntries;
-    // std::vector<uint16_t> countBuffer;
 
     void Clear()
     {
@@ -138,33 +120,7 @@ struct alignas(64) BroadPhaseCellDataBuffer
     void Reserve(size_t size, uint16_t maxCellIndex)
     {
         entries.reserve(size);
-        // sortedEntries.reserve(size);
-        // countBuffer.reserve(maxCellIndex);
     }
-
-    // void Sort(uint16_t maxCellIndex)
-    //     const size_t k = maxCellIndex + 1;
-    //     countBuffer.assign(k, 0);
-
-    //     for (auto entry : entries)
-    //     {
-    //         countBuffer[entry.cellIndex]++;
-    //     }
-
-    //     for (size_t i = 1; i < k; ++i)
-    //     {
-    //         countBuffer[i] += countBuffer[i - 1];
-    //     }
-
-    //     sortedEntries.resize(entries.size());
-
-    //     for (int i = (int)entries.size() - 1; i >= 0; --i)
-    //     {
-    //         sortedEntries[--countBuffer[entries[i].cellIndex]] = entries[i];
-    //     }
-
-    //     std::swap(entries, sortedEntries);
-    // }
 };
 
 struct SolverBodies
@@ -280,6 +236,12 @@ struct SolverBodyPairs
     {
         bodyAIndices.reserve(size);
         bodyBIndices.reserve(size);
+    }
+
+    void Resize(size_t size)
+    {
+        bodyAIndices.resize(size);
+        bodyBIndices.resize(size);
     }
 };
 
