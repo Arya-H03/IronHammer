@@ -116,11 +116,11 @@ void GameScene::SpawnTestEntities()
         for (int j = 8; j < Viewport::GetSize().y - 8; j += 8)
         {
             SpawnEnemy({(float)i, (float)j}, {0, 0});
-            count++;
-            if (count >= 10000)
-            {
-                return;
-            }
+            // count++;
+            // if (count >= 10000)
+            // {
+            //     return;
+            // }
         }
     }
     // for (int i = 10; i <= Viewport::GetSize().x - 10; i += 24)

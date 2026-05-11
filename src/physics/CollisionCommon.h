@@ -5,12 +5,10 @@
 #include "ecs/common/ECSCommon.h"
 
 #include <SFML/Graphics/Color.hpp>
-#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <utility>
 #include <vector>
 
 struct CollisionPair
@@ -129,8 +127,8 @@ struct BroadPhaseCellDataEntry
 struct alignas(64) BroadPhaseCellDataBuffer
 {
     std::vector<BroadPhaseCellDataEntry> entries;
-    std::vector<BroadPhaseCellDataEntry> sortedEntries;
-    std::vector<uint16_t> countBuffer;
+    // std::vector<BroadPhaseCellDataEntry> sortedEntries;
+    // std::vector<uint16_t> countBuffer;
 
     void Clear()
     {
@@ -140,34 +138,33 @@ struct alignas(64) BroadPhaseCellDataBuffer
     void Reserve(size_t size, uint16_t maxCellIndex)
     {
         entries.reserve(size);
-        sortedEntries.reserve(size);
-        countBuffer.reserve(maxCellIndex);
+        // sortedEntries.reserve(size);
+        // countBuffer.reserve(maxCellIndex);
     }
 
-    void Sort(uint16_t maxCellIndex)
-    {
-        const size_t k = maxCellIndex + 1;
-        countBuffer.assign(k, 0);
+    // void Sort(uint16_t maxCellIndex)
+    //     const size_t k = maxCellIndex + 1;
+    //     countBuffer.assign(k, 0);
 
-        for (auto entry : entries)
-        {
-            countBuffer[entry.cellIndex]++;
-        }
+    //     for (auto entry : entries)
+    //     {
+    //         countBuffer[entry.cellIndex]++;
+    //     }
 
-        for (size_t i = 1; i < k; ++i)
-        {
-            countBuffer[i] += countBuffer[i - 1];
-        }
+    //     for (size_t i = 1; i < k; ++i)
+    //     {
+    //         countBuffer[i] += countBuffer[i - 1];
+    //     }
 
-        sortedEntries.resize(entries.size());
+    //     sortedEntries.resize(entries.size());
 
-        for (int i = (int)entries.size() - 1; i >= 0; --i)
-        {
-            sortedEntries[--countBuffer[entries[i].cellIndex]] = entries[i];
-        }
+    //     for (int i = (int)entries.size() - 1; i >= 0; --i)
+    //     {
+    //         sortedEntries[--countBuffer[entries[i].cellIndex]] = entries[i];
+    //     }
 
-        std::swap(entries, sortedEntries);
-    }
+    //     std::swap(entries, sortedEntries);
+    // }
 };
 
 struct SolverBodies

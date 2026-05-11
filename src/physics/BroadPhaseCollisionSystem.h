@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 
@@ -22,8 +23,10 @@ class BroadPhaseCollisionSystem : public ISetupSystem
 
     uint16_t m_gridCols, m_gridRows;
 
-    std::vector<BroadPhaseGridCell<16>> m_broadPhaseGrid;
-    std::vector<uint16_t> m_activeCellIndices;
+    std::vector<BroadPhaseCellDataEntry> m_mergedCellData;
+    std::vector<BroadPhaseCellDataEntry> m_tempCellData;
+    std::vector<uint16_t> m_coutingCells;
+    std::vector<std::pair<size_t, size_t>> m_threadIndexBounds;
 
     ThreadPool& m_threadPool;
     std::vector<BroadPhaseCellDataBuffer> m_cellDataBuffer;
@@ -35,13 +38,13 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     SolverBodies& m_solverBodies;
 
 
-    void FillCellWithThread(size_t threadIndex);
+    void GatherCellDataIntoBuffer(size_t threadIndex);
     void MergeCellDataBuffers();
-    void FindCollisionPairsThread(size_t threadIndex);
-    void MergeBodyPairBuffers();
+    void SortCellData();
+    void FindThreadWorkloadBounds();
 
-    void FindCollisionPairsFromOverlaps();
-    void FillCellsWithEntityOverlaps(World* worldPtr);
+    void GatherCollisionPairsIntoBuffer(size_t threadIndex);
+    void MergeCollisionPairBuffers();
 
     bool CanCollidersContact(uint32_t colliderMaskA, uint32_t colliderMaskB, Layer colliderLayerA, Layer colliderLayerB);
 
