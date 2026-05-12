@@ -10,6 +10,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Window/Joystick.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -23,26 +24,35 @@
 BroadPhaseCollisionSystem::BroadPhaseCollisionSystem(SolverBodies& solverBodies, ThreadPool& threadPool)
     : m_solverBodies(solverBodies), m_threadPool(threadPool)
 {
+    m_threadCount = threadPool.ThreadCount() + 1;
 }
 
 void BroadPhaseCollisionSystem::SetupSystem(World* worldPtr)
 {
     m_gridRows = (Viewport::GetSize().y / m_cellSize) + 5;
     m_gridCols = (Viewport::GetSize().x / m_cellSize) + 5;
+    m_cellCount = m_gridCols * m_gridRows;
 
-    m_cellDataBuffer.resize(m_threadPool.ThreadCount() + 1);
+    m_threadPages.resize(m_threadCount);
+    for (auto& threadPage : m_threadPages)
+    {
+        threadPage.resize(m_cellCount);
+    }
+    m_globalCellOffsets.resize(m_cellCount);
+
+    m_cellDataBuffer.resize(m_threadCount);
     for (auto& buffer : m_cellDataBuffer)
     {
-        buffer.Reserve(20000, m_gridCols * m_gridRows);
+        buffer.Reserve(20000, m_cellCount);
     }
 
-    m_bodyPairBuffer.resize(m_threadPool.ThreadCount() + 1);
+    m_bodyPairBuffer.resize(m_threadCount);
     for (auto& buffer : m_bodyPairBuffer)
     {
         buffer.Reserve(20000);
     }
 
-    m_coutingCells.reserve(m_gridCols * m_gridRows);
+    m_coutingCells.reserve(m_cellCount);
 
     m_broadPhaseQuery = worldPtr->Query<RequiredComponents<CTransform, CCollider, CRigidBody>>();
 }
@@ -52,10 +62,12 @@ void BroadPhaseCollisionSystem::GatherCellDataIntoBuffer(size_t threadIndex)
     BroadPhaseCellDataBuffer& threadBuffer = m_cellDataBuffer[threadIndex];
     threadBuffer.Clear();
 
+    std::vector<uint16_t>& threadPage = m_threadPages[threadIndex];
+    std::fill(threadPage.begin(), threadPage.end(), 0);
+
     const size_t totalSolverBodyCount = m_solverBodies.Count();
-    const size_t totalThreadCount = m_threadPool.ThreadCount() + 1;
-    const size_t tail = totalSolverBodyCount % totalThreadCount;
-    const size_t chunkSize = (totalSolverBodyCount - tail) / totalThreadCount;
+    const size_t tail = totalSolverBodyCount % m_threadCount;
+    const size_t chunkSize = (totalSolverBodyCount - tail) / m_threadCount;
     const size_t startIndex = chunkSize * threadIndex;
     const size_t endIndex = threadIndex != m_threadPool.ThreadCount() ? startIndex + chunkSize : totalSolverBodyCount;
 
@@ -75,9 +87,35 @@ void BroadPhaseCollisionSystem::GatherCellDataIntoBuffer(size_t threadIndex)
         {
             for (int x = xStart; x <= xEnd; ++x)
             {
-                threadBuffer.entries.push_back({(uint16_t)(y * m_gridCols + x), i, (uint8_t)xStart, (uint8_t)yStart});
+                uint16_t cellIndex = (uint16_t)(y * m_gridCols + x);
+                threadBuffer.entries.push_back({cellIndex, i, (uint8_t)xStart, (uint8_t)yStart});
+                ++threadPage[cellIndex];
             }
         }
+    }
+}
+void BroadPhaseCollisionSystem::ComputeCellGlobalOffset()
+{
+    uint16_t offset = 0;
+    for (size_t cellIndex = 0; cellIndex < m_cellCount; ++cellIndex)
+    {
+        m_globalCellOffsets[cellIndex] = offset;
+
+        for (size_t threadIndex = 0; threadIndex < m_threadCount; ++threadIndex)
+        {
+            uint16_t cellCount = m_threadPages[threadIndex][cellIndex];
+            m_threadPages[threadIndex][cellIndex] = offset;
+            offset += cellCount;
+        }
+    }
+    m_mergedCellData.resize(offset);
+}
+void BroadPhaseCollisionSystem::ScatterCellData(size_t threadIndex)
+{
+    std::vector<uint16_t>& threadPage = m_threadPages[threadIndex];
+    for (const auto& entry : m_cellDataBuffer[threadIndex].entries)
+    {
+        m_mergedCellData[threadPage[entry.cellIndex]++] = entry;
     }
 }
 
@@ -105,13 +143,13 @@ void BroadPhaseCollisionSystem::SortCellData()
     const size_t cellCount = m_gridCols * m_gridRows;
 
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData/Setup");
+        // ZoneScopedN("CollisionBroadPhase/SortCellData/Setup");
         m_tempCellData.resize(m_mergedCellData.size());
         m_coutingCells.assign(cellCount, 0);
     }
 
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData/CellDataLoop");
+        // ZoneScopedN("CollisionBroadPhase/SortCellData/CellDataLoop");
         for (const auto& entry : m_mergedCellData)
         {
             ++m_coutingCells[entry.cellIndex];
@@ -119,7 +157,7 @@ void BroadPhaseCollisionSystem::SortCellData()
     }
 
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData/CoutingCellLoop");
+        // ZoneScopedN("CollisionBroadPhase/SortCellData/CoutingCellLoop");
         for (size_t i = 1; i < cellCount; ++i)
         {
             m_coutingCells[i] += m_coutingCells[i - 1];
@@ -127,7 +165,7 @@ void BroadPhaseCollisionSystem::SortCellData()
     }
 
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData/SortLoop");
+        // ZoneScopedN("CollisionBroadPhase/SortCellData/SortLoop");
         for (int i = (int)m_mergedCellData.size() - 1; i >= 0; --i)
         {
             m_tempCellData[--m_coutingCells[m_mergedCellData[i].cellIndex]] = m_mergedCellData[i];
@@ -135,27 +173,60 @@ void BroadPhaseCollisionSystem::SortCellData()
     }
 
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData/Swap");
+        // ZoneScopedN("CollisionBroadPhase/SortCellData/Swap");
         std::swap(m_mergedCellData, m_tempCellData);
     }
 }
 
-void BroadPhaseCollisionSystem::FindThreadWorkloadBounds()
+void BroadPhaseCollisionSystem::FindThreadWorkloadBoundsThreadedSort()
 {
-    const size_t minThreadLoad = m_mergedCellData.size() / (m_threadPool.ThreadCount() + 1);
-    const size_t cellCount = m_gridCols * m_gridRows;
+    const size_t totalEntries = m_mergedCellData.size();
+    const size_t minThreadLoad = totalEntries / m_threadCount;
+
+    m_threadIndexBounds.clear();
+    size_t entryStart = 0;
+
+    for (size_t i = 0; i < m_cellCount; ++i)
+    {
+        size_t nextCellStart = (i + 1 < m_cellCount) ? m_globalCellOffsets[i + 1] : totalEntries;
+
+        if (nextCellStart - entryStart >= minThreadLoad)
+        {
+            m_threadIndexBounds.push_back({entryStart, nextCellStart - 1});
+            entryStart = nextCellStart;
+        }
+    }
+
+    if (entryStart < totalEntries)
+    {
+        if (m_threadIndexBounds.size() == m_threadCount)
+        {
+            m_threadIndexBounds.back().second = totalEntries - 1;
+        }
+        else
+        {
+            m_threadIndexBounds.push_back({entryStart, totalEntries - 1});
+        }
+    }
+}
+
+void BroadPhaseCollisionSystem::FindThreadWorkloadBoundsRegSort()
+{
+    const size_t totalEntries = m_mergedCellData.size();
+    const size_t minThreadLoad = totalEntries / m_threadCount;
+
     m_threadIndexBounds.clear();
 
     size_t boundsStartIndex = 0;
     size_t boundsLength = 0;
 
-    for (size_t i = 0; i < cellCount; ++i)
+    for (size_t i = 0; i < m_cellCount; ++i)
     {
-        size_t nextStartIndex = (i + 1 < cellCount) ? m_coutingCells[i + 1] : m_mergedCellData.size();
+        size_t nextStartIndex = (i + 1 < m_cellCount) ? m_coutingCells[i + 1] : m_mergedCellData.size();
         size_t currentBoundsLength = nextStartIndex - m_coutingCells[i];
         boundsLength += currentBoundsLength;
 
-        if (boundsLength >= minThreadLoad || i == cellCount - 1)
+        if (boundsLength >= minThreadLoad || i == m_cellCount - 1)
         {
             m_threadIndexBounds.push_back({boundsStartIndex, boundsStartIndex + boundsLength - 1});
             boundsStartIndex += boundsLength;
@@ -235,29 +306,44 @@ SolverBodyPairs& BroadPhaseCollisionSystem::HandleBroadPhaseCollisionSystem(Worl
     ZoneScopedN("CollisionBroadPhase");
 
     {
-        ZoneScopedN("CollisionBroadPhase/GatherCellDataIntoBuffer(Threaded)");
-        m_threadPool.Dispatch(m_threadPool.ThreadCount() + 1, [this](size_t threadIndex) { GatherCellDataIntoBuffer(threadIndex); });
+        // ZoneScopedN("CollisionBroadPhase/GatherCellDataIntoBuffer(Threaded)");
+        m_threadPool.Dispatch(m_threadCount, [this](size_t threadIndex) { GatherCellDataIntoBuffer(threadIndex); });
+    }
+
+    // {
+    //     // ZoneScopedN("CollisionBroadPhase/MergeCellDataBuffers");
+    //     MergeCellDataBuffers();
+    // }
+    // {
+    //     // ZoneScopedN("CollisionBroadPhase/SortCellData");
+    //     SortCellData();
+    // }
+    // {
+    //     // ZoneScopedN("CollisionBroadPhase/FindThreadWorkloadBoundsRegSort");
+    //     FindThreadWorkloadBoundsRegSort();
+    // }
+
+    {
+        // ZoneScopedN("CollisionBroadPhase/ComputeGlobalOffsets");
+        ComputeCellGlobalOffset();
     }
     {
-        ZoneScopedN("CollisionBroadPhase/MergeCellDataBuffers");
-        MergeCellDataBuffers();
+        // ZoneScopedN("CollisionBroadPhase/ScatterCellData(Threaded)");
+        m_threadPool.Dispatch(m_threadCount, [this](size_t threadIndex) { ScatterCellData(threadIndex); });
     }
     {
-        ZoneScopedN("CollisionBroadPhase/SortCellData");
-        SortCellData();
+        // ZoneScopedN("CollisionBroadPhase/FindThreadWorkloadBoundsThreadedSort");
+        FindThreadWorkloadBoundsThreadedSort();
     }
+
+
     {
-        ZoneScopedN("CollisionBroadPhase/FindThreadWorkloadBounds");
-        FindThreadWorkloadBounds();
+        // ZoneScopedN("CollisionBroadPhase/FindCollisionPairs(Threaded)");
+        m_threadPool.Dispatch(m_threadCount, [this](size_t threadIndex) { GatherCollisionPairsIntoBuffer(threadIndex); });
     }
 
     {
-        ZoneScopedN("CollisionBroadPhase/FindCollisionPairs(Threaded)");
-        m_threadPool.Dispatch(m_threadPool.ThreadCount() + 1, [this](size_t threadIndex) { GatherCollisionPairsIntoBuffer(threadIndex); });
-    }
-
-    {
-        ZoneScopedN("CollisionBroadPhase/MergeCollisionPairs");
+        // ZoneScopedN("CollisionBroadPhase/MergeCollisionPairs");
         MergeCollisionPairBuffers();
     }
 

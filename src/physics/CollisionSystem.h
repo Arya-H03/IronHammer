@@ -36,7 +36,7 @@ class CollisionSystem : public ISetupSystem
     Vect2<uint16_t> m_windowSize;
     SolverBodies m_solverBodies;
 
-    const size_t m_threadPoolCount = 9;
+    const size_t m_threadPoolCount = 7;
     ThreadPool m_threadPool;
 
     CollisionEventSystem m_collsionEventSystem;

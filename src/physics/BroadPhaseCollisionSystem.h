@@ -20,8 +20,13 @@ class BroadPhaseCollisionSystem : public ISetupSystem
   private:
     const float m_cellSize = 8;
     const float m_cellSizeInv = 1.0f / m_cellSize;
+    size_t m_cellCount = 0;
+    size_t m_threadCount = 0;
 
     uint16_t m_gridCols, m_gridRows;
+
+    std::vector<std::vector<uint16_t>> m_threadPages;
+    std::vector<uint16_t> m_globalCellOffsets;
 
     std::vector<BroadPhaseCellDataEntry> m_mergedCellData;
     std::vector<BroadPhaseCellDataEntry> m_tempCellData;
@@ -37,11 +42,15 @@ class BroadPhaseCollisionSystem : public ISetupSystem
     Query* m_broadPhaseQuery;
     SolverBodies& m_solverBodies;
 
-
     void GatherCellDataIntoBuffer(size_t threadIndex);
+    void ComputeCellGlobalOffset();
+    void ScatterCellData(size_t threadIndex);
+
     void MergeCellDataBuffers();
     void SortCellData();
-    void FindThreadWorkloadBounds();
+
+    void FindThreadWorkloadBoundsRegSort();
+    void FindThreadWorkloadBoundsThreadedSort();
 
     void GatherCollisionPairsIntoBuffer(size_t threadIndex);
     void MergeCollisionPairBuffers();
